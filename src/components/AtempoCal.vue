@@ -6,6 +6,7 @@
         <h2 class="ac-title">{{ title }}</h2>
         <div class="ac-date-range">{{ dateRangeDisplay }}</div>
       </div>
+<<<<<<< HEAD
 
       <!-- Controles de Navegación de Fechas -->
       <div class="ac-date-navigation">
@@ -40,6 +41,42 @@
       </div>
     </div>
 
+=======
+      
+      <!-- Controles de Navegación de Fechas -->
+      <div class="ac-date-navigation">
+        <button @click="navigateDate('prev')" class="ac-nav-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15,18 9,12 15,6"></polyline>
+          </svg>
+        </button>
+        <button @click="goToToday" class="ac-today-btn">Hoy</button>
+        <button @click="navigateDate('next')" class="ac-nav-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9,18 15,12 9,6"></polyline>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="ac-view-controls">
+        <button 
+          @click="changeView('week')" 
+          :class="{ active: currentView === 'week' }"
+          class="ac-view-btn"
+        >
+          Semana
+        </button>
+        <button 
+          @click="changeView('day')" 
+          :class="{ active: currentView === 'day' }"
+          class="ac-view-btn"
+        >
+          Día
+        </button>
+      </div>
+    </div>
+
+>>>>>>> 0d7eab57a75e6777b5b9c38c325c6d37ce070abc
     <!-- Vista de Semana -->
     <div v-if="currentView === 'week'" class="ac-grid ac-week-grid">
       <!-- Fila de Cabecera -->
@@ -107,7 +144,11 @@
               :key="event.id"
               class="ac-event-chip ac-event-chip-day"
               :class="`event-type-${event.type}`"
+<<<<<<< HEAD
               :style="{
+=======
+              :style="{ 
+>>>>>>> 0d7eab57a75e6777b5b9c38c325c6d37ce070abc
                 backgroundColor: event.color,
                 height: getEventHeight(event) + 'px',
                 top: getEventTopPosition(event, timeSlot.hour) + 'px'
@@ -290,7 +331,11 @@ const getEventTopPosition = (event: CalendarEvent, slotHour: number): number => 
   if (!event.startTime) return 0;
   const eventStartHour = parseInt(event.startTime.split(':')[0]);
   const eventStartMinutes = parseInt(event.startTime.split(':')[1]);
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 0d7eab57a75e6777b5b9c38c325c6d37ce070abc
   if (eventStartHour === slotHour) {
     return eventStartMinutes; // Posición en minutos desde el inicio de la hora
   }
