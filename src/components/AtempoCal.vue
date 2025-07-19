@@ -151,11 +151,13 @@ const getEventsForResource = (resourceId: string | number, isoDate: string): Cal
 /* ---------------------------------- */
 .ac-grid {
   display: grid;
-  grid-template-columns: 200px repeat(7, minmax(100px, max-content));
+  grid-template-columns: 200px repeat(7, 1fr);
   gap: 1px;
   background: var(--ac-grid-bg);
   border-radius: 8px;
   overflow: hidden; /* Clave para que los bordes redondeados afecten a los hijos */
+  width: 100%;
+  min-width: 900px; /* Ancho mínimo para mantener legibilidad */
 }
 
 .ac-grid-header {
@@ -229,6 +231,7 @@ const getEventsForResource = (resourceId: string | number, isoDate: string): Cal
   background: var(--ac-day-cell-bg);
   padding: 8px;
   min-height: 80px;
+  min-width: 0; /* Permite que el contenido se ajuste al ancho disponible */
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -249,9 +252,9 @@ const getEventsForResource = (resourceId: string | number, isoDate: string): Cal
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-wrap: break-word;
+  hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 .ac-event-chip:hover {
@@ -285,6 +288,7 @@ const getEventsForResource = (resourceId: string | number, isoDate: string): Cal
 @media (max-width: 1024px) {
   .ac-grid {
     grid-template-columns: 150px repeat(7, 1fr);
+    min-width: 750px;
   }
   .ac-resource-name {
     font-size: 0.8rem;
@@ -295,6 +299,7 @@ const getEventsForResource = (resourceId: string | number, isoDate: string): Cal
 @media (max-width: 768px) {
   .atempo-cal {
     padding: 16px;
+    overflow-x: auto; /* Permite scroll horizontal en pantallas pequeñas */
   }
   .ac-header {
     flex-direction: column;
@@ -311,6 +316,7 @@ const getEventsForResource = (resourceId: string | number, isoDate: string): Cal
   }
   .ac-grid {
     grid-template-columns: 100px repeat(7, 1fr);
+    min-width: 600px;
   }
   .ac-resource-name {
     font-size: 0.75rem;
@@ -332,6 +338,7 @@ const getEventsForResource = (resourceId: string | number, isoDate: string): Cal
 @media (max-width: 480px) {
   .ac-grid {
     grid-template-columns: 80px repeat(7, 1fr);
+    min-width: 500px;
   }
   .ac-resource-name {
     font-size: 0.7rem;
