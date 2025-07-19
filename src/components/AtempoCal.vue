@@ -6,6 +6,22 @@
         <h2 class="ac-title">{{ title }}</h2>
         <div class="ac-date-range">{{ dateRangeDisplay }}</div>
       </div>
+      
+      <!-- Controles de Navegación de Fechas -->
+      <div class="ac-date-navigation">
+        <button @click="navigateDate('prev')" class="ac-nav-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15,18 9,12 15,6"></polyline>
+          </svg>
+        </button>
+        <button @click="goToToday" class="ac-today-btn">Hoy</button>
+        <button @click="navigateDate('next')" class="ac-nav-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9,18 15,12 9,6"></polyline>
+          </svg>
+        </button>
+      </div>
+      
       <div class="ac-view-controls">
         <button 
           @click="changeView('week')" 
@@ -108,7 +124,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import atemporal from 'atemporal';
 // Asegúrate de que tus tipos se importen correctamente
 import type { CalendarEvent, Resource, DayView, CalendarView, TimeSlot } from '../types';
@@ -133,7 +149,11 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   (e: 'event-click', event: CalendarEvent): void;
   (e: 'view-change', view: CalendarView): void;
+  (e: 'date-change', date: Date): void;
 }>();
+
+// --- FECHA ACTUAL ---
+const currentDate = ref(atemporal(props.startDate));
 
 // --- VISTA ACTUAL ---
 const currentView = computed(() => props.view);
@@ -142,11 +162,36 @@ const changeView = (view: CalendarView) => {
   emit('view-change', view);
 };
 
+// --- NAVEGACIÓN DE FECHAS ---
+const navigateDate = (direction: 'prev' | 'next') => {
+  if (currentView.value === 'week') {
+    // Navegar por semanas
+    if (direction === 'prev') {
+      currentDate.value = currentDate.value.subtract(1, 'week');
+    } else {
+      currentDate.value = currentDate.value.add(1, 'week');
+    }
+  } else {
+    // Navegar por días
+    if (direction === 'prev') {
+      currentDate.value = currentDate.value.subtract(1, 'day');
+    } else {
+      currentDate.value = currentDate.value.add(1, 'day');
+    }
+  }
+  emit('date-change', currentDate.value.toDate());
+};
+
+const goToToday = () => {
+  currentDate.value = atemporal();
+  emit('date-change', currentDate.value.toDate());
+};
+
 // --- LÓGICA DE FECHAS (SIMPLIFICADA) ---
 // Ahora la lógica es más limpia, ya que no se preocupa por el `locale`.
 // Simplemente usa atemporal, que ya ha sido configurado globalmente.
 const weekView = computed((): DayView[] => {
-  const start = atemporal(props.startDate);
+  const start = currentDate.value;
   const monday = start.startOf('week');
 
   return Array.from({ length: 7 }).map((_, i) => {
@@ -165,7 +210,7 @@ const weekView = computed((): DayView[] => {
 
 // Vista de día seleccionado
 const selectedDayView = computed((): DayView => {
-  const start = atemporal(props.startDate);
+  const start = currentDate.value;
   return {
     atemporal: start,
     isoDate: start.format('YYYY-MM-DD'),
@@ -300,10 +345,13 @@ const getEventDisplayText = (event: CalendarEvent): string => {
   align-items: center;
   margin-bottom: 24px;
   padding: 0 4px;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .ac-title-section {
   flex: 1;
+  min-width: 200px;
 }
 
 .ac-title {
@@ -317,6 +365,55 @@ const getEventDisplayText = (event: CalendarEvent): string => {
   font-size: 1.125rem;
   color: var(--ac-secondary-text);
   font-weight: 500;
+}
+
+/* ---------------------------------- */
+/* ---   Navegación de Fechas     --- */
+/* ---------------------------------- */
+.ac-date-navigation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--ac-border-color);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.ac-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--ac-secondary-text);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ac-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--ac-primary-text);
+}
+
+.ac-today-btn {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--ac-secondary-text);
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.ac-today-btn:hover {
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--ac-primary-text);
 }
 
 .ac-view-controls {
@@ -570,17 +667,20 @@ const getEventDisplayText = (event: CalendarEvent): string => {
     overflow-x: auto; /* Permite scroll horizontal en pantallas pequeñas */
   }
   .ac-header {
-    flex-direction: column;
-    gap: 16px;
-    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+  .ac-title-section {
+    flex: 1 1 100%;
+    text-align: center;
+    min-width: auto;
   }
   .ac-title {
     font-size: 1.5rem;
   }
   .ac-date-range {
     font-size: 1rem;
-    width: 100%;
-    text-align: center;
   }
   .ac-week-grid {
     grid-template-columns: 100px repeat(7, 1fr);

@@ -76,6 +76,9 @@ function handleViewChange(view: CalendarView) {
   console.log('Vista cambiada a:', view);
 }
 </script>
+function handleDateChange(date: Date) {
+  console.log('Fecha cambiada a:', date);
+}
 
 <template>
   <div class="dev-container">
@@ -109,6 +112,7 @@ function handleViewChange(view: CalendarView) {
           resource-header-text="Colaboradores"
           @event-click="handleEventClick"
           @view-change="handleViewChange"
+          @date-change="handleDateChange"
       />
     </main>
   </div>
