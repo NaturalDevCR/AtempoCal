@@ -1,7 +1,31 @@
 <template>
   <div class="atempo-cal">
+    <!-- Controles de Vista -->
+    <div class="ac-header">
+      <div class="ac-title-section">
+        <h2 class="ac-title">{{ title }}</h2>
+        <div class="ac-date-range">{{ dateRangeDisplay }}</div>
+      </div>
+      <div class="ac-view-controls">
+        <button 
+          @click="changeView('week')" 
+          :class="{ active: currentView === 'week' }"
+          class="ac-view-btn"
+        >
+          Semana
+        </button>
+        <button 
+          @click="changeView('day')" 
+          :class="{ active: currentView === 'day' }"
+          class="ac-view-btn"
+        >
+          Día
+        </button>
+      </div>
+    </div>
 
-    <div class="ac-grid">
+    <!-- Vista de Semana -->
+    <div v-if="currentView === 'week'" class="ac-grid ac-week-grid">
       <!-- Fila de Cabecera -->
       <div class="ac-grid-header">
         <div class="ac-resource-header">{{ resourceHeaderText }}</div>
@@ -37,7 +61,45 @@
               :title="event.description"
               @click="$emit('event-click', event)"
           >
-            {{ event.title }}
+            {{ getEventDisplayText(event) }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vista de Día -->
+    <div v-else-if="currentView === 'day'" class="ac-grid ac-day-grid">
+      <!-- Fila de Cabecera para Vista de Día -->
+      <div class="ac-grid-header">
+        <div class="ac-time-header">Hora</div>
+        <div class="ac-day-header is-single-day">
+          <div class="ac-day-name">{{ selectedDayView.formatted.dayName }}</div>
+          <div class="ac-day-date">{{ selectedDayView.formatted.dayAndMonth }}</div>
+        </div>
+      </div>
+
+      <!-- Filas de Horarios -->
+      <div
+          v-for="timeSlot in timeSlots"
+          :key="timeSlot.hour"
+          class="ac-time-row"
+      >
+        <div class="ac-time-label">{{ timeSlot.formatted }}</div>
+        <div class="ac-time-cell">
+          <div
+              v-for="event in getEventsForTimeSlot(timeSlot.hour, selectedDayView.isoDate)"
+              :key="event.id"
+              class="ac-event-chip ac-event-chip-day"
+              :class="`event-type-${event.type}`"
+              :style="{ 
+                backgroundColor: event.color,
+                height: getEventHeight(event) + 'px',
+                top: getEventTopPosition(event, timeSlot.hour) + 'px'
+              }"
+              :title="event.description"
+              @click="$emit('event-click', event)"
+          >
+            {{ getResourceName(event.resourceId) }}
           </div>
         </div>
       </div>
@@ -49,7 +111,7 @@
 import { computed } from 'vue';
 import atemporal from 'atemporal';
 // Asegúrate de que tus tipos se importen correctamente
-import type { CalendarEvent, Resource, DayView } from '../types';
+import type { CalendarEvent, Resource, DayView, CalendarView, TimeSlot } from '../types';
 
 // --- PROPS ---
 // Se elimina la prop `locale`. El componente confía en la configuración global.
@@ -59,16 +121,26 @@ const props = withDefaults(defineProps<{
   events: CalendarEvent[];
   startDate?: Date | string;
   resourceHeaderText?: string;
+  view?: CalendarView;
 }>(), {
   title: 'Calendario de Recursos',
   startDate: () => new Date(),
   resourceHeaderText: 'Recursos',
+  view: 'week',
 });
 
 // --- EMITS ---
 const emit = defineEmits<{
   (e: 'event-click', event: CalendarEvent): void;
+  (e: 'view-change', view: CalendarView): void;
 }>();
+
+// --- VISTA ACTUAL ---
+const currentView = computed(() => props.view);
+
+const changeView = (view: CalendarView) => {
+  emit('view-change', view);
+};
 
 // --- LÓGICA DE FECHAS (SIMPLIFICADA) ---
 // Ahora la lógica es más limpia, ya que no se preocupa por el `locale`.
@@ -91,11 +163,40 @@ const weekView = computed((): DayView[] => {
   });
 });
 
+// Vista de día seleccionado
+const selectedDayView = computed((): DayView => {
+  const start = atemporal(props.startDate);
+  return {
+    atemporal: start,
+    isoDate: start.format('YYYY-MM-DD'),
+    isToday: start.isSame(atemporal(), 'day'),
+    formatted: {
+      dayName: start.format('dddd'),
+      dayAndMonth: start.format('D [de] MMMM [de] YYYY'),
+    },
+  };
+});
+
+// Slots de tiempo para vista de día (8 AM a 6 PM)
+const timeSlots = computed((): TimeSlot[] => {
+  return Array.from({ length: 11 }, (_, i) => {
+    const hour = i + 8; // Empezar desde las 8 AM
+    return {
+      hour,
+      formatted: `${hour.toString().padStart(2, '0')}:00`,
+    };
+  });
+});
+
 const dateRangeDisplay = computed((): string => {
-  if (!weekView.value.length) return '';
-  const start = weekView.value[0].atemporal;
-  const end = weekView.value[6].atemporal;
-  return `${start.format('D [de] MMMM')} - ${end.format('D [de] MMMM [de] YYYY')}`;
+  if (currentView.value === 'week') {
+    if (!weekView.value.length) return '';
+    const start = weekView.value[0].atemporal;
+    const end = weekView.value[6].atemporal;
+    return `${start.format('D [de] MMMM')} - ${end.format('D [de] MMMM [de] YYYY')}`;
+  } else {
+    return selectedDayView.value.formatted.dayAndMonth;
+  }
 });
 
 // --- LÓGICA DE EVENTOS (SIN CAMBIOS) ---
@@ -114,6 +215,51 @@ const eventsByDate = computed(() => {
 const getEventsForResource = (resourceId: string | number, isoDate: string): CalendarEvent[] => {
   const dailyEvents = eventsByDate.value.get(isoDate) || [];
   return dailyEvents.filter(event => event.resourceId === resourceId);
+};
+
+// --- LÓGICA PARA VISTA DE DÍA ---
+const getEventsForTimeSlot = (hour: number, isoDate: string): CalendarEvent[] => {
+  const dailyEvents = eventsByDate.value.get(isoDate) || [];
+  return dailyEvents.filter(event => {
+    if (!event.startTime || !event.endTime) return false;
+    const startHour = parseInt(event.startTime.split(':')[0]);
+    const endHour = parseInt(event.endTime.split(':')[0]);
+    return hour >= startHour && hour < endHour;
+  });
+};
+
+const getResourceName = (resourceId: string | number): string => {
+  const resource = props.resources.find(r => r.id === resourceId);
+  return resource?.name || 'Recurso desconocido';
+};
+
+const getEventHeight = (event: CalendarEvent): number => {
+  if (!event.startTime || !event.endTime) return 60;
+  const start = parseInt(event.startTime.split(':')[0]) + parseInt(event.startTime.split(':')[1]) / 60;
+  const end = parseInt(event.endTime.split(':')[0]) + parseInt(event.endTime.split(':')[1]) / 60;
+  const duration = end - start;
+  return Math.max(duration * 60, 30); // Mínimo 30px de altura
+};
+
+const getEventTopPosition = (event: CalendarEvent, slotHour: number): number => {
+  if (!event.startTime) return 0;
+  const eventStartHour = parseInt(event.startTime.split(':')[0]);
+  const eventStartMinutes = parseInt(event.startTime.split(':')[1]);
+  
+  if (eventStartHour === slotHour) {
+    return eventStartMinutes; // Posición en minutos desde el inicio de la hora
+  }
+  return 0;
+};
+
+const getEventDisplayText = (event: CalendarEvent): string => {
+  if (currentView.value === 'week') {
+    if (event.startTime && event.endTime) {
+      return `${event.startTime} - ${event.endTime}`;
+    }
+    return event.title;
+  }
+  return event.title;
 };
 </script>
 
@@ -145,19 +291,84 @@ const getEventsForResource = (resourceId: string | number, isoDate: string): Cal
   box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
 }
 
+/* ---------------------------------- */
+/* ---        Header Section      --- */
+/* ---------------------------------- */
+.ac-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 0 4px;
+}
+
+.ac-title-section {
+  flex: 1;
+}
+
+.ac-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--ac-primary-text);
+  margin: 0 0 8px 0;
+}
+
+.ac-date-range {
+  font-size: 1.125rem;
+  color: var(--ac-secondary-text);
+  font-weight: 500;
+}
+
+.ac-view-controls {
+  display: flex;
+  gap: 4px;
+  background: var(--ac-border-color);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.ac-view-btn {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--ac-secondary-text);
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.ac-view-btn:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.ac-view-btn.active {
+  background: white;
+  color: var(--ac-primary-text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
 
 /* ---------------------------------- */
 /* ---        Grid General        --- */
 /* ---------------------------------- */
 .ac-grid {
-  display: grid;
-  grid-template-columns: 200px repeat(7, 1fr);
   gap: 1px;
   background: var(--ac-grid-bg);
   border-radius: 8px;
   overflow: hidden; /* Clave para que los bordes redondeados afecten a los hijos */
   width: 100%;
   min-width: 900px; /* Ancho mínimo para mantener legibilidad */
+}
+
+.ac-week-grid {
+  display: grid;
+  grid-template-columns: 200px repeat(7, 1fr);
+}
+
+.ac-day-grid {
+  display: grid;
+  grid-template-columns: 100px 1fr;
 }
 
 .ac-grid-header {
@@ -182,12 +393,28 @@ const getEventsForResource = (resourceId: string | number, isoDate: string): Cal
   border-top-left-radius: 8px;
 }
 
+.ac-time-header {
+  background: var(--ac-header-bg);
+  color: var(--ac-header-text);
+  font-weight: 600;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  border-top-left-radius: 8px;
+}
+
 .ac-day-header {
   background: var(--ac-day-header-bg);
   color: var(--ac-header-text);
   padding: 12px;
   text-align: center;
   transition: background-color 0.3s ease;
+}
+
+.ac-day-header.is-single-day {
+  border-top-right-radius: 8px;
 }
 
 .ac-day-header.is-today {
@@ -216,6 +443,10 @@ const getEventsForResource = (resourceId: string | number, isoDate: string): Cal
   display: contents;
 }
 
+.ac-time-row {
+  display: contents;
+}
+
 .ac-resource-name {
   background: var(--ac-resource-name-bg);
   padding: 16px;
@@ -225,6 +456,19 @@ const getEventsForResource = (resourceId: string | number, isoDate: string): Cal
   align-items: center;
   font-size: 0.875rem;
   border-right: 2px solid var(--ac-border-color);
+}
+
+.ac-time-label {
+  background: var(--ac-resource-name-bg);
+  padding: 16px;
+  font-weight: 600;
+  color: var(--ac-primary-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  border-right: 2px solid var(--ac-border-color);
+  min-height: 80px;
 }
 
 .ac-day-cell {
@@ -238,6 +482,14 @@ const getEventsForResource = (resourceId: string | number, isoDate: string): Cal
   align-items: stretch;
 }
 
+.ac-time-cell {
+  background: var(--ac-day-cell-bg);
+  padding: 8px;
+  min-height: 80px;
+  position: relative;
+  border-bottom: 1px solid var(--ac-border-color);
+}
+
 /* ---------------------------------- */
 /* ---      Chips de Eventos      --- */
 /* ---------------------------------- */
@@ -248,13 +500,23 @@ const getEventsForResource = (resourceId: string | number, isoDate: string): Cal
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 500;
-  text-align: center;
+  text-align: center; /* Texto centrado */
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   line-height: 1.3;
   word-wrap: break-word;
   hyphens: auto;
   overflow-wrap: break-word;
+}
+
+.ac-event-chip-day {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  z-index: 1;
 }
 
 .ac-event-chip:hover {
@@ -286,11 +548,18 @@ const getEventsForResource = (resourceId: string | number, isoDate: string): Cal
 /* ---     Diseño Responsivo      --- */
 /* ---------------------------------- */
 @media (max-width: 1024px) {
-  .ac-grid {
+  .ac-week-grid {
     grid-template-columns: 150px repeat(7, 1fr);
     min-width: 750px;
   }
+  .ac-day-grid {
+    grid-template-columns: 80px 1fr;
+  }
   .ac-resource-name {
+    font-size: 0.8rem;
+    padding: 12px;
+  }
+  .ac-time-label {
     font-size: 0.8rem;
     padding: 12px;
   }
@@ -298,7 +567,6 @@ const getEventsForResource = (resourceId: string | number, isoDate: string): Cal
 
 @media (max-width: 768px) {
   .atempo-cal {
-    padding: 16px;
     overflow-x: auto; /* Permite scroll horizontal en pantallas pequeñas */
   }
   .ac-header {
@@ -314,14 +582,21 @@ const getEventsForResource = (resourceId: string | number, isoDate: string): Cal
     width: 100%;
     text-align: center;
   }
-  .ac-grid {
+  .ac-week-grid {
     grid-template-columns: 100px repeat(7, 1fr);
     min-width: 600px;
+  }
+  .ac-day-grid {
+    grid-template-columns: 60px 1fr;
   }
   .ac-resource-name {
     font-size: 0.75rem;
     padding: 8px;
     word-break: break-word;
+  }
+  .ac-time-label {
+    font-size: 0.75rem;
+    padding: 8px;
   }
   .ac-day-name {
     font-size: 0.7rem; /* Mon -> L */
@@ -336,11 +611,18 @@ const getEventsForResource = (resourceId: string | number, isoDate: string): Cal
 }
 
 @media (max-width: 480px) {
-  .ac-grid {
+  .ac-week-grid {
     grid-template-columns: 80px repeat(7, 1fr);
     min-width: 500px;
   }
+  .ac-day-grid {
+    grid-template-columns: 50px 1fr;
+  }
   .ac-resource-name {
+    font-size: 0.7rem;
+    padding: 6px;
+  }
+  .ac-time-label {
     font-size: 0.7rem;
     padding: 6px;
   }

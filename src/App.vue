@@ -3,13 +3,16 @@
 import { ref } from 'vue';
 // ¡Importa tu componente localmente!
 import AtempoCal from './components/AtempoCal.vue';
-import type { CalendarEvent, Resource } from './types'; // Es una buena práctica definir y exportar los tipos
+import type { CalendarEvent, Resource, CalendarView } from './types'; // Es una buena práctica definir y exportar los tipos
 import atemporal from 'atemporal'; // Importa el objeto principal
 
 // --- CONFIGURACIÓN GLOBAL DE ATEMPORAL ---
 // ¡Hazlo aquí, una sola vez!
 // TypeScript ahora buscará `setDefaultLocale` en el objeto `atemporal` y lo encontrará.
 atemporal.setDefaultLocale('es');
+
+// --- VISTA DEL CALENDARIO ---
+const currentView = ref<CalendarView>('week');
 
 // --- DATOS DE PRUEBA ---
 // Simula los datos que un usuario final le pasaría a tu componente.
@@ -25,31 +28,39 @@ const events = ref<CalendarEvent[]>([
     id: 1,
     resourceId: 'res-1',
     date: '2025-07-21',
-    title: '08:00am - 02:00pm',
+    title: 'Proyecto Aries',
     description: 'Inicio del proyecto "Aries".',
-    color: '#f59e0b' // Naranja
+    color: '#f59e0b', // Naranja
+    startTime: '08:00',
+    endTime: '14:00'
   },
   {
     id: 2,
     resourceId: 'res-3',
     date: '2025-07-21',
-    title: 'Bloque de código',
+    title: 'Desarrollo API',
     description: 'Desarrollo de la nueva API.',
     type: 'focus', // Usará el estilo CSS para .event-type-focus
+    startTime: '09:00',
+    endTime: '12:00'
   },
   {
     id: 3,
     resourceId: 'res-2',
     date: '2025-07-23',
-    title: 'Grabación Podcast',
-    color: '#6366f1' // Índigo
+    title: 'Podcast Recording',
+    color: '#6366f1', // Índigo
+    startTime: '10:00',
+    endTime: '11:30'
   },
   {
     id: 4,
-    resourceId: 'res-1',
+    resourceId: 'res-4',
     date: '2025-07-23',
-    title: 'Entrevista a candidato',
-    type: 'urgent' // Usará el estilo CSS para .event-type-urgent
+    title: 'Presentación Cliente',
+    type: 'urgent', // Usará el estilo CSS para .event-type-urgent
+    startTime: '15:00',
+    endTime: '17:00'
   }
 ]);
 
@@ -59,6 +70,11 @@ function handleEventClick(event: CalendarEvent) {
   console.log('Evento clickeado:', event);
   alert(`Has hecho clic en el evento: "${event.title}"`);
 }
+
+function handleViewChange(view: CalendarView) {
+  currentView.value = view;
+  console.log('Vista cambiada a:', view);
+}
 </script>
 
 <template>
@@ -66,15 +82,33 @@ function handleEventClick(event: CalendarEvent) {
     <header>
       <h1>Entorno de Desarrollo de <code>AtempoCal</code></h1>
       <p>Esta es tu área de pruebas. Cualquier cambio que hagas en <code>AtempoCal.vue</code> se reflejará aquí al instante.</p>
+      
+      <!-- Controles de vista -->
+      <div class="view-controls">
+        <button 
+          @click="currentView = 'week'" 
+          :class="{ active: currentView === 'week' }"
+        >
+          Vista Semana
+        </button>
+        <button 
+          @click="currentView = 'day'" 
+          :class="{ active: currentView === 'day' }"
+        >
+          Vista Día
+        </button>
+      </div>
     </header>
     <main>
       <AtempoCal
           :resources="resources"
           :events="events"
           :start-date="new Date('2025-07-22')"
+          :view="currentView"
           title="Agenda de Recursos Internos"
           resource-header-text="Colaboradores"
           @event-click="handleEventClick"
+          @view-change="handleViewChange"
       />
     </main>
   </div>
@@ -101,5 +135,30 @@ body {
   background-color: #e2e8f0;
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
+}
+
+.view-controls {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.view-controls button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #cbd5e1;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-controls button:hover {
+  background: #f1f5f9;
+}
+
+.view-controls button.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
 }
 </style>
