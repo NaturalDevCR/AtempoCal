@@ -77,11 +77,7 @@ function handleViewChange(view: CalendarView) {
 }
 </script>
 function handleDateChange(date: Date) {
-<<<<<<< HEAD
 console.log('Fecha cambiada a:', date);
-=======
-  console.log('Fecha cambiada a:', date);
->>>>>>> 0d7eab57a75e6777b5b9c38c325c6d37ce070abc
 }
 
 <template>
@@ -89,7 +85,6 @@ console.log('Fecha cambiada a:', date);
     <header>
       <h1>Entorno de Desarrollo de <code>AtempoCal</code></h1>
       <p>Esta es tu área de pruebas. Cualquier cambio que hagas en <code>AtempoCal.vue</code> se reflejará aquí al instante.</p>
-<<<<<<< HEAD
 
       <!-- Controles de vista -->
       <div class="view-controls">
@@ -102,20 +97,6 @@ console.log('Fecha cambiada a:', date);
         <button
             @click="currentView = 'day'"
             :class="{ active: currentView === 'day' }"
-=======
-      
-      <!-- Controles de vista -->
-      <div class="view-controls">
-        <button 
-          @click="currentView = 'week'" 
-          :class="{ active: currentView === 'week' }"
-        >
-          Vista Semana
-        </button>
-        <button 
-          @click="currentView = 'day'" 
-          :class="{ active: currentView === 'day' }"
->>>>>>> 0d7eab57a75e6777b5b9c38c325c6d37ce070abc
         >
           Vista Día
         </button>
