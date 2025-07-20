@@ -1,7 +1,7 @@
 {
   "name": "atempo-cal",
-  "private": false,
   "version": "0.1.0",
+  "description": "A simple Resource Calendar for Vue 3",
   "type": "module",
   "main": "./dist/atempo-cal.umd.js",
   "module": "./dist/atempo-cal.es.js",
