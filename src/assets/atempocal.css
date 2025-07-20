@@ -1,0 +1,424 @@
+/* ================================== */
+/* ---        CSS Variables       --- */
+/* ================================== */
+.atempo-cal {
+  /* --- Light Theme (Default) --- */
+  --ac-bg: #ffffff;
+  --ac-border-color: #e2e8f0;
+  --ac-grid-bg: #e2e8f0;
+  --ac-primary-text: #1e293b;
+  --ac-secondary-text: #64748b;
+  --ac-header-bg: #ffffff;
+  --ac-day-header-bg: #f8fafc;
+  --ac-resource-name-bg: #f8fafc;
+  --ac-day-cell-bg: #ffffff;
+  --ac-today-indicator: #f59e0b;
+  --ac-event-default-bg: #64748b;
+  --ac-event-default-text: #ffffff;
+  --ac-hour-height: 60px;
+  --calendar-header-title-font-size: 1.25rem;
+
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  background: var(--ac-bg);
+  border: 1px solid var(--ac-border-color);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* --- Dark Theme --- */
+.atempo-cal--dark {
+  --ac-bg: #0f172a;
+  --ac-border-color: #334155;
+  --ac-grid-bg: #334155;
+  --ac-primary-text: #f1f5f9;
+  --ac-secondary-text: #94a3b8;
+  --ac-header-bg: #0f172a;
+  --ac-day-header-bg: #1e293b;
+  --ac-resource-name-bg: #1e293b;
+  --ac-day-cell-bg: #1e293b;
+}
+.atempo-cal--dark .atempo-cal__btn {
+  color: var(--ac-secondary-text);
+}
+.atempo-cal--dark .atempo-cal__date-navigation,
+.atempo-cal--dark .atempo-cal__view-controls {
+  background: #1e293b;
+}
+.atempo-cal--dark .atempo-cal__btn:hover {
+  background: #334155;
+  color: var(--ac-primary-text);
+}
+.atempo-cal--dark .atempo-cal__btn--active {
+  background: #475569;
+  color: var(--ac-primary-text);
+}
+
+/* ================================== */
+/* ---        Header              --- */
+/* ================================== */
+.atempo-cal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--ac-border-color);
+}
+
+.atempo-cal__title-section {
+  flex: 1;
+  min-width: 200px;
+}
+
+.atempo-cal__title {
+  font-size: var(--calendar-header-title-font-size);
+  font-weight: 700;
+  color: var(--ac-primary-text);
+  margin: 0 0 4px 0;
+}
+
+.atempo-cal__date-range {
+  font-size: 1.125rem;
+  color: var(--ac-secondary-text);
+  font-weight: 500;
+}
+
+/* ================================== */
+/* ---   Navigation & Controls    --- */
+/* ================================== */
+.atempo-cal__controls-group {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.atempo-cal__date-navigation, .atempo-cal__view-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.atempo-cal__btn {
+  border: none;
+  background: transparent;
+  color: var(--ac-secondary-text);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.atempo-cal__btn--nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.atempo-cal__btn--today, .atempo-cal__btn--view {
+  padding: 8px 16px;
+  white-space: nowrap;
+}
+
+.atempo-cal__btn:hover {
+  background: #ffffff;
+  color: var(--ac-primary-text);
+}
+
+.atempo-cal__btn--active {
+  background: white;
+  color: var(--ac-primary-text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.atempo-cal__btn--time-format {
+  width: 60px;
+  text-align: center;
+}
+
+/* ================================== */
+/* ---        General Grid        --- */
+/* ================================== */
+.atempo-cal__grid {
+  overflow: hidden;
+  width: 100%;
+  border-top: 1px solid var(--ac-border-color);
+}
+
+.atempo-cal__grid-header {
+  display: contents;
+}
+
+.atempo-cal__resource-header, .atempo-cal__time-header {
+  background: var(--ac-day-header-bg);
+  color: var(--ac-primary-text);
+  font-weight: 600;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.atempo-cal__day-header {
+  background: var(--ac-day-header-bg);
+  color: var(--ac-primary-text);
+  padding: 12px;
+  text-align: center;
+}
+
+.atempo-cal__day-header--is-today {
+  background: var(--ac-today-indicator);
+  color: white;
+  font-weight: 700;
+}
+
+.atempo-cal__day-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.atempo-cal__day-date {
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+/* ================================== */
+/* ---         Week View          --- */
+/* ================================== */
+.atempo-cal__grid--week {
+  display: grid;
+  grid-template-columns: 200px repeat(7, 1fr);
+  gap: 1px;
+  background: var(--ac-grid-bg);
+  min-width: 900px;
+}
+
+.atempo-cal__resource-row { display: contents; }
+
+.atempo-cal__resource-name {
+  background: var(--ac-resource-name-bg);
+  padding: 16px;
+  font-weight: 600;
+  color: var(--ac-primary-text);
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.atempo-cal__day-cell {
+  background: var(--ac-day-cell-bg);
+  padding: 8px;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ================================== */
+/* ---          Day View          --- */
+/* ================================== */
+.atempo-cal__grid--day {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 600px;
+  --ac-time-col-width: 100px;
+}
+
+.atempo-cal__grid-header--day {
+  display: grid;
+  grid-template-columns: var(--ac-time-col-width) 1fr;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.atempo-cal__day-grid-body {
+  display: flex;
+  max-height: 720px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.atempo-cal__time-labels-col {
+  flex-shrink: 0;
+  width: var(--ac-time-col-width);
+  background: var(--ac-resource-name-bg);
+  z-index: 2;
+  position: sticky;
+  left: 0;
+}
+
+.atempo-cal__time-label {
+  height: var(--ac-hour-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  color: var(--ac-secondary-text);
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--ac-border-color);
+  box-sizing: border-box;
+}
+
+.atempo-cal__day-grid-shadow {
+  position: sticky;
+  left: var(--ac-time-col-width);
+  width: 0;
+  box-shadow: 4px 0 12px -2px rgba(0, 0, 0, 0.1);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.atempo-cal__events-col {
+  flex-grow: 1;
+  position: relative;
+  background-color: var(--ac-day-cell-bg);
+  background-image: linear-gradient(to bottom, var(--ac-border-color) 1px, transparent 1px);
+  background-size: 100% var(--ac-hour-height);
+  min-height: calc(var(--ac-hour-height) * 24);
+}
+
+/* ================================== */
+/* ---        Event Chips         --- */
+/* ================================== */
+.atempo-cal__event-chip {
+  background: var(--ac-event-default-bg);
+  color: var(--ac-event-default-text);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.atempo-cal__event-chip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2);
+  filter: brightness(1.1);
+}
+
+.atempo-cal__event-chip--day {
+  position: absolute;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  box-sizing: border-box;
+  border: 1px solid rgba(0,0,0,0.1);
+  color: #ffffff;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.atempo-cal__event-content {
+  flex-grow: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.atempo-cal__event-chip--day strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  line-height: 1.4;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.atempo-cal__event-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.85em;
+  opacity: 0.95;
+  flex-shrink: 0;
+}
+
+.atempo-cal__event-time {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.atempo-cal__event-duration {
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.atempo-cal__event-chip--is-short .atempo-cal__event-footer {
+  display: none;
+}
+
+.atempo-cal__event-chip--training { background: #8b5cf6; }
+.atempo-cal__event-chip--focus { background: #10b981; }
+.atempo-cal__event-chip--meeting { background: #06b6d4; }
+.atempo-cal__event-chip--urgent { background: #ef4444; }
+
+/* ================================== */
+/* ---     Responsive Design      --- */
+/* ================================== */
+@media (max-width: 1024px) {
+  .atempo-cal__grid--week {
+    grid-template-columns: 150px repeat(7, 1fr);
+    min-width: 750px;
+  }
+  .atempo-cal__grid--day {
+    min-width: 500px;
+    --ac-time-col-width: 80px;
+  }
+}
+
+@media (max-width: 768px) {
+  .atempo-cal { overflow-x: auto; }
+  .atempo-cal__header { flex-direction: column; align-items: stretch; text-align: center; }
+  .atempo-cal__controls-group { justify-content: center; }
+  .atempo-cal__grid--week { grid-template-columns: 100px repeat(7, 1fr); min-width: 600px; }
+  .atempo-cal__grid--day {
+    min-width: 400px;
+    --ac-time-col-width: 60px;
+  }
+  .atempo-cal__day-name { font-size: 0.7rem; }
+  .atempo-cal__day-date { font-size: 0.65rem; }
+  .atempo-cal__event-chip { font-size: 0.7rem; padding: 4px 8px; }
+}
