@@ -6,7 +6,7 @@ import dts from 'vite-plugin-dts';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
-  // Configuración común para ambos modos
+  // Common configuration for both modes
   const commonConfig = {
     plugins: [
       vue(),
@@ -15,25 +15,31 @@ export default defineConfig(({ command }) => {
   };
 
   if (command === 'serve') {
-    // --- CONFIGURACIÓN PARA DESARROLLO (npm run dev) ---
-    // No necesita la configuración de 'build.lib'. Vite usará
-    // el `index.html` de la raíz por defecto.
+    // --- DEVELOPMENT CONFIGURATION (npm run dev) ---
+    // It doesn't need the 'build.lib' configuration. Vite will
+    // use the `index.html` from the root by default.
     return {
       ...commonConfig,
     };
   } else {
-    // --- CONFIGURACIÓN PARA PRODUCCIÓN (npm run build) ---
+    // --- PRODUCTION CONFIGURATION (npm run build) ---
     return {
       ...commonConfig,
       build: {
         lib: {
+          // The entry point for the library build.
           entry: resolve(__dirname, 'src/index.ts'),
+          // The name for the global variable in UMD build.
           name: 'AtempoCal',
-          fileName: (format) => `atempo-cal.${format}.js`,
+          // The file name for the generated bundles.
+          fileName: (format: string) => `atempo-cal.${format}.js`,
         },
         rollupOptions: {
+          // Externalize dependencies that shouldn't be bundled.
           external: ['vue', 'atemporal'],
           output: {
+            // Provide global variables to use in the UMD build
+            // for externalized deps.
             globals: {
               vue: 'Vue',
               atemporal: 'Atemporal',

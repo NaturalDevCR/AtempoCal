@@ -1,17 +1,31 @@
 {
   "name": "atempo-cal",
-  "author": "Josue Orozco A.",
+  "version": "0.1.1",
+  "private": false,
+  "description": "A flexible and resource-centric calendar component for Vue 3, designed for planning and scheduling tasks.",
+  "author": "Your Name <your.email@example.com>",
   "license": "MIT",
-  "version": "0.1.0",
-  "description": "A simple Resource Calendar for Vue 3",
+  "homepage": "https://github.com/NaturalDevCR/atempo-cal#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NaturalDevCR/atempo-cal.git"
+  },
+  "bugs": {
+    "url": "https://github.com/NaturalDevCR/atempo-cal/issues"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "component",
+    "calendar",
+    "scheduler",
+    "resource planner",
+    "atemporal"
+  ],
   "type": "module",
   "main": "./dist/atempo-cal.umd.js",
   "module": "./dist/atempo-cal.es.js",
   "types": "./dist/index.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/NaturalDevCR/AtempoCal.git"
-  },
   "exports": {
     ".": {
       "import": "./dist/atempo-cal.es.js",
@@ -19,21 +33,24 @@
     },
     "./dist/style.css": "./dist/style.css"
   },
-  "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc && vite build",
-    "preview": "vite preview"
-  },
   "files": [
     "dist"
   ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "publish": "npm run build && npm publish"
+  },
   "dependencies": {
     "atemporal": "^0.1.0",
-    "vue": "^3.5.17"
+    "vue": "^3.4.21"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.0",
-    "vite": "^7.0.4",
-    "vite-plugin-dts": "^4.5.4"
+    "@vitejs/plugin-vue": "^5.0.4",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.0",
+    "vite-plugin-dts": "^3.9.1",
+    "vue-tsc": "^2.0.13"
   }
 }

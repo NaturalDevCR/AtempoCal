@@ -94,14 +94,14 @@
               v-for="event in processedDayEvents"
               :key="event.id"
               class="atempo-cal__event-chip atempo-cal__event-chip--day"
-              :class="{ [`atempo-cal__event-chip--${event.type}`]: !!event.type, 'atempo-cal__event-chip--is-short': event.layout.height < 45 }"
+              :class="{ [`atempo-cal__event-chip--${event.type}`]: !!event.type, 'atempo-cal__event-chip--is-short': event.layout!.height < 45 }"
               :style="{
-                top: event.layout.top + 'px',
-                height: event.layout.height + 'px',
-                left: `${event.layout.left}%`,
-                width: `${event.layout.width}%`,
+                top: event.layout?.top + 'px',
+                height: event.layout?.height + 'px',
+                left: `${event.layout?.left}%`,
+                width: `${event.layout?.width}%`,
                 backgroundColor: event.color,
-                zIndex: event.layout.zIndex
+                zIndex: event.layout?.zIndex
               }"
               :title="event.title"
               @click="handleEventClick(event)"
@@ -124,7 +124,7 @@
 import { computed, ref, watch, nextTick, onMounted } from 'vue';
 import atemporal from 'atemporal';
 import type { CalendarEvent, Resource, DayView, CalendarView, TimeSlot, TimeFormat } from '../types';
-import { getEventDurationText, processDayEvents as processDayEventsHelper, formatTime } from '../helpers';
+import { getEventDurationText, processDayEvents, formatTime } from '../helpers';
 import '../assets/atempocal.css';
 
 // --- CONSTANTS ---
@@ -166,7 +166,7 @@ const currentView = computed(() => props.view);
 const dayGridBody = ref<HTMLElement | null>(null);
 const timeFormat = ref<TimeFormat>('24h');
 
-// --- LIFECYYCLE ---
+// --- LIFECYCLE ---
 onMounted(() => {
   const storedFormat = localStorage.getItem('atempo-cal-time-format') as TimeFormat | null;
   if (storedFormat && ['12h', '24h'].includes(storedFormat)) {
@@ -205,7 +205,7 @@ const weekView = computed((): DayView[] => {
 });
 
 const selectedDayView = computed((): DayView => {
-  const day = currentDate.value;
+  const day = atemporal(currentDate.value);
   return {
     atemporal: day,
     isoDate: day.format('YYYY-MM-DD'),
@@ -229,7 +229,7 @@ const timeSlots = computed((): TimeSlot[] => {
       month: baseDay.month,
       day: baseDay.day,
       hour: hour,
-      timeZone: baseDay.timeZone.id,
+      timeZone: baseDay.timeZone,
     }).toDate();
     return { hour, formatted: formatTime(date, timeFormat.value) };
   });
@@ -304,7 +304,7 @@ const handleEventClick = (event: CalendarEvent) => {
 // --- ADVANCED DAY VIEW LOGIC ---
 const processedDayEvents = computed(() => {
   const dayEvents = eventsByDate.value.get(selectedDayView.value.isoDate) || [];
-  return processDayEventsHelper(
+  return processDayEvents(
     dayEvents,
     DAY_VIEW_START_HOUR,
     MINUTE_HEIGHT_PX,
@@ -319,9 +319,9 @@ const scrollToFirstEvent = () => {
     return;
   }
   const firstEvent = processedDayEvents.value.reduce((earliest, current) =>
-    current.start < earliest.start ? current : earliest
+    current.start! < earliest.start! ? current : earliest
   );
-  const targetHour = Math.floor(firstEvent.start / 60);
+  const targetHour = Math.floor(firstEvent.start! / 60);
   const scrollTop = Math.max(0, (targetHour - 1) * HOUR_HEIGHT_PX);
   dayGridBody.value.scrollTo({ top: scrollTop, behavior: 'smooth' });
 };
