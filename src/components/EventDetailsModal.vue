@@ -65,9 +65,9 @@ const emit = defineEmits<{
 const close = () => emit('close');
 
 const formattedTimeRange = computed(() => {
-  if (!props.event.startTime || !props.event.endTime) return '';
-  const start = formatTime(props.event.startTime, props.timeFormat);
-  const end = formatTime(props.event.endTime, props.timeFormat);
+  if (!props.event.from || !props.event.to) return '';
+  const start = formatTime(props.event.from, props.timeFormat);
+  const end = formatTime(props.event.to, props.timeFormat);
   return `${start} - ${end}`;
 });
 

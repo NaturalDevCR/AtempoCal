@@ -21,9 +21,9 @@ export function formatTime(date: Date | string, format: TimeFormat): string {
  * @returns Duration string (e.g., "1h 30m").
  */
 export function getEventDurationText(event: CalendarEvent): string {
-  if (!event.startTime || !event.endTime) return '';
-  const start = atemporal(event.startTime);
-  const end = atemporal(event.endTime);
+  if (!event.from || !event.to) return '';
+  const start = atemporal(event.from);
+  const end = atemporal(event.to);
   const diffMinutes = end.diff(start, 'minutes');
   const hours = Math.floor(diffMinutes / 60);
   const minutes = diffMinutes % 60;
@@ -57,9 +57,9 @@ export function processDayEvents(
   // 1. Add start and end minutes (from midnight) to each event
   const eventsWithMinutes = dayEvents
     .map(event => {
-      if (!event.startTime || !event.endTime) return null;
-      const start = atemporal(event.startTime);
-      const end = atemporal(event.endTime);
+      if (!event.from || !event.to) return null;
+      const start = atemporal(event.from);
+      const end = atemporal(event.to);
       return {
         ...event,
         start: start.hour * 60 + start.minute,

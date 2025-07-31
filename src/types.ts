@@ -9,6 +9,7 @@ export interface CalendarEvent {
   from?: Date | string; // Antes era startTime
   to?: Date | string;   // Antes era endTime
   description?: string;
+  location?: string;    // Nueva propiedad para ubicación
   
   // Los siguientes campos se agregan internamente por el componente
   resourceId?: string | number;
