@@ -6,6 +6,9 @@ A flexible and resource-centric calendar component for Vue 3, designed for plann
 
 - **Resource-based View**: Organizes events by resources (e.g., people, rooms, equipment).
 - **Multiple Views**: Switch between a full week view and a detailed day view.
+- **Scrollable Resources**: Week view now supports scrollable resource rows for better handling of many resources.
+- **Autonomous Operation**: Works without external state management while still supporting controlled mode.
+- **Configurable Dimensions**: Set custom height and width through styleOptions.
 - **Timezone Aware**: Built on `atemporal` for reliable date/time logic.
 - **Customizable**: Use slots to customize rendering and CSS variables for theming.
 - **TypeScript Support**: Fully typed for a better development experience.
@@ -26,10 +29,8 @@ You can register AtempoCal as a global plugin or import it directly into your co
 Register the component globally in your main application file.
 
 ```typescript
-import { createApp } from 'vue';
-import App from './App.vue';
 import { AtempoCalPlugin } from 'atempo-cal'; // ✅ Corrección aquí
-import 'atempo-cal/dist/style.css'; // Import the CSS
+import 'atempo-cal/style.css';
 
 const app = createApp(App);
 app.use(AtempoCalPlugin);
@@ -65,16 +66,27 @@ const resources = ref&lt;Resource[]&gt;([
 | ------------------------- | ------------------------- | ----------------------------- | --------------------------------------------------------------------------- |
 | `title`                   | `string`                  | `'Internal Resource Planner'` | The main title displayed in the calendar header.                            |
 | `resources`               | `Resource[]`              | `[]`                          | An array of resource objects, each containing its events. Required.         |
-| `startDate`               | `Date \| string`          | `new Date()`                  | The initial date the calendar will display.                                 |
+| `startDate`               | `Date \| string`          | `atemporal().toDate()`        | The initial date the calendar will display. Defaults to current date.       |
 | `resourceHeaderText`      | `string`                  | `'Resources'`                 | The text for the header of the resource column.                             |
-| `view`                    | `'week' \| 'day'`         | `'week'`                      | The current view of the calendar. Can be controlled externally.             |
-| `dayViewItemWidthPercent` | `number`                  | `95`                          | The width percentage for overlapping events in the day view.                |
+| `view`                    | `'week' \| 'day'`         | `'week'`                      | The current view of the calendar. If not provided, managed internally.      |
+| `styleOptions`            | `object`                  | See below                     | Styling options for the calendar component.                                 |
+| `darkMode`                | `boolean`                 | `false`                       | Enables dark mode styling for the calendar.                                 |
+
+#### styleOptions Object
+
+```typescript
+interface StyleOptions {
+  height?: string;            // Default: 'auto' (min height for 3 resources)
+  width?: string;            // Default: '100%'
+  dayViewItemWidthPercent?: number; // Default: 95
+}
+```
 
 ### Events
 
 | Event           | Payload                               | Description                                                              |
 | --------------- | ------------------------------------- | ------------------------------------------------------------------------ |
-| `view-change`   | `(view: 'week' \| 'day')`             | Emitted when the user changes the view (e.g., clicks 'Week' or 'Day').   |
+| `view-change`   | `(view: 'week' \| 'day')`             | Emitted when the user changes the view (e.g., clicks 'Week' or 'Day'). Only emitted when the `view` prop is provided.   |
 | `date-change`   | `(date: Date)`                        | Emitted when the user navigates to a new date period (next/prev/today).  |
 | `event-click`   | `(event: CalendarEvent)`              | Emitted when a user clicks on an event chip. The payload is the full event object. |
 

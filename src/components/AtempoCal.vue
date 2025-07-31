@@ -1,5 +1,10 @@
 <template>
-  <div class="atempo-cal">
+  <div class="atempo-cal" 
+       :class="{ 'atempo-cal--dark': darkMode }" 
+       :style="{
+         width: props.styleOptions?.width || '100%',
+         height: props.styleOptions?.height || 'auto'
+       }">
     <!-- Header: Title, Date Navigation, and View Controls -->
     <div class="atempo-cal__header">
       <slot name="header-title">
@@ -50,23 +55,40 @@
         </div>
       </div>
 
-      <div v-for="resource in resourcesWithColors" :key="resource.id" class="atempo-cal__resource-row">
-        <div class="atempo-cal__resource-name">
-          <slot name="resource-label" :resource="resource">
-            {{ resource.name }}
-          </slot>
-        </div>
-        <div v-for="day in weekView" :key="`${resource.id}-${day.isoDate}`" class="atempo-cal__day-cell">
-          <div
-              v-for="event in getEventsForDay(resource.events, day.isoDate)"
-              :key="event.id"
-              class="atempo-cal__event-chip"
-              :class="`atempo-cal__event-chip--${event.type}`"
-              :style="{ backgroundColor: resource.color }"
-              :title="event.title"
-              @click="handleEventClick({ ...event, resourceId: resource.id, resourceName: resource.name, color: resource.color })"
-          >
-            {{ getEventDisplayText(event) }}
+      <div class="atempo-cal__week-grid-body">
+        <div v-for="resource in resourcesWithColors" :key="resource.id" class="atempo-cal__resource-row">
+          <div class="atempo-cal__resource-name">
+            <slot name="resource-label" :resource="resource">
+              {{ resource.name }}
+            </slot>
+          </div>
+          <div v-for="day in weekView" :key="`${resource.id}-${day.isoDate}`" 
+               class="atempo-cal__day-cell atempo-cal__day-cell--hoverable"
+               @mouseenter="handleCellHover(String(resource.id), day.isoDate, true)"
+               @mouseleave="handleCellHover(String(resource.id), day.isoDate, false)">
+            <!-- Add Event Button -->
+            <button 
+              v-if="hoveredCell?.resourceId === String(resource.id) && hoveredCell?.date === day.isoDate"
+              class="atempo-cal__add-event-btn"
+              @click="handleAddEvent(String(resource.id), day.isoDate)"
+              title="Add Event">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+            
+            <!-- Existing Events -->
+            <div
+                v-for="event in getEventsForDay(resource.events, day.isoDate)"
+                :key="event.id"
+                class="atempo-cal__event-chip"
+                :class="`atempo-cal__event-chip--${event.type}`"
+                :style="{ backgroundColor: resource.color }"
+                :title="event.title"
+                @click="handleEventClick({ ...event, resourceId: String(resource.id), resourceName: resource.name, color: resource.color })">
+              {{ getEventDisplayText(event) }}
+            </div>
           </div>
         </div>
       </div>
@@ -109,7 +131,7 @@
             <div class="atempo-cal__event-content">
               <strong>{{ event.resourceName }}</strong>
             </div>
-            <div v-if="event.startTime && event.endTime" class="atempo-cal__event-footer">
+            <div v-if="event.from && event.to" class="atempo-cal__event-footer">
               <span class="atempo-cal__event-time">{{ getFormattedEventTimeRange(event) }}</span>
               <span class="atempo-cal__event-duration">{{ getEventDurationText(event) }}</span>
             </div>
@@ -144,13 +166,23 @@ const props = withDefaults(defineProps<{
   startDate?: Date | string;
   resourceHeaderText?: string;
   view?: CalendarView;
-  dayViewItemWidthPercent?: number;
+  styleOptions?: {
+    height?: string;
+    width?: string;
+    dayViewItemWidthPercent?: number;
+  };
+  darkMode?: boolean;
 }>(), {
   title: 'Internal Resource Planner',
-  startDate: () => new Date(),
+  startDate: () => atemporal().toDate(),
   resourceHeaderText: 'Resources',
   view: 'week',
-  dayViewItemWidthPercent: 95,
+  styleOptions: () => ({
+    height: 'auto',
+    width: '100%',
+    dayViewItemWidthPercent: 95
+  }),
+  darkMode: false,
 });
 
 // --- EMITS ---
@@ -158,13 +190,18 @@ const emit = defineEmits<{
   (e: 'view-change', view: CalendarView): void;
   (e: 'date-change', date: Date): void;
   (e: 'event-click', event: CalendarEvent): void;
+  (e: 'add-event', data: { resourceId: string; date: string; resourceName: string }): void;
 }>();
 
 // --- STATE ---
 const currentDate = ref(atemporal(props.startDate));
-const currentView = computed(() => props.view);
+const internalView = ref<CalendarView>(props.view);
+const currentView = computed(() => props.view !== undefined ? props.view : internalView.value);
 const dayGridBody = ref<HTMLElement | null>(null);
 const timeFormat = ref<TimeFormat>('24h');
+
+// Add hover state for cells
+const hoveredCell = ref<{ resourceId: string; date: string } | null>(null);
 
 // --- LIFECYCLE ---
 onMounted(() => {
@@ -175,16 +212,28 @@ onMounted(() => {
 });
 
 // --- NAVIGATION & CONTROLS ---
-const changeView = (view: CalendarView) => emit('view-change', view);
+// Cambio: Modificar changeView para actualizar el estado interno si no hay prop externo
+const changeView = (view: CalendarView) => {
+  if (props.view !== undefined) {
+    // Si hay un prop externo, emitir el evento para que el componente padre actualice
+    emit('view-change', view);
+  } else {
+    // Si no hay prop externo, actualizar el estado interno
+    internalView.value = view;
+  }
+};
+
 const navigateDate = (direction: 'prev' | 'next') => {
   const unit = currentView.value === 'week' ? 'week' : 'day';
   currentDate.value = direction === 'prev' ? currentDate.value.subtract(1, unit) : currentDate.value.add(1, unit);
   emit('date-change', currentDate.value.toDate());
 };
+
 const goToToday = () => {
   currentDate.value = atemporal();
   emit('date-change', currentDate.value.toDate());
 };
+
 const toggleTimeFormat = () => {
   timeFormat.value = timeFormat.value === '24h' ? '12h' : '24h';
   localStorage.setItem('atempo-cal-time-format', timeFormat.value);
@@ -268,8 +317,8 @@ const allEvents = computed((): CalendarEvent[] => {
 const eventsByDate = computed(() => {
   const map = new Map<string, CalendarEvent[]>();
   for (const event of allEvents.value) {
-    if (!event.startTime) continue;
-    const eventDate = atemporal(event.startTime).format('YYYY-MM-DD');
+    if (!event.from) continue;
+    const eventDate = atemporal(event.from).format('YYYY-MM-DD');
     if (!map.has(eventDate)) map.set(eventDate, []);
     map.get(eventDate)?.push(event);
   }
@@ -278,20 +327,20 @@ const eventsByDate = computed(() => {
 
 const getEventsForDay = (events: Omit<CalendarEvent, 'resourceId' | 'resourceName'>[], isoDate: string): Omit<CalendarEvent, 'resourceId' | 'resourceName'>[] => {
   return events.filter(event => {
-    if (!event.startTime) return false;
-    return atemporal(event.startTime).format('YYYY-MM-DD') === isoDate;
+    if (!event.from) return false;
+    return atemporal(event.from).format('YYYY-MM-DD') === isoDate;
   });
 };
 
 const getFormattedEventTimeRange = (event: CalendarEvent): string => {
-  if (!event.startTime || !event.endTime) return '';
-  const start = formatTime(event.startTime, timeFormat.value);
-  const end = formatTime(event.endTime, timeFormat.value);
+  if (!event.from || !event.to) return '';
+  const start = formatTime(event.from, timeFormat.value);
+  const end = formatTime(event.to, timeFormat.value);
   return `${start} - ${end}`;
 };
 
 const getEventDisplayText = (event: CalendarEvent): string => {
-  if (currentView.value === 'week' && event.startTime && event.endTime) {
+  if (currentView.value === 'week' && event.from && event.to) {
     return getFormattedEventTimeRange(event);
   }
   return event.title;
@@ -308,7 +357,7 @@ const processedDayEvents = computed(() => {
     dayEvents,
     DAY_VIEW_START_HOUR,
     MINUTE_HEIGHT_PX,
-    props.dayViewItemWidthPercent
+    props.styleOptions?.dayViewItemWidthPercent || 95
   );
 });
 
@@ -324,6 +373,36 @@ const scrollToFirstEvent = () => {
   const targetHour = Math.floor(firstEvent.start! / 60);
   const scrollTop = Math.max(0, (targetHour - 1) * HOUR_HEIGHT_PX);
   dayGridBody.value.scrollTo({ top: scrollTop, behavior: 'smooth' });
+};
+
+/**
+ * Handle cell hover state for showing add event button
+ * @param resourceId - The resource ID
+ * @param date - The date in ISO format
+ * @param isHovering - Whether the cell is being hovered
+ */
+const handleCellHover = (resourceId: string, date: string, isHovering: boolean) => {
+  if (isHovering) {
+    hoveredCell.value = { resourceId, date };
+  } else {
+    hoveredCell.value = null;
+  }
+};
+
+/**
+ * Handle add event button click
+ * @param resourceId - The resource ID where the event should be added
+ * @param date - The date for the new event
+ */
+const handleAddEvent = (resourceId: string, date: string) => {
+  const resource = resourcesWithColors.value.find(r => r.id === resourceId);
+  if (resource) {
+    emit('add-event', {
+      resourceId,
+      date,
+      resourceName: resource.name
+    });
+  }
 };
 
 watch([processedDayEvents, currentView], () => {

@@ -29,16 +29,21 @@
     </header>
     <main>
       <AtempoCal
-          :class="theme === 'dark' ? 'atempo-cal--dark' : ''"
+          :darkMode="theme === 'dark'"
           :resources="resources"
           :start-date="new Date('2025-07-22T00:00:00')"
           :view="currentView"
-          :day-view-item-width-percent="itemWidth"
+          @add-event="handleAddEvent"
+          @event-click="handleEventClick"
+          :styleOptions="{
+            dayViewItemWidthPercent: itemWidth,
+            height: '600px',
+            width: '100%'
+          }"
           title="Internal Resource Planner"
           resource-header-text="Team Members"
           @view-change="handleViewChange"
           @date-change="handleDateChange"
-          @event-click="handleEventClick"
       />
     </main>
   </div>
@@ -70,8 +75,11 @@ const resources = ref<Resource[]>([
     id: 'res-1',
     name: 'Alex Johnson',
     events: [
-      { id: 1, title: 'Sprint 24 Planning', description: 'Define tasks and goals for the next sprint.', startTime: atemporal('2025-07-21T08:00:00').toDate(), endTime: atemporal('2025-07-21T14:00:00').toDate(), location: 'Meeting Room A', attendees: ['Beatrice Miller', 'Charles Davis'] },
-      { id: 5, title: 'Daily Stand-up', type: 'meeting', startTime: atemporal('2025-07-22T10:00:00').toDate(), endTime: atemporal('2025-07-22T10:30:00').toDate() },
+      { id: 1, title: 'Sprint 24 Planning', description: 'Define tasks and goals for the next sprint.', from: atemporal('2025-07-21T08:00:00').toDate(), to: atemporal('2025-07-21T14:00:00').toDate()},
+      { id: 5, title: 'Daily Stand-up', type: 'meeting', from: atemporal('2025-07-22T10:00:00').toDate(), to: atemporal('2025-07-22T10:30:00').toDate() },
+      { id: 11, title: 'Code Review Session', type: 'focus', from: atemporal('2025-07-24T13:00:00').toDate(), to: atemporal('2025-07-24T15:00:00').toDate() },
+      { id: 12, title: 'Frontend Architecture Meeting', type: 'meeting', from: atemporal('2025-07-25T09:30:00').toDate(), to: atemporal('2025-07-25T11:00:00').toDate() },
+      { id: 13, title: 'Lunch with Team', from: atemporal('2025-07-22T12:30:00').toDate(), to: atemporal('2025-07-22T13:30:00').toDate() },
     ]
   },
   {
@@ -79,8 +87,11 @@ const resources = ref<Resource[]>([
     name: 'Beatrice Miller',
     color: '#a855f7',
     events: [
-      { id: 3, title: 'UX Design Review', description: 'Review mockups for the new profile feature.', startTime: atemporal('2025-07-23T10:00:00').toDate(), endTime: atemporal('2025-07-23T11:30:00').toDate() },
-      { id: 6, title: 'Pair Programming Session', description: 'Work on the authentication module with the team.', startTime: atemporal('2025-07-22T10:30:00').toDate(), endTime: atemporal('2025-07-22T12:30:00').toDate(), location: 'Online (Zoom)' },
+      { id: 3, title: 'UX Design Review', description: 'Review mockups for the new profile feature.', from: atemporal('2025-07-23T10:00:00').toDate(), to: atemporal('2025-07-23T11:30:00').toDate() },
+      { id: 6, title: 'Pair Programming Session', description: 'Work on the authentication module with the team.', from: atemporal('2025-07-22T10:30:00').toDate(), to: atemporal('2025-07-22T12:30:00').toDate() },
+      { id: 14, title: 'Design System Workshop', type: 'training', from: atemporal('2025-07-24T09:00:00').toDate(), to: atemporal('2025-07-24T12:00:00').toDate() },
+      { id: 15, title: 'User Testing Session', from: atemporal('2025-07-25T14:00:00').toDate(), to: atemporal('2025-07-25T16:30:00').toDate() },
+      { id: 16, title: 'Product Team Sync', type: 'meeting', from: atemporal('2025-07-21T15:30:00').toDate(), to: atemporal('2025-07-21T16:30:00').toDate() },
     ]
   },
   {
@@ -88,18 +99,72 @@ const resources = ref<Resource[]>([
     name: 'Charles Davis',
     color: '#22c55e',
     events: [
-      { id: 2, title: 'Focus Block: API Gateway', description: 'Implement endpoints for the user service.', type: 'focus', startTime: atemporal('2025-07-21T09:00:00').toDate(), endTime: atemporal('2025-07-21T12:00:00').toDate() },
-      { id: 7, title: 'Pull Request #112 Review', type: 'focus', startTime: atemporal('2025-07-22T10:45:00').toDate(), endTime: atemporal('2025-07-22T11:45:00').toDate() },
-      { id: 9, title: 'Security Training', type: 'training', startTime: atemporal('2025-07-22T14:00:00').toDate(), endTime: atemporal('2025-07-22T15:30:00').toDate(), attendees: ['Alex Johnson', 'Beatrice Miller', 'Diana Smith'] }
+      { id: 2, title: 'Focus Block: API Gateway', description: 'Implement endpoints for the user service.', type: 'focus', from: atemporal('2025-07-21T09:00:00').toDate(), to: atemporal('2025-07-21T12:00:00').toDate() },
+      { id: 7, title: 'Pull Request #112 Review', type: 'focus', from: atemporal('2025-07-22T10:45:00').toDate(), to: atemporal('2025-07-22T11:45:00').toDate() },
+      { id: 9, title: 'Security Training', type: 'training', from: atemporal('2025-07-22T14:00:00').toDate(), to: atemporal('2025-07-22T15:30:00').toDate() },
+      { id: 17, title: 'Database Optimization', type: 'focus', from: atemporal('2025-07-24T11:00:00').toDate(), to: atemporal('2025-07-24T13:30:00').toDate() },
+      { id: 18, title: 'Backend Architecture Review', type: 'meeting', from: atemporal('2025-07-25T10:00:00').toDate(), to: atemporal('2025-07-25T12:00:00').toDate() },
+      { id: 19, title: 'DevOps Pipeline Setup', type: 'focus', from: atemporal('2025-07-23T13:00:00').toDate(), to: atemporal('2025-07-23T16:00:00').toDate() },
     ]
   },
   {
     id: 'res-4',
     name: 'Diana Smith',
     events: [
-      { id: 4, title: 'Demo for "Innovate Corp" Client', type: 'urgent', startTime: atemporal('2025-07-23T15:00:00').toDate(), endTime: atemporal('2025-07-23T17:00:00').toDate() },
-      { id: 8, title: 'Sync with Marketing', type: 'meeting', startTime: atemporal('2025-07-22T13:00:00').toDate(), endTime: atemporal('2025-07-22T13:45:00').toDate() },
-      { id: 10, title: 'Q3 Final Review', type: 'urgent', startTime: atemporal('2025-07-22T19:00:00').toDate(), endTime: atemporal('2025-07-22T19:45:00').toDate() }
+      { id: 4, title: 'Demo for "Innovate Corp" Client', type: 'urgent', from: atemporal('2025-07-23T15:00:00').toDate(), to: atemporal('2025-07-23T17:00:00').toDate() },
+      { id: 8, title: 'Sync with Marketing', type: 'meeting', from: atemporal('2025-07-22T13:00:00').toDate(), to: atemporal('2025-07-22T13:45:00').toDate() },
+      { id: 10, title: 'Q3 Final Review', type: 'urgent', from: atemporal('2025-07-22T19:00:00').toDate(), to: atemporal('2025-07-22T19:45:00').toDate() },
+      { id: 20, title: 'Client Onboarding Call', type: 'meeting', from: atemporal('2025-07-24T15:30:00').toDate(), to: atemporal('2025-07-24T16:30:00').toDate() },
+      { id: 21, title: 'Project Status Update', type: 'meeting', from: atemporal('2025-07-25T09:00:00').toDate(), to: atemporal('2025-07-25T10:00:00').toDate() },
+      { id: 22, title: 'Sales Team Coordination', from: atemporal('2025-07-21T11:00:00').toDate(), to: atemporal('2025-07-21T12:30:00').toDate() },
+    ]
+  },
+  {
+    id: 'res-5',
+    name: 'Ethan Williams',
+    color: '#0ea5e9',
+    events: [
+      { id: 23, title: 'QA Testing Session', type: 'focus', from: atemporal('2025-07-21T10:00:00').toDate(), to: atemporal('2025-07-21T13:00:00').toDate() },
+      { id: 24, title: 'Automated Test Review', type: 'meeting', from: atemporal('2025-07-22T15:00:00').toDate(), to: atemporal('2025-07-22T16:00:00').toDate() },
+      { id: 25, title: 'Bug Triage', type: 'urgent', from: atemporal('2025-07-23T09:00:00').toDate(), to: atemporal('2025-07-23T11:00:00').toDate() },
+      { id: 26, title: 'Test Plan Development', from: atemporal('2025-07-24T14:00:00').toDate(), to: atemporal('2025-07-24T17:00:00').toDate() },
+      { id: 27, title: 'Release Testing', type: 'focus', from: atemporal('2025-07-25T13:00:00').toDate(), to: atemporal('2025-07-25T18:00:00').toDate() },
+    ]
+  },
+  {
+    id: 'res-6',
+    name: 'Fiona Garcia',
+    color: '#f43f5e',
+    events: [
+      { id: 28, title: 'Product Roadmap Planning', type: 'meeting', from: atemporal('2025-07-21T14:00:00').toDate(), to: atemporal('2025-07-21T16:00:00').toDate() },
+      { id: 29, title: 'Feature Prioritization', from: atemporal('2025-07-22T11:00:00').toDate(), to: atemporal('2025-07-22T12:00:00').toDate() },
+      { id: 30, title: 'Stakeholder Meeting', type: 'urgent', from: atemporal('2025-07-23T13:30:00').toDate(), to: atemporal('2025-07-23T15:00:00').toDate() },
+      { id: 31, title: 'User Story Workshop', type: 'training', from: atemporal('2025-07-24T10:00:00').toDate(), to: atemporal('2025-07-24T12:30:00').toDate() },
+      { id: 32, title: 'Competitor Analysis', type: 'focus', from: atemporal('2025-07-25T11:00:00').toDate(), to: atemporal('2025-07-25T13:00:00').toDate() },
+    ]
+  },
+  {
+    id: 'res-7',
+    name: 'George Thompson',
+    color: '#8b5cf6',
+    events: [
+      { id: 33, title: 'DevOps Strategy Meeting', type: 'meeting', from: atemporal('2025-07-21T09:30:00').toDate(), to: atemporal('2025-07-21T11:30:00').toDate() },
+      { id: 34, title: 'Infrastructure Maintenance', type: 'focus', from: atemporal('2025-07-22T08:00:00').toDate(), to: atemporal('2025-07-22T10:00:00').toDate() },
+      { id: 35, title: 'Cloud Migration Planning', from: atemporal('2025-07-23T11:30:00').toDate(), to: atemporal('2025-07-23T13:30:00').toDate() },
+      { id: 36, title: 'Security Audit', type: 'urgent', from: atemporal('2025-07-24T09:00:00').toDate(), to: atemporal('2025-07-24T11:00:00').toDate() },
+      { id: 37, title: 'Deployment Pipeline Review', type: 'meeting', from: atemporal('2025-07-25T15:00:00').toDate(), to: atemporal('2025-07-25T16:00:00').toDate() },
+    ]
+  },
+  {
+    id: 'res-8',
+    name: 'Hannah Lee',
+    color: '#10b981',
+    events: [
+      { id: 38, title: 'Content Strategy Session', from: atemporal('2025-07-21T13:00:00').toDate(), to: atemporal('2025-07-21T15:00:00').toDate() },
+      { id: 39, title: 'Blog Post Review', type: 'focus', from: atemporal('2025-07-22T14:30:00').toDate(), to: atemporal('2025-07-22T16:00:00').toDate() },
+      { id: 40, title: 'Social Media Planning', from: atemporal('2025-07-23T09:30:00').toDate(), to: atemporal('2025-07-23T11:00:00').toDate() },
+      { id: 41, title: 'Email Campaign Setup', type: 'focus', from: atemporal('2025-07-24T13:30:00').toDate(), to: atemporal('2025-07-24T15:00:00').toDate() },
+      { id: 42, title: 'Marketing Team Sync', type: 'meeting', from: atemporal('2025-07-25T11:30:00').toDate(), to: atemporal('2025-07-25T12:30:00').toDate() },
     ]
   },
 ]);
@@ -114,6 +179,12 @@ function handleViewChange(view: CalendarView) {
 function handleDateChange(date: Date) {
   console.log('Date changed to:', date);
 }
+
+const handleAddEvent = (data:any) => {
+  console.log('Add event for:', data);
+  // data contiene: { resourceId, date, resourceName }
+  // Aquí puedes abrir un modal o formulario para crear el evento
+};
 
 function handleEventClick(event: CalendarEvent) {
   console.log('EVENT CLICKED:', event);

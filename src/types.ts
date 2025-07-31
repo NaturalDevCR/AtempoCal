@@ -6,19 +6,17 @@ export type TimeFormat = '12h' | '24h';
 export interface CalendarEvent {
   id: string | number;
   title: string;
-  startTime?: Date | string;
-  endTime?: Date | string;
-  type?: string; // For custom styling via classes
-
-  // The following are added internally by the component
-  resourceId?: string | number;
+  from?: Date | string; // Antes era startTime
+  to?: Date | string;   // Antes era endTime
   description?: string;
-  location?: string;
-  attendees?: string[];
+  
+  // Los siguientes campos se agregan internamente por el componente
+  resourceId?: string | number;
   resourceName?: string;
   color?: string;
-  start?: number; // minutes from day start
-  end?: number; // minutes from day start
+  type?: string; // Para estilos personalizados vía clases
+  start?: number; // minutos desde el inicio del día
+  end?: number;   // minutos desde el inicio del día
   layout?: {
     top: number;
     height: number;

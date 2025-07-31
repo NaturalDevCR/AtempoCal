@@ -1,9 +1,9 @@
 {
   "name": "atempo-cal",
-  "version": "0.1.1",
+  "version": "0.1.5",
   "private": false,
   "description": "A flexible and resource-centric calendar component for Vue 3, designed for planning and scheduling tasks.",
-  "author": "Your Name <your.email@example.com>",
+  "author": "NaturalDevCR<jdavidoa91@gmail.com>",
   "license": "MIT",
   "homepage": "https://github.com/NaturalDevCR/atempo-cal#readme",
   "repository": {
@@ -29,9 +29,10 @@
   "exports": {
     ".": {
       "import": "./dist/atempo-cal.es.js",
-      "require": "./dist/atempo-cal.umd.js"
+      "require": "./dist/atempo-cal.umd.js",
+      "types": "./dist/index.d.ts"
     },
-    "./dist/style.css": "./dist/style.css"
+    "./style.css": "./dist/style.css"
   },
   "files": [
     "dist"
@@ -40,7 +41,8 @@
     "dev": "vite",
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
-    "publish": "npm run build && npm publish"
+    "publish": "npm run build && npm publish",
+    "release": "npm run build && npm version patch && npm publish"
   },
   "dependencies": {
     "atemporal": "^0.1.0",
