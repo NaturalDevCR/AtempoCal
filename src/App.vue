@@ -52,7 +52,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import AtempoCal from './components/AtempoCal.vue';
-import type { Resource, CalendarView, CalendarEvent } from './types';
+import type { Resource, CalendarView, CalendarEvent, DateChangeEvent } from './types';
 import atemporal from 'atemporal';
 
 // --- ATEMPORAL GLOBAL CONFIGURATION ---
@@ -176,8 +176,11 @@ function handleViewChange(view: CalendarView) {
   console.log('View changed to:', view);
 }
 
-function handleDateChange(date: Date) {
-  console.log('Date changed to:', date);
+function handleDateChange(data: DateChangeEvent) {
+  console.log('Date changed to:', data.currentDate);
+  console.log('View:', data.view);
+  console.log('Range:', data.range);
+  console.log('Display text:', data.displayText);
 }
 
 const handleAddEvent = (data:any) => {

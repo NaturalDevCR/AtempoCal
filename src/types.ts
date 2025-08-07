@@ -50,3 +50,23 @@ export interface TimeSlot {
   hour: number;
   formatted: string;
 }
+
+/**
+ * Enhanced date change event data structure
+ * Provides comprehensive information about date navigation changes
+ */
+export interface DateChangeEvent {
+  /** The current selected date */
+  currentDate: Date;
+  /** The current calendar view mode */
+  view: CalendarView;
+  /** The date range being displayed */
+  range: {
+    /** Start date of the current view range */
+    start: Date;
+    /** End date of the current view range */
+    end: Date;
+  };
+  /** Formatted display string for the date range */
+  displayText: string;
+}

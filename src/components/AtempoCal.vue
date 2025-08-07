@@ -145,7 +145,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick, onMounted } from 'vue';
 import atemporal from 'atemporal';
-import type { CalendarEvent, Resource, DayView, CalendarView, TimeSlot, TimeFormat, AddButtonPosition, EventDisplayField } from '../types';
+import type { CalendarEvent, Resource, DayView, CalendarView, TimeSlot, TimeFormat, AddButtonPosition, EventDisplayField, DateChangeEvent } from '../types';
 import { getEventDurationText, processDayEvents, formatTime } from '../helpers';
 import '../assets/atempocal.css';
 
@@ -195,7 +195,7 @@ const props = withDefaults(defineProps<{
 // --- EMITS ---
 const emit = defineEmits<{
   (e: 'view-change', view: CalendarView): void;
-  (e: 'date-change', date: Date): void;
+  (e: 'date-change', data: DateChangeEvent): void;
   (e: 'event-click', event: CalendarEvent): void;
   (e: 'add-event', data: { resourceId: string; date: string; resourceName: string }): void;
 }>();
@@ -262,6 +262,39 @@ onMounted(() => {
 });
 
 // --- NAVIGATION & CONTROLS ---
+/**
+ * Creates a DateChangeEvent object with current date, view, and range information
+ * @returns Enhanced date change event data
+ */
+const createDateChangeEvent = (): DateChangeEvent => {
+  const current = currentDate.value;
+  const view = currentView.value;
+  
+  let startDate: Date;
+  let endDate: Date;
+  
+  if (view === 'week') {
+    // For week view, use the full week range
+    const monday = current.startOf('week');
+    startDate = monday.toDate();
+    endDate = monday.add(6, 'days').toDate();
+  } else {
+    // For day view, start and end are the same day
+    startDate = current.toDate();
+    endDate = current.toDate();
+  }
+  
+  return {
+    currentDate: current.toDate(),
+    view,
+    range: {
+      start: startDate,
+      end: endDate
+    },
+    displayText: dateRangeDisplay.value
+  };
+};
+
 // Cambio: Modificar changeView para actualizar el estado interno si no hay prop externo
 const changeView = (view: CalendarView) => {
   if (props.view !== undefined) {
@@ -276,12 +309,12 @@ const changeView = (view: CalendarView) => {
 const navigateDate = (direction: 'prev' | 'next') => {
   const unit = currentView.value === 'week' ? 'week' : 'day';
   currentDate.value = direction === 'prev' ? currentDate.value.subtract(1, unit) : currentDate.value.add(1, unit);
-  emit('date-change', currentDate.value.toDate());
+  emit('date-change', createDateChangeEvent());
 };
 
 const goToToday = () => {
   currentDate.value = atemporal();
-  emit('date-change', currentDate.value.toDate());
+  emit('date-change', createDateChangeEvent());
 };
 
 const toggleTimeFormat = () => {
