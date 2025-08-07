@@ -206,11 +206,89 @@ interface StyleOptions {
 
 ### Events
 
-| Event           | Payload                               | Description                                                              |
-| --------------- | ------------------------------------- | ------------------------------------------------------------------------ |
-| `view-change`   | `(view: 'week' \| 'day')`             | Emitted when the user changes the view (e.g., clicks 'Week' or 'Day'). Only emitted when the `view` prop is provided.   |
-| `date-change`   | `(date: Date)`                        | Emitted when the user navigates to a new date period (next/prev/today).  |
-| `event-click`   | `(event: CalendarEvent)`              | Emitted when a user clicks on an event chip. The payload is the full event object. |
+| Event               | Payload                               | Description                                                              |
+| ------------------- | ------------------------------------- | ------------------------------------------------------------------------ |
+| `view-change`       | `(view: 'week' \| 'day')`             | Emitted when the user changes the view (e.g., clicks 'Week' or 'Day'). **Always emitted** regardless of whether the `view` prop is provided (controlled vs uncontrolled mode). |
+| `date-change`       | `(dateInfo: DateChangeEvent)`         | Emitted when the user navigates to a new date period (next/prev/today). Includes current date, view, and date range information. |
+| `time-format-change`| `(format: '12h' \| '24h')`            | Emitted when the user toggles between 12-hour and 24-hour time format using the time format button. |
+| `event-click`       | `(event: CalendarEvent)`              | Emitted when a user clicks on an event chip. The payload is the full event object. |
+| `add-event`         | `(timeSlot: AddEventPayload)`         | Emitted when the user clicks the add event button. Includes resource and time slot information. |
+
+#### Event Payload Types
+
+```typescript
+// Date change event payload
+interface DateChangeEvent {
+  currentDate: Date;           // The current selected date
+  view: 'week' | 'day';       // Current view mode
+  range: {
+    start: Date;              // Start of the visible date range
+    end: Date;                // End of the visible date range
+  };
+}
+
+// Add event payload
+interface AddEventPayload {
+  resourceId: string | number;
+  resourceName: string;
+  date: Date;
+  hour: number;               // 24-hour format (0-23)
+}
+```
+
+#### Event Usage Examples
+
+```vue
+<template>
+  <AtempoCal 
+    :resources="resources"
+    @view-change="handleViewChange"
+    @date-change="handleDateChange"
+    @time-format-change="handleTimeFormatChange"
+    @event-click="handleEventClick"
+    @add-event="handleAddEvent"
+  />
+</template>
+
+<script setup lang="ts">
+import type { CalendarEvent, DateChangeEvent, AddEventPayload } from 'atempo-cal';
+
+// Handle view changes (week/day)
+const handleViewChange = (view: 'week' | 'day') => {
+  console.log('View changed to:', view);
+  // Update your local state if needed
+};
+
+// Handle date navigation
+const handleDateChange = (dateInfo: DateChangeEvent) => {
+  console.log('Date changed:', {
+    currentDate: dateInfo.currentDate,
+    view: dateInfo.view,
+    weekStart: dateInfo.range.start,
+    weekEnd: dateInfo.range.end
+  });
+};
+
+// Handle time format toggle
+const handleTimeFormatChange = (format: '12h' | '24h') => {
+  console.log('Time format changed to:', format);
+  // Save user preference to localStorage or state
+  localStorage.setItem('timeFormat', format);
+};
+
+// Handle event clicks
+const handleEventClick = (event: CalendarEvent) => {
+  console.log('Event clicked:', event);
+  // Open event details modal, etc.
+};
+
+// Handle add event button clicks
+const handleAddEvent = (timeSlot: AddEventPayload) => {
+  console.log('Add event at:', timeSlot);
+  // Open create event modal with pre-filled data
+};
+</script>
+```
 
 ### Slots
 
@@ -317,7 +395,26 @@ You can override the default styles using standard CSS. The component uses BEM-l
 
 ## Changelog
 
-### v0.1.7 (Latest)
+### v0.2.1 (Latest)
+
+**🐛 Bug Fixes:**
+- **Fixed View Change Event**: `view-change` event is now always emitted regardless of controlled/uncontrolled mode
+- **Fixed Time Format Toggle**: Time format changes now properly emit `time-format-change` event
+- **Enhanced Event Consistency**: Both view and time format changes work correctly in all usage scenarios
+
+**📚 Documentation:**
+- **Updated Event Documentation**: Comprehensive documentation for all events with TypeScript examples
+- **Enhanced API Reference**: Detailed payload types and usage examples for better developer experience
+- **Clarified Event Behavior**: Clear explanation of controlled vs uncontrolled component behavior
+
+### v0.2.0
+
+**🚀 Enhanced Events:**
+- **Improved Date Change Event**: Now includes comprehensive date range information and current view
+- **New Time Format Event**: Added `time-format-change` event for tracking time format preferences
+- **Enhanced Event Payloads**: More detailed information in event emissions for better integration
+
+### v0.1.7
 
 **🚀 New Features:**
 - **Smart Add Button Positioning**: Intelligent button placement that avoids overlapping with events
