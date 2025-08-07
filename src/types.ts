@@ -2,6 +2,8 @@ import type { Atemporal } from 'atemporal';
 
 export type CalendarView = 'week' | 'day';
 export type TimeFormat = '12h' | '24h';
+export type AddButtonPosition = 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'smart';
+export type EventDisplayField = 'time' | 'title' | 'description' | 'location';
 
 export interface CalendarEvent {
   id: string | number;

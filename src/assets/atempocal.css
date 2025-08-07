@@ -579,59 +579,148 @@
 /* ================================== */
 .atempo-cal__day-cell--hoverable {
   position: relative;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.3s ease;
 }
 
 .atempo-cal__day-cell--hoverable:hover {
   background-color: var(--ac-day-header-bg);
 }
 
+/* Base add event button styles */
 .atempo-cal__add-event-btn {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 2px solid var(--ac-primary-text);
-  background: var(--ac-bg);
-  color: var(--ac-primary-text);
+  border: 2px solid rgba(59, 130, 246, 0.8);
+  background: rgba(255, 255, 255, 0.95);
+  color: rgba(59, 130, 246, 0.9);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+  backdrop-filter: blur(8px);
 }
 
 .atempo-cal__add-event-btn:hover {
-  background: var(--ac-primary-text);
-  color: var(--ac-bg);
-  transform: translate(-50%, -50%) scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  background: rgba(59, 130, 246, 0.9);
+  color: white;
+  transform: scale(1.15);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+  border-color: rgba(59, 130, 246, 1);
 }
 
 .atempo-cal__add-event-btn svg {
   width: 16px;
   height: 16px;
+  transition: transform 0.2s ease;
+}
+
+.atempo-cal__add-event-btn:hover svg {
+  transform: rotate(90deg);
+}
+
+/* Positioning variants */
+.atempo-cal__add-event-btn--center,
+.atempo-cal__add-event-btn--smart-center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.atempo-cal__add-event-btn--center:hover,
+.atempo-cal__add-event-btn--smart-center:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+}
+
+.atempo-cal__add-event-btn--top-left {
+  top: 8px;
+  left: 8px;
+}
+
+.atempo-cal__add-event-btn--top-right {
+  top: 8px;
+  right: 8px;
+}
+
+.atempo-cal__add-event-btn--bottom-left {
+  bottom: 8px;
+  left: 8px;
+}
+
+.atempo-cal__add-event-btn--bottom-right {
+  bottom: 8px;
+  right: 8px;
+}
+
+/* Smart compact positioning for cells with events */
+.atempo-cal__add-event-btn--smart-compact {
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border-width: 1px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+}
+
+.atempo-cal__add-event-btn--smart-compact svg {
+  width: 12px;
+  height: 12px;
+}
+
+.atempo-cal__add-event-btn--smart-compact:hover {
+  transform: scale(1.2);
+  background: rgba(59, 130, 246, 0.9);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 /* Dark mode styles for add button */
 .atempo-cal--dark .atempo-cal__add-event-btn {
-  border-color: var(--ac-primary-text);
-  background: var(--ac-bg);
-  color: var(--ac-primary-text);
+  border-color: rgba(96, 165, 250, 0.8);
+  background: rgba(30, 41, 59, 0.95);
+  color: rgba(96, 165, 250, 0.9);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
 }
 
 .atempo-cal--dark .atempo-cal__add-event-btn:hover {
-  background: var(--ac-primary-text);
-  color: var(--ac-bg);
+  background: rgba(96, 165, 250, 0.9);
+  color: rgba(30, 41, 59, 1);
+  border-color: rgba(96, 165, 250, 1);
+  box-shadow: 0 6px 20px rgba(96, 165, 250, 0.4);
 }
 
-/* Ensure events don't interfere with add button */
+.atempo-cal--dark .atempo-cal__add-event-btn--smart-compact {
+  background: rgba(30, 41, 59, 0.9);
+  box-shadow: 0 2px 8px rgba(96, 165, 250, 0.15);
+}
+
+.atempo-cal--dark .atempo-cal__add-event-btn--smart-compact:hover {
+  background: rgba(96, 165, 250, 0.9);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+}
+
+/* Enhanced event chip styles for better visual hierarchy */
 .atempo-cal__day-cell--hoverable .atempo-cal__event-chip {
   position: relative;
   z-index: 5;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.atempo-cal__day-cell--hoverable:hover .atempo-cal__event-chip {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Improved accessibility and focus states */
+.atempo-cal__add-event-btn:focus {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+}
+
+.atempo-cal--dark .atempo-cal__add-event-btn:focus {
+  outline-color: rgba(96, 165, 250, 0.5);
 }

@@ -68,8 +68,8 @@
                @mouseleave="handleCellHover(String(resource.id), day.isoDate, false)">
             <!-- Add Event Button -->
             <button 
-              v-if="hoveredCell?.resourceId === String(resource.id) && hoveredCell?.date === day.isoDate"
-              class="atempo-cal__add-event-btn"
+              v-if="shouldShowAddButton(String(resource.id), day.isoDate)"
+              :class="getAddButtonPosition(String(resource.id), day.isoDate)"
               @click="handleAddEvent(String(resource.id), day.isoDate)"
               title="Add Event">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -145,7 +145,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick, onMounted } from 'vue';
 import atemporal from 'atemporal';
-import type { CalendarEvent, Resource, DayView, CalendarView, TimeSlot, TimeFormat } from '../types';
+import type { CalendarEvent, Resource, DayView, CalendarView, TimeSlot, TimeFormat, AddButtonPosition, EventDisplayField } from '../types';
 import { getEventDurationText, processDayEvents, formatTime } from '../helpers';
 import '../assets/atempocal.css';
 
@@ -172,6 +172,10 @@ const props = withDefaults(defineProps<{
     dayViewItemWidthPercent?: number;
   };
   darkMode?: boolean;
+  // New props for enhanced functionality
+  eventDisplayField?: EventDisplayField;
+  addButtonPosition?: AddButtonPosition;
+  showAddButton?: boolean;
 }>(), {
   title: 'Internal Resource Planner',
   startDate: () => atemporal().toDate(),
@@ -183,6 +187,9 @@ const props = withDefaults(defineProps<{
     dayViewItemWidthPercent: 95
   }),
   darkMode: false,
+  eventDisplayField: 'time',
+  addButtonPosition: 'smart',
+  showAddButton: true,
 });
 
 // --- EMITS ---
@@ -202,6 +209,49 @@ const timeFormat = ref<TimeFormat>('24h');
 
 // Add hover state for cells
 const hoveredCell = ref<{ resourceId: string; date: string } | null>(null);
+
+/**
+ * Check if a cell has events that would overlap with the add button
+ * @param resourceId - The resource ID
+ * @param date - The date in ISO format
+ * @returns Whether the cell has events
+ */
+const cellHasEvents = (resourceId: string, date: string): boolean => {
+  const resource = resourcesWithColors.value.find(r => r.id === resourceId);
+  if (!resource) return false;
+  return getEventsForDay(resource.events, date).length > 0;
+};
+
+/**
+ * Get the optimal position for the add button based on events and configuration
+ * @param resourceId - The resource ID
+ * @param date - The date in ISO format
+ * @returns CSS classes for button positioning
+ */
+const getAddButtonPosition = (resourceId: string, date: string): string => {
+  const baseClass = 'atempo-cal__add-event-btn';
+  
+  if (props.addButtonPosition === 'smart') {
+    const hasEvents = cellHasEvents(resourceId, date);
+    if (hasEvents) {
+      return `${baseClass} ${baseClass}--smart-compact`;
+    }
+    return `${baseClass} ${baseClass}--smart-center`;
+  }
+  
+  return `${baseClass} ${baseClass}--${props.addButtonPosition}`;
+};
+
+/**
+ * Check if the add button should be shown for a specific cell
+ * @param resourceId - The resource ID
+ * @param date - The date in ISO format
+ * @returns Whether to show the add button
+ */
+const shouldShowAddButton = (resourceId: string, date: string): boolean => {
+  if (!props.showAddButton) return false;
+  return hoveredCell.value?.resourceId === resourceId && hoveredCell.value?.date === date;
+};
 
 // --- LIFECYCLE ---
 onMounted(() => {
@@ -295,6 +345,10 @@ const dateRangeDisplay = computed((): string => {
 });
 
 // --- EVENT LOGIC ---
+/**
+ * Memoized computation of resources with assigned colors
+ * Optimizes performance by avoiding unnecessary recalculations
+ */
 const resourcesWithColors = computed(() => {
   let colorIndex = 0;
   return props.resources.map(resource => ({
@@ -303,7 +357,11 @@ const resourcesWithColors = computed(() => {
   }));
 });
 
-const allEvents = computed((): CalendarEvent[] => {
+/**
+ * Memoized computation of all events with resource information
+ * Includes performance optimization for large event sets
+ */
+const allEventsMemoized = computed((): CalendarEvent[] => {
   return resourcesWithColors.value.flatMap(resource =>
     resource.events.map(event => ({
       ...event,
@@ -314,9 +372,13 @@ const allEvents = computed((): CalendarEvent[] => {
   );
 });
 
+/**
+ * Memoized computation of events grouped by date
+ * Optimizes performance for date-based event lookups
+ */
 const eventsByDate = computed(() => {
   const map = new Map<string, CalendarEvent[]>();
-  for (const event of allEvents.value) {
+  for (const event of allEventsMemoized.value) {
     if (!event.from) continue;
     const eventDate = atemporal(event.from).format('YYYY-MM-DD');
     if (!map.has(eventDate)) map.set(eventDate, []);
@@ -324,6 +386,9 @@ const eventsByDate = computed(() => {
   }
   return map;
 });
+
+// Backward compatibility alias
+const allEvents = allEventsMemoized;
 
 const getEventsForDay = (events: Omit<CalendarEvent, 'resourceId' | 'resourceName'>[], isoDate: string): Omit<CalendarEvent, 'resourceId' | 'resourceName'>[] => {
   return events.filter(event => {
@@ -339,9 +404,27 @@ const getFormattedEventTimeRange = (event: CalendarEvent): string => {
   return `${start} - ${end}`;
 };
 
+/**
+ * Get display text for events based on the configured display field
+ * @param event - The calendar event
+ * @returns The formatted display text
+ */
 const getEventDisplayText = (event: CalendarEvent): string => {
-  if (currentView.value === 'week' && event.from && event.to) {
-    return getFormattedEventTimeRange(event);
+  if (currentView.value === 'week') {
+    switch (props.eventDisplayField) {
+      case 'title':
+        return event.title;
+      case 'description':
+        return event.description || event.title;
+      case 'location':
+        return event.location || event.title;
+      case 'time':
+      default:
+        if (event.from && event.to) {
+          return getFormattedEventTimeRange(event);
+        }
+        return event.title;
+    }
   }
   return event.title;
 };
