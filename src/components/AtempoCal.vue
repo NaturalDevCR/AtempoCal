@@ -198,6 +198,7 @@ const emit = defineEmits<{
   (e: 'date-change', data: DateChangeEvent): void;
   (e: 'event-click', event: CalendarEvent): void;
   (e: 'add-event', data: { resourceId: string; date: string; resourceName: string }): void;
+  (e: 'time-format-change', format: TimeFormat): void;
 }>();
 
 // --- STATE ---
@@ -295,13 +296,17 @@ const createDateChangeEvent = (): DateChangeEvent => {
   };
 };
 
-// Cambio: Modificar changeView para actualizar el estado interno si no hay prop externo
+/**
+ * Change the calendar view and emit the view-change event
+ * Always emits the event so users can track view changes regardless of controlled/uncontrolled state
+ * @param view - The new calendar view to switch to
+ */
 const changeView = (view: CalendarView) => {
-  if (props.view !== undefined) {
-    // Si hay un prop externo, emitir el evento para que el componente padre actualice
-    emit('view-change', view);
-  } else {
-    // Si no hay prop externo, actualizar el estado interno
+  // Always emit the view-change event so users can track changes
+  emit('view-change', view);
+  
+  // If there's no external prop, also update internal state
+  if (props.view === undefined) {
     internalView.value = view;
   }
 };
@@ -317,9 +322,14 @@ const goToToday = () => {
   emit('date-change', createDateChangeEvent());
 };
 
+/**
+ * Toggle between 24-hour and 12-hour time format
+ * Emits time-format-change event so users can track format changes
+ */
 const toggleTimeFormat = () => {
   timeFormat.value = timeFormat.value === '24h' ? '12h' : '24h';
   localStorage.setItem('atempo-cal-time-format', timeFormat.value);
+  emit('time-format-change', timeFormat.value);
 };
 
 // --- DATE & VIEW LOGIC ---

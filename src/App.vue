@@ -44,6 +44,7 @@
           resource-header-text="Team Members"
           @view-change="handleViewChange"
           @date-change="handleDateChange"
+          @time-format-change="handleTimeFormatChange"
       />
     </main>
   </div>
@@ -52,7 +53,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import AtempoCal from './components/AtempoCal.vue';
-import type { Resource, CalendarView, CalendarEvent, DateChangeEvent } from './types';
+import type { Resource, CalendarView, CalendarEvent, DateChangeEvent, TimeFormat } from './types';
 import atemporal from 'atemporal';
 
 // --- ATEMPORAL GLOBAL CONFIGURATION ---
@@ -181,6 +182,10 @@ function handleDateChange(data: DateChangeEvent) {
   console.log('View:', data.view);
   console.log('Range:', data.range);
   console.log('Display text:', data.displayText);
+}
+
+function handleTimeFormatChange(format: TimeFormat) {
+  console.log('Time format changed to:', format);
 }
 
 const handleAddEvent = (data:any) => {
