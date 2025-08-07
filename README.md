@@ -62,7 +62,7 @@ You can register AtempoCal as a global plugin or import it directly into your co
 Register the component globally in your main application file.
 
 ```typescript
-import { AtempoCalPlugin } from 'atempo-cal'; // ✅ Corrección aquí
+import { AtempoCalPlugin } from 'atempo-cal';
 import 'atempo-cal/style.css';
 
 const app = createApp(App);
@@ -75,20 +75,20 @@ app.mount('#app');
 Import it directly where you need it.
 
 ```vue
-&lt;script setup lang="ts"&gt;
+<script setup lang="ts">
 import { AtempoCal } from 'atempo-cal';
 import 'atempo-cal/dist/style.css';
 import { ref } from 'vue';
 import type { Resource } from 'atempo-cal'; // Import types
 
-const resources = ref&lt;Resource[]&gt;([
+const resources = ref<Resource[]>([
   // ... your resource and event data
 ]);
-&lt;/script&gt;
+</script>
 
-&lt;template&gt;
-  &lt;AtempoCal :resources="resources" /&gt;
-&lt;/template&gt;
+<template>
+  <AtempoCal :resources="resources" />
+</template>
 ```
 
 ### Advanced Usage Examples
@@ -96,46 +96,46 @@ const resources = ref&lt;Resource[]&gt;([
 #### Smart Positioning with Custom Event Display
 
 ```vue
-&lt;template&gt;
-  &lt;!-- Show event titles instead of time with smart button positioning --&gt;
-  &lt;AtempoCal 
+<template>
+  <!-- Show event titles instead of time with smart button positioning -->
+  <AtempoCal 
     :resources="resources" 
     event-display-field="title"
     add-button-position="smart"
-  /&gt;
+  />
   
-  &lt;!-- Show event locations with fixed button position --&gt;
-  &lt;AtempoCal 
+  <!-- Show event locations with fixed button position -->
+  <AtempoCal 
     :resources="resources" 
     event-display-field="location"
     add-button-position="top-right"
-  /&gt;
+  />
   
-  &lt;!-- Hide add button completely --&gt;
-  &lt;AtempoCal 
+  <!-- Hide add button completely -->
+  <AtempoCal 
     :resources="resources" 
     :show-add-button="false"
-  /&gt;
+  />
   
-  &lt;!-- Custom field display with fallback to time --&gt;
-  &lt;AtempoCal 
+  <!-- Custom field display with fallback to time -->
+  <AtempoCal 
     :resources="resources" 
     event-display-field="priority"
     add-button-position="bottom-left"
-  /&gt;
-&lt;/template&gt;
+  />
+</template>
 ```
 
 #### Complete Configuration Example
 
 ```vue
-&lt;script setup lang="ts"&gt;
+<script setup lang="ts">
 import { AtempoCal } from 'atempo-cal';
 import 'atempo-cal/dist/style.css';
 import { ref } from 'vue';
 import type { Resource } from 'atempo-cal';
 
-const resources = ref&lt;Resource[]&gt;([
+const resources = ref<Resource[]>([
   {
     id: 1,
     name: 'Conference Room A',
@@ -154,17 +154,17 @@ const resources = ref&lt;Resource[]&gt;([
   }
 ]);
 
-const handleEventClick = (event) =&gt; {
+const handleEventClick = (event) => {
   console.log('Event clicked:', event);
 };
 
-const handleAddEvent = (timeSlot) =&gt; {
+const handleAddEvent = (timeSlot) => {
   console.log('Add event at:', timeSlot);
 };
-&lt;/script&gt;
+</script>
 
-&lt;template&gt;
-  &lt;AtempoCal 
+<template>
+  <AtempoCal 
     :resources="resources"
     title="Resource Planner"
     event-display-field="title"
@@ -173,8 +173,8 @@ const handleAddEvent = (timeSlot) =&gt; {
     :dark-mode="false"
     @event-click="handleEventClick"
     @add-event="handleAddEvent"
-  /&gt;
-&lt;/template&gt;
+  />
+</template>
 ```
 
 ## API
@@ -281,28 +281,28 @@ AtempoCal v0.1.7+ includes several performance optimizations:
 ### Best Practices for Performance
 
 ```vue
-&lt;script setup lang="ts"&gt;
+<script setup lang="ts">
 // ✅ Good: Use reactive refs for data that changes
-const resources = ref&lt;Resource[]&gt;([]);
+const resources = ref<Resource[]>([]);
 
 // ✅ Good: Memoize expensive computations
-const processedEvents = computed(() =&gt; {
-  return resources.value.flatMap(r =&gt; r.events);
+const processedEvents = computed(() => {
+  return resources.value.flatMap(r => r.events);
 });
 
 // ❌ Avoid: Creating new objects in template
-// &lt;AtempoCal :style-options="{ height: '500px' }" /&gt;
+// <AtempoCal :style-options="{ height: '500px' }" />
 
 // ✅ Better: Define style options outside template
 const styleOptions = { height: '500px' };
-&lt;/script&gt;
+</script>
 
-&lt;template&gt;
-  &lt;AtempoCal 
+<template>
+  <AtempoCal 
     :resources="resources"
     :style-options="styleOptions"
-  /&gt;
-&lt;/template&gt;
+  />
+</template>
 ```
 
 ## Styling
