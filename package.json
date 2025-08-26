@@ -1,6 +1,6 @@
 {
   "name": "atempo-cal",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": false,
   "description": "A flexible and resource-centric calendar component for Vue 3, designed for planning and scheduling tasks.",
   "author": "NaturalDevCR<jdavidoa91@gmail.com>",
