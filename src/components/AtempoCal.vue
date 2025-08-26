@@ -63,9 +63,14 @@
             </slot>
           </div>
           <div v-for="day in weekView" :key="`${resource.id}-${day.isoDate}`" 
-               class="atempo-cal__day-cell atempo-cal__day-cell--hoverable"
+               class="atempo-cal__day-cell atempo-cal__day-cell--hoverable atempo-cal__day-cell--enhanced"
                @mouseenter="handleCellHover(String(resource.id), day.isoDate, true)"
-               @mouseleave="handleCellHover(String(resource.id), day.isoDate, false)">
+               @mouseleave="handleCellHover(String(resource.id), day.isoDate, false)"
+               @dblclick="handleCellDoubleClick(String(resource.id), day.isoDate, resource.name)"
+               @click="handleCellClick(String(resource.id), day.isoDate, resource.name, $event)"
+               @mousedown="handleCellMouseDown(String(resource.id), day.isoDate, resource.name, $event)"
+               @mousemove="handleCellMouseMove(String(resource.id), day.isoDate, $event)"
+               @mouseup="handleCellMouseUp(String(resource.id), day.isoDate, resource.name, $event)">
             <!-- Add Event Button -->
             <button 
               v-if="shouldShowAddButton(String(resource.id), day.isoDate)"
@@ -82,17 +87,47 @@
             <div
                 v-for="event in getEventsForDay(resource.events, day.isoDate)"
                 :key="event.id"
-                class="atempo-cal__event-chip"
+                class="atempo-cal__event-chip atempo-cal__event-chip--enhanced"
                 :class="`atempo-cal__event-chip--${event.type}`"
                 :style="{ backgroundColor: resource.color }"
-                :title="event.title"
-                @click="handleEventClick({ ...event, resourceId: String(resource.id), resourceName: resource.name, color: resource.color })">
-              {{ getEventDisplayText(event) }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+                :title="getEventTooltip(event)"
+                @click="handleEventClick({ ...event, resourceId: String(resource.id), resourceName: resource.name, color: resource.color })"
+                @dblclick.stop="handleEventDoubleClick({ ...event, resourceId: String(resource.id), resourceName: resource.name, color: resource.color })"
+                @contextmenu.prevent="handleEventRightClick({ ...event, resourceId: String(resource.id), resourceName: resource.name, color: resource.color }, $event)">
+              <div class="atempo-cal__event-content">
+                <div class="atempo-cal__event-title">{{ event.title }}</div>
+                <div v-if="event.from && event.to" class="atempo-cal__event-time">{{ getFormattedEventTimeRange(event) }}</div>
+              </div>
+              <div class="atempo-cal__event-actions">
+                <button 
+                  class="atempo-cal__event-action-btn"
+                  @click.stop="handleEventEdit({ ...event, resourceId: String(resource.id), resourceName: resource.name, color: resource.color })"
+                  title="Edit event">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </button>
+              </div>
+             </div>
+           </div>
+         </div>
+       </div>
+       
+       <!-- Drag Preview for Week View -->
+       <div 
+         v-if="dragPreview && currentView === 'week'"
+         class="atempo-cal__drag-preview"
+         :style="{
+           top: dragPreview.top + 'px',
+           height: dragPreview.height + 'px',
+           left: getDragPreviewLeft(dragPreview.resourceId, dragPreview.date),
+           width: getDragPreviewWidth()
+         }"
+       >
+         New Event
+       </div>
+     </div>
 
     <!-- Day View Grid -->
     <div v-else-if="currentView === 'day'" class="atempo-cal__grid atempo-cal__grid--day">
@@ -139,6 +174,20 @@
         </div>
       </div>
     </div>
+
+    <!-- Event Form Modal -->
+    <EventFormModal
+      :visible="showEventModal"
+      :event="editingEvent || undefined"
+      :resource-id="modalResourceId"
+      :resource-name="modalResourceName"
+      :date="modalDate"
+      :initial-start-time="modalInitialStartTime"
+      :initial-end-time="modalInitialEndTime"
+      @close="closeEventModal"
+      @save="handleEventSave"
+      @delete="handleEventDelete"
+    />
   </div>
 </template>
 
@@ -147,7 +196,9 @@ import { computed, ref, watch, nextTick, onMounted } from 'vue';
 import atemporal from 'atemporal';
 import type { CalendarEvent, Resource, DayView, CalendarView, TimeSlot, TimeFormat, AddButtonPosition, EventDisplayField, DateChangeEvent } from '../types';
 import { getEventDurationText, processDayEvents, formatTime } from '../helpers';
+import EventFormModal from './EventFormModal.vue';
 import '../assets/atempocal.css';
+import '../assets/event-form-modal.css';
 
 // --- CONSTANTS ---
 const DAY_VIEW_START_HOUR = 0;
@@ -199,6 +250,9 @@ const emit = defineEmits<{
   (e: 'event-click', event: CalendarEvent): void;
   (e: 'add-event', data: { resourceId: string; date: string; resourceName: string }): void;
   (e: 'time-format-change', format: TimeFormat): void;
+  (e: 'event-create', event: Partial<CalendarEvent>): void;
+  (e: 'event-update', event: CalendarEvent): void;
+  (e: 'event-delete', event: CalendarEvent): void;
 }>();
 
 // --- STATE ---
@@ -210,6 +264,21 @@ const timeFormat = ref<TimeFormat>('24h');
 
 // Add hover state for cells
 const hoveredCell = ref<{ resourceId: string; date: string } | null>(null);
+
+// Event form modal state
+const showEventModal = ref(false);
+const editingEvent = ref<CalendarEvent | null>(null);
+const modalResourceId = ref<string>('');
+const modalResourceName = ref<string>('');
+const modalDate = ref<string>('');
+const modalInitialStartTime = ref<string>('');
+const modalInitialEndTime = ref<string>('');
+
+// Drag-to-create state
+const isDragging = ref(false);
+const dragStart = ref<{ resourceId: string; date: string; y: number } | null>(null);
+const dragEnd = ref<{ y: number } | null>(null);
+const dragPreview = ref<{ top: number; height: number; resourceId: string; date: string } | null>(null);
 
 /**
  * Check if a cell has events that would overlap with the add button
@@ -476,6 +545,382 @@ const handleEventClick = (event: CalendarEvent) => {
   emit('event-click', event);
 };
 
+/**
+ * Get enhanced tooltip text for events
+ * @param event - The calendar event
+ * @returns Formatted tooltip text
+ */
+const getEventTooltip = (event: CalendarEvent): string => {
+  let tooltip = event.title;
+  if (event.from && event.to) {
+    tooltip += `\n${getFormattedEventTimeRange(event)}`;
+  }
+  if (event.description) {
+    tooltip += `\n${event.description}`;
+  }
+  if (event.location) {
+    tooltip += `\n📍 ${event.location}`;
+  }
+  return tooltip;
+};
+
+/**
+ * Handle cell click for quick event creation
+ * @param resourceId - The resource ID
+ * @param date - The date in ISO format
+ * @param resourceName - The resource name
+ * @param event - The mouse event
+ */
+const handleCellClick = (resourceId: string, date: string, resourceName: string, event: MouseEvent) => {
+  // Only handle if not clicking on an existing event or button
+  if ((event.target as HTMLElement).closest('.atempo-cal__event-chip, .atempo-cal__add-event-btn')) {
+    return;
+  }
+  
+  // Single click - just show add button (existing behavior)
+  // The add button will handle the actual creation
+};
+
+/**
+ * Handle cell double-click for quick event creation
+ * @param resourceId - The resource ID
+ * @param date - The date in ISO format
+ * @param resourceName - The resource name
+ */
+const handleCellDoubleClick = (resourceId: string, date: string, resourceName: string) => {
+  openEventModal({
+    resourceId,
+    resourceName,
+    date,
+    startTime: '09:00',
+    endTime: '10:00'
+  });
+};
+
+/**
+ * Handle event double-click for quick editing
+ * @param event - The calendar event
+ */
+const handleEventDoubleClick = (event: CalendarEvent) => {
+  handleEventEdit(event);
+};
+
+/**
+ * Handle event right-click for context menu
+ * @param event - The calendar event
+ * @param mouseEvent - The mouse event
+ */
+const handleEventRightClick = (event: CalendarEvent, mouseEvent: MouseEvent) => {
+  // For now, just open edit modal
+  // In the future, this could show a context menu
+  handleEventEdit(event);
+};
+
+/**
+ * Handle event edit action
+ * @param event - The calendar event to edit
+ */
+const handleEventEdit = (event: CalendarEvent) => {
+  editingEvent.value = event;
+  modalResourceId.value = String(event.resourceId || '');
+  modalResourceName.value = event.resourceName || '';
+  modalDate.value = event.from ? atemporal(event.from).format('YYYY-MM-DD') : '';
+  showEventModal.value = true;
+};
+
+/**
+ * Open event modal with specified parameters
+ * @param params - Modal parameters
+ */
+const openEventModal = (params: {
+  resourceId: string;
+  resourceName: string;
+  date: string;
+  startTime?: string;
+  endTime?: string;
+}) => {
+  editingEvent.value = null;
+  modalResourceId.value = params.resourceId;
+  modalResourceName.value = params.resourceName;
+  modalDate.value = params.date;
+  modalInitialStartTime.value = params.startTime || '09:00';
+  modalInitialEndTime.value = params.endTime || '10:00';
+  showEventModal.value = true;
+};
+
+/**
+ * Close event modal
+ */
+const closeEventModal = () => {
+  showEventModal.value = false;
+  editingEvent.value = null;
+  modalResourceId.value = '';
+  modalResourceName.value = '';
+  modalDate.value = '';
+  modalInitialStartTime.value = '';
+  modalInitialEndTime.value = '';
+};
+
+/**
+ * Handle event save from modal
+ * @param eventData - The event data to save
+ */
+const handleEventSave = (eventData: Partial<CalendarEvent>) => {
+  if (editingEvent.value) {
+    // Editing existing event
+    emit('event-update', { ...editingEvent.value, ...eventData });
+  } else {
+    // Creating new event
+    const newEvent = {
+      ...eventData,
+      id: Date.now().toString(), // Generate temporary ID
+      resourceId: modalResourceId.value
+    };
+    emit('event-create', newEvent);
+  }
+};
+
+/**
+ * Handle event deletion from modal
+ * @param event - The event to delete
+ */
+const handleEventDelete = (event: CalendarEvent) => {
+  emit('event-delete', event);
+};
+
+/**
+ * Handle mouse down for drag-to-create functionality
+ * @param resourceId - The resource ID
+ * @param date - The date in ISO format
+ * @param resourceName - The resource name
+ * @param event - The mouse event
+ */
+const handleCellMouseDown = (resourceId: string, date: string, resourceName: string, event: MouseEvent) => {
+  // Only start drag if not clicking on an existing event or button
+  if ((event.target as HTMLElement).closest('.atempo-cal__event-chip, .atempo-cal__add-event-btn')) {
+    return;
+  }
+  
+  // Prevent text selection during drag
+  event.preventDefault();
+  
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+  const startY = event.clientY - rect.top;
+  
+  dragStart.value = {
+    resourceId,
+    date,
+    y: startY
+  };
+  
+  isDragging.value = true;
+  
+  // Add global mouse event listeners
+  document.addEventListener('mousemove', handleGlobalMouseMove);
+  document.addEventListener('mouseup', handleGlobalMouseUp);
+};
+
+/**
+ * Handle mouse move during drag
+ * @param resourceId - The resource ID
+ * @param date - The date in ISO format
+ * @param event - The mouse event
+ */
+const handleCellMouseMove = (resourceId: string, date: string, event: MouseEvent) => {
+  if (!isDragging.value || !dragStart.value) return;
+  
+  // Only update if we're in the same cell where drag started
+  if (dragStart.value.resourceId !== resourceId || dragStart.value.date !== date) {
+    return;
+  }
+  
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+  const currentY = event.clientY - rect.top;
+  
+  dragEnd.value = { y: currentY };
+  
+  // Update drag preview
+  updateDragPreview();
+};
+
+/**
+ * Handle mouse up to complete drag-to-create
+ * @param resourceId - The resource ID
+ * @param date - The date in ISO format
+ * @param resourceName - The resource name
+ * @param event - The mouse event
+ */
+const handleCellMouseUp = (resourceId: string, date: string, resourceName: string, event: MouseEvent) => {
+  if (!isDragging.value || !dragStart.value || !dragEnd.value) {
+    resetDragState();
+    return;
+  }
+  
+  // Calculate the time range based on drag distance
+  const minDragDistance = 20; // Minimum pixels to create an event
+  const dragDistance = Math.abs(dragEnd.value.y - dragStart.value.y);
+  
+  if (dragDistance >= minDragDistance) {
+    // Create event with calculated time range
+    const { startTime, endTime } = calculateTimeFromDrag(dragStart.value.y, dragEnd.value.y);
+    
+    openEventModal({
+      resourceId,
+      resourceName,
+      date,
+      startTime,
+      endTime
+    });
+  }
+  
+  resetDragState();
+};
+
+/**
+ * Global mouse move handler for drag operations
+ * @param event - The mouse event
+ */
+const handleGlobalMouseMove = (event: MouseEvent) => {
+  if (!isDragging.value || !dragStart.value) return;
+  
+  // Find the cell under the mouse
+  const elementUnderMouse = document.elementFromPoint(event.clientX, event.clientY);
+  const cell = elementUnderMouse?.closest('.atempo-cal__day-cell--enhanced');
+  
+  if (cell) {
+    const rect = cell.getBoundingClientRect();
+    const currentY = event.clientY - rect.top;
+    
+    dragEnd.value = { y: currentY };
+    updateDragPreview();
+  }
+};
+
+/**
+ * Global mouse up handler for drag operations
+ * @param event - The mouse event
+ */
+const handleGlobalMouseUp = (event: MouseEvent) => {
+  if (isDragging.value && dragStart.value && dragEnd.value) {
+    // Find the cell under the mouse to complete the drag
+    const elementUnderMouse = document.elementFromPoint(event.clientX, event.clientY);
+    const cell = elementUnderMouse?.closest('.atempo-cal__day-cell--enhanced');
+    
+    if (cell) {
+      // Extract resource and date info from the cell
+      const resourceRow = cell.closest('.atempo-cal__resource-row');
+      const resourceIndex = Array.from(resourceRow?.parentElement?.children || []).indexOf(resourceRow as Element);
+      const cellIndex = Array.from(resourceRow?.children || []).indexOf(cell as Element) - 1; // -1 for resource name cell
+      
+      if (resourceIndex >= 0 && cellIndex >= 0) {
+        const resource = resourcesWithColors.value[resourceIndex];
+        const day = weekView.value[cellIndex];
+        
+        if (resource && day) {
+          const minDragDistance = 20;
+          const dragDistance = Math.abs(dragEnd.value.y - dragStart.value.y);
+          
+          if (dragDistance >= minDragDistance) {
+            const { startTime, endTime } = calculateTimeFromDrag(dragStart.value.y, dragEnd.value.y);
+            
+            openEventModal({
+              resourceId: String(resource.id),
+              resourceName: resource.name,
+              date: day.isoDate,
+              startTime,
+              endTime
+            });
+          }
+        }
+      }
+    }
+  }
+  
+  resetDragState();
+  
+  // Remove global listeners
+  document.removeEventListener('mousemove', handleGlobalMouseMove);
+  document.removeEventListener('mouseup', handleGlobalMouseUp);
+};
+
+/**
+ * Calculate time range from drag coordinates
+ * @param startY - Start Y coordinate
+ * @param endY - End Y coordinate
+ * @returns Object with startTime and endTime strings
+ */
+const calculateTimeFromDrag = (startY: number, endY: number): { startTime: string; endTime: string } => {
+  const cellHeight = 80; // Approximate cell height
+  const hoursInDay = 24;
+  const pixelsPerHour = cellHeight / hoursInDay;
+  
+  const startHour = Math.max(0, Math.min(23, Math.floor(startY / pixelsPerHour)));
+  const endHour = Math.max(startHour + 1, Math.min(24, Math.ceil(endY / pixelsPerHour)));
+  
+  const startTime = `${startHour.toString().padStart(2, '0')}:00`;
+  const endTime = `${endHour.toString().padStart(2, '0')}:00`;
+  
+  return { startTime, endTime };
+};
+
+/**
+ * Update drag preview position and size
+ */
+const updateDragPreview = () => {
+  if (!dragStart.value || !dragEnd.value) return;
+  
+  const startY = Math.min(dragStart.value.y, dragEnd.value.y);
+  const endY = Math.max(dragStart.value.y, dragEnd.value.y);
+  const height = Math.max(20, endY - startY); // Minimum height of 20px
+  
+  dragPreview.value = {
+    top: startY,
+    height,
+    resourceId: dragStart.value.resourceId,
+    date: dragStart.value.date
+  };
+};
+
+/**
+ * Get drag preview left position
+ * @param resourceId - The resource ID
+ * @param date - The date in ISO format
+ * @returns CSS left value
+ */
+const getDragPreviewLeft = (resourceId: string, date: string): string => {
+  // Find the resource and day indices
+  const resourceIndex = resourcesWithColors.value.findIndex(r => r.id === resourceId);
+  const dayIndex = weekView.value.findIndex(d => d.isoDate === date);
+  
+  if (resourceIndex >= 0 && dayIndex >= 0) {
+    // Calculate position based on grid layout
+    const resourceNameWidth = 200; // Width of resource name column
+    const dayWidth = `calc((100% - ${resourceNameWidth}px) / 7)`;
+    return `calc(${resourceNameWidth}px + ${dayWidth} * ${dayIndex} + 8px)`;
+  }
+  
+  return '0px';
+};
+
+/**
+ * Get drag preview width
+ * @returns CSS width value
+ */
+const getDragPreviewWidth = (): string => {
+  const resourceNameWidth = 200;
+  return `calc((100% - ${resourceNameWidth}px) / 7 - 16px)`;
+};
+
+/**
+ * Reset drag state
+ */
+const resetDragState = () => {
+  isDragging.value = false;
+  dragStart.value = null;
+  dragEnd.value = null;
+  dragPreview.value = null;
+};
+
 // --- ADVANCED DAY VIEW LOGIC ---
 const processedDayEvents = computed(() => {
   const dayEvents = eventsByDate.value.get(selectedDayView.value.isoDate) || [];
@@ -523,6 +968,16 @@ const handleCellHover = (resourceId: string, date: string, isHovering: boolean) 
 const handleAddEvent = (resourceId: string, date: string) => {
   const resource = resourcesWithColors.value.find(r => r.id === resourceId);
   if (resource) {
+    // Open the enhanced modal instead of just emitting
+    openEventModal({
+      resourceId,
+      resourceName: resource.name,
+      date,
+      startTime: '09:00',
+      endTime: '10:00'
+    });
+    
+    // Also emit the legacy event for backward compatibility
     emit('add-event', {
       resourceId,
       date,

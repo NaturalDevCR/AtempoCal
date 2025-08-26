@@ -538,6 +538,175 @@
 .atempo-cal__event-chip--urgent { background: #ef4444; }
 
 /* ================================== */
+/* ---   Enhanced Event Styles    --- */
+/* ================================== */
+
+/* Enhanced day cells */
+.atempo-cal__day-cell--enhanced {
+  cursor: pointer;
+  user-select: none;
+}
+
+.atempo-cal__day-cell--enhanced:hover {
+  background-color: rgba(59, 130, 246, 0.08);
+}
+
+/* Enhanced event chips */
+.atempo-cal__event-chip--enhanced {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 6px 8px;
+  min-height: 32px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.atempo-cal__event-chip--enhanced:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.atempo-cal__event-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.atempo-cal__event-title {
+  font-weight: 600;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  color: white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atempo-cal__event-time {
+  font-size: 0.625rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atempo-cal__event-actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.atempo-cal__event-chip--enhanced:hover .atempo-cal__event-actions {
+  opacity: 1;
+}
+
+.atempo-cal__event-action-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 4px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #374151;
+}
+
+.atempo-cal__event-action-btn:hover {
+  background: white;
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Drag preview styles */
+.atempo-cal__drag-preview {
+  position: absolute;
+  background: rgba(59, 130, 246, 0.3);
+  border: 2px dashed #3b82f6;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3b82f6;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Enhanced hover states */
+.atempo-cal__day-cell--enhanced.atempo-cal__day-cell--drag-over {
+  background-color: rgba(59, 130, 246, 0.15);
+  border: 2px dashed #3b82f6;
+}
+
+/* Better visual hierarchy for events */
+.atempo-cal__event-chip--meeting {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+}
+
+.atempo-cal__event-chip--focus {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.atempo-cal__event-chip--training {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.atempo-cal__event-chip--urgent {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  animation: pulse-urgent 2s infinite;
+}
+
+.atempo-cal__event-chip--break {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+@keyframes pulse-urgent {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+}
+
+/* Dark mode enhancements */
+.atempo-cal--dark .atempo-cal__day-cell--enhanced:hover {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+.atempo-cal--dark .atempo-cal__event-chip--enhanced {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.atempo-cal--dark .atempo-cal__event-chip--enhanced:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.atempo-cal--dark .atempo-cal__event-action-btn {
+  background: rgba(0, 0, 0, 0.7);
+  color: #e5e7eb;
+}
+
+.atempo-cal--dark .atempo-cal__event-action-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+}
+
+/* ================================== */
 /* ---     Responsive Design      --- */
 /* ================================== */
 @media (max-width: 1024px) {

@@ -6,8 +6,13 @@ A flexible and resource-centric calendar component for Vue 3, designed for plann
 
 - **Resource-based View**: Organizes events by resources (e.g., people, rooms, equipment).
 - **Multiple Views**: Switch between a full week view and a detailed day view.
-- **Scrollable Resources**: Week view now supports scrollable resource rows for better handling of many resources.
+- **Enhanced Event Creation & Editing**: Modern modal-based interface with multiple interaction methods.
+- **Drag-to-Create Events**: Drag on empty cells to create events with specific time ranges.
+- **Multiple Interaction Patterns**: Click, double-click, drag, and right-click for intuitive event management.
 - **Smart Add Button**: Intelligent positioning that automatically avoids overlapping with existing events.
+- **Inline Event Actions**: Quick edit buttons that appear on hover for seamless event management.
+- **Modern UI/UX**: Beautiful animations, visual feedback, and contemporary design patterns.
+- **Form Validation**: Comprehensive validation with helpful error messages and real-time feedback.
 - **Customizable Event Display**: Show time, title, description, location, or any custom field in week view events.
 - **Autonomous Operation**: Works without external state management while still supporting controlled mode.
 - **Configurable Dimensions**: Set custom height and width through styleOptions.
@@ -46,6 +51,34 @@ Control what information is displayed in week view events using the `eventDispla
 - **Custom field name**: Display any field from your event objects
 
 If the specified field is empty, it gracefully falls back to showing the time.
+
+### Enhanced Event Creation & Editing
+
+AtempoCal now features a completely redesigned event creation and editing system with modern UI/UX patterns:
+
+#### Multiple Interaction Methods
+
+- **Click + Add Button**: Hover over any cell to reveal the smart add button, then click to create events
+- **Double-Click**: Double-click any empty cell for instant event creation with default time ranges
+- **Drag-to-Create**: Click and drag on empty cells to create events with custom time ranges
+- **Inline Editing**: Hover over existing events to reveal quick edit buttons
+- **Right-Click**: Right-click events for quick access to editing options
+
+#### Modern Event Form Modal
+
+- **Comprehensive Form**: Title, time range, description, location, and event type fields
+- **Real-time Validation**: Instant feedback with helpful error messages
+- **Duration Calculator**: Automatically calculates and displays event duration
+- **Smart Defaults**: Intelligent default values based on interaction context
+- **Responsive Design**: Optimized for both desktop and mobile devices
+
+#### Enhanced Visual Design
+
+- **Smooth Animations**: Fluid transitions and hover effects for better user experience
+- **Visual Feedback**: Clear indicators for drag operations and interactive states
+- **Modern Styling**: Contemporary design with gradients, shadows, and backdrop filters
+- **Event Type Styling**: Different visual styles for meeting, focus, training, urgent, and break events
+- **Dark Mode Support**: Full dark mode compatibility for all new features
 
 ### Performance Optimizations
 
@@ -212,7 +245,10 @@ interface StyleOptions {
 | `date-change`       | `(dateInfo: DateChangeEvent)`         | Emitted when the user navigates to a new date period (next/prev/today). Includes current date, view, and date range information. |
 | `time-format-change`| `(format: '12h' \| '24h')`            | Emitted when the user toggles between 12-hour and 24-hour time format using the time format button. |
 | `event-click`       | `(event: CalendarEvent)`              | Emitted when a user clicks on an event chip. The payload is the full event object. |
-| `add-event`         | `(timeSlot: AddEventPayload)`         | Emitted when the user clicks the add event button. Includes resource and time slot information. |
+| `add-event`         | `(timeSlot: AddEventPayload)`         | Emitted when the user clicks the add event button. Includes resource and time slot information. **Legacy event** - use `event-create` for new implementations. |
+| `event-create`      | `(eventData: Partial<CalendarEvent>)` | **New**: Emitted when a user creates a new event through any interaction method (add button, double-click, drag-to-create). Contains the new event data. |
+| `event-update`      | `(eventData: CalendarEvent)`          | **New**: Emitted when a user updates an existing event through the edit modal or inline actions. Contains the updated event data. |
+| `event-delete`      | `(eventData: CalendarEvent)`          | **New**: Emitted when a user deletes an event through the edit modal or context actions. Contains the deleted event data. |
 
 #### Event Payload Types
 
@@ -247,6 +283,9 @@ interface AddEventPayload {
     @time-format-change="handleTimeFormatChange"
     @event-click="handleEventClick"
     @add-event="handleAddEvent"
+    @event-create="handleEventCreate"
+    @event-update="handleEventUpdate"
+    @event-delete="handleEventDelete"
   />
 </template>
 
@@ -282,10 +321,31 @@ const handleEventClick = (event: CalendarEvent) => {
   // Open event details modal, etc.
 };
 
-// Handle add event button clicks
+// Handle add event button clicks (legacy)
 const handleAddEvent = (timeSlot: AddEventPayload) => {
   console.log('Add event at:', timeSlot);
   // Open create event modal with pre-filled data
+};
+
+// Handle new event creation (recommended)
+const handleEventCreate = (eventData: Partial<CalendarEvent>) => {
+  console.log('Creating new event:', eventData);
+  // Add the event to your data store
+  // Example: await api.createEvent(eventData);
+};
+
+// Handle event updates
+const handleEventUpdate = (eventData: CalendarEvent) => {
+  console.log('Updating event:', eventData);
+  // Update the event in your data store
+  // Example: await api.updateEvent(eventData.id, eventData);
+};
+
+// Handle event deletion
+const handleEventDelete = (eventData: CalendarEvent) => {
+  console.log('Deleting event:', eventData);
+  // Remove the event from your data store
+  // Example: await api.deleteEvent(eventData.id);
 };
 </script>
 ```

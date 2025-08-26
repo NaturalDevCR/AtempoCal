@@ -35,6 +35,9 @@
           :view="currentView"
           @add-event="handleAddEvent"
           @event-click="handleEventClick"
+          @event-create="handleEventCreate"
+          @event-update="handleEventUpdate"
+          @event-delete="handleEventDelete"
           :styleOptions="{
             dayViewItemWidthPercent: itemWidth,
             height: '600px',
@@ -197,6 +200,82 @@ const handleAddEvent = (data:any) => {
 function handleEventClick(event: CalendarEvent) {
   console.log('EVENT CLICKED:', event);
   alert(`Event clicked: "${event.title}" for ${event.resourceName}. You can open your own modal or perform another action.`);
+}
+
+/**
+ * Handle event creation from the enhanced modal
+ * @param eventData - The new event data
+ */
+function handleEventCreate(eventData: Partial<CalendarEvent>) {
+  console.log('Creating new event:', eventData);
+  
+  // Find the resource to add the event to
+  const resourceId = eventData.resourceId;
+  const resource = resources.value.find((r: Resource) => r.id === resourceId);
+  
+  if (resource && eventData.from && eventData.to) {
+    const newEvent: Omit<CalendarEvent, 'resourceId' | 'resourceName'> = {
+      id: Date.now(), // Generate a unique ID
+      title: eventData.title || 'New Event',
+      from: eventData.from,
+      to: eventData.to,
+      description: eventData.description,
+      location: eventData.location,
+      type: eventData.type
+    };
+    
+    resource.events.push(newEvent);
+    console.log('Event created successfully:', newEvent);
+  }
+}
+
+/**
+ * Handle event update from the enhanced modal
+ * @param eventData - The updated event data
+ */
+function handleEventUpdate(eventData: CalendarEvent) {
+  console.log('Updating event:', eventData);
+  
+  // Find the resource and event to update
+  const resourceId = eventData.resourceId;
+  const resource = resources.value.find((r: Resource) => r.id === resourceId);
+  
+  if (resource) {
+    const eventIndex = resource.events.findIndex((e: any) => e.id === eventData.id);
+    if (eventIndex !== -1) {
+      // Update the event
+      resource.events[eventIndex] = {
+        ...resource.events[eventIndex],
+        title: eventData.title,
+        from: eventData.from,
+        to: eventData.to,
+        description: eventData.description,
+        location: eventData.location,
+        type: eventData.type
+      };
+      console.log('Event updated successfully:', resource.events[eventIndex]);
+    }
+  }
+}
+
+/**
+ * Handle event deletion from the enhanced modal
+ * @param eventData - The event to delete
+ */
+function handleEventDelete(eventData: CalendarEvent) {
+  console.log('Deleting event:', eventData);
+  
+  // Find the resource and remove the event
+  const resourceId = eventData.resourceId;
+  const resource = resources.value.find((r: Resource) => r.id === resourceId);
+  
+  if (resource) {
+    const eventIndex = resource.events.findIndex((e: any) => e.id === eventData.id);
+    if (eventIndex !== -1) {
+      resource.events.splice(eventIndex, 1);
+      console.log('Event deleted successfully');
+    }
+  }
 }
 </script>
 

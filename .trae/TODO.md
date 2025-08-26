@@ -9,6 +9,6 @@
 - [x] 8: Update README.md to document new time-format-change event and view-change behavior (priority: High)
 - [x] 10: Commit README documentation updates (priority: High)
 - [x] 11: Push documentation changes to repository (priority: High)
+- [x] 12: Release new version with updated documentation (priority: High)
 - [x] 4: Test both view change and time format functionality (priority: Medium)
 - [x] 9: Add TypeScript examples for new events in README (priority: Medium)
-- [ ] 12: Release new version with updated documentation (**IN PROGRESS**) (priority: High)
