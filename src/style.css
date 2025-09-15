@@ -1,79 +1,272 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/* AtempoCal Custom Styles */
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Base calendar container */
+.atempo-cal {
+  @apply font-sans text-sm;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+/* Calendar grid styles */
+.atempo-cal-grid {
+  @apply relative overflow-hidden;
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+.atempo-cal-time-column {
+  @apply border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+.atempo-cal-time-slot {
+  @apply border-b border-gray-100 dark:border-gray-700 px-2 py-1 text-xs text-gray-600 dark:text-gray-400;
+  min-height: 60px;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+.atempo-cal-time-slot.current-time {
+  @apply bg-blue-50 dark:bg-blue-900/20;
 }
 
-.card {
-  padding: 2em;
+/* Resource columns */
+.atempo-cal-resource-header {
+  @apply border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 font-medium text-gray-900 dark:text-gray-100;
 }
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+.atempo-cal-resource-column {
+  @apply border-r border-gray-200 dark:border-gray-700 relative;
+  min-width: 200px;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+/* Event styles */
+.atempo-cal-event {
+  @apply absolute rounded-md shadow-sm border-l-4 px-2 py-1 cursor-pointer transition-all duration-200;
+  @apply hover:shadow-md hover:z-10;
+}
+
+.atempo-cal-event.selected {
+  @apply ring-2 ring-blue-500 ring-opacity-50;
+}
+
+.atempo-cal-event-title {
+  @apply font-medium text-xs leading-tight;
+}
+
+.atempo-cal-event-time {
+  @apply text-xs opacity-75;
+}
+
+.atempo-cal-event-description {
+  @apply text-xs opacity-60 mt-1;
+}
+
+/* Event colors */
+.atempo-cal-event.color-blue {
+  @apply bg-blue-100 dark:bg-blue-900/30 border-blue-500 text-blue-900 dark:text-blue-100;
+}
+
+.atempo-cal-event.color-green {
+  @apply bg-green-100 dark:bg-green-900/30 border-green-500 text-green-900 dark:text-green-100;
+}
+
+.atempo-cal-event.color-red {
+  @apply bg-red-100 dark:bg-red-900/30 border-red-500 text-red-900 dark:text-red-100;
+}
+
+.atempo-cal-event.color-yellow {
+  @apply bg-yellow-100 dark:bg-yellow-900/30 border-yellow-500 text-yellow-900 dark:text-yellow-100;
+}
+
+.atempo-cal-event.color-purple {
+  @apply bg-purple-100 dark:bg-purple-900/30 border-purple-500 text-purple-900 dark:text-purple-100;
+}
+
+.atempo-cal-event.color-indigo {
+  @apply bg-indigo-100 dark:bg-indigo-900/30 border-indigo-500 text-indigo-900 dark:text-indigo-100;
+}
+
+.atempo-cal-event.color-pink {
+  @apply bg-pink-100 dark:bg-pink-900/30 border-pink-500 text-pink-900 dark:text-pink-100;
+}
+
+.atempo-cal-event.color-gray {
+  @apply bg-gray-100 dark:bg-gray-900/30 border-gray-500 text-gray-900 dark:text-gray-100;
+}
+
+/* Navigation styles */
+.atempo-cal-nav {
+  @apply flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800;
+}
+
+.atempo-cal-nav-button {
+  @apply inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium;
+  @apply text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600;
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+  @apply transition-colors duration-200;
+}
+
+.atempo-cal-nav-button.active {
+  @apply bg-blue-600 text-white border-blue-600 hover:bg-blue-700;
+}
+
+.atempo-cal-nav-title {
+  @apply text-lg font-semibold text-gray-900 dark:text-gray-100;
+}
+
+/* View toggle buttons */
+.atempo-cal-view-toggle {
+  @apply inline-flex rounded-md shadow-sm;
+}
+
+.atempo-cal-view-toggle button {
+  @apply relative inline-flex items-center px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600;
+  @apply text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600;
+  @apply focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+}
+
+.atempo-cal-view-toggle button:first-child {
+  @apply rounded-l-md;
+}
+
+.atempo-cal-view-toggle button:last-child {
+  @apply rounded-r-md -ml-px;
+}
+
+.atempo-cal-view-toggle button.active {
+  @apply bg-blue-600 text-white border-blue-600 z-10;
+}
+
+/* Current time indicator */
+.atempo-cal-current-time-line {
+  @apply absolute left-0 right-0 h-0.5 bg-red-500 z-20;
+}
+
+.atempo-cal-current-time-dot {
+  @apply absolute -left-1 -top-1 w-2 h-2 bg-red-500 rounded-full;
+}
+
+/* Drag and drop styles */
+.atempo-cal-drop-zone {
+  @apply border-2 border-dashed border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20;
+}
+
+.atempo-cal-dragging {
+  @apply opacity-50 transform rotate-2;
+}
+
+/* Loading states */
+.atempo-cal-loading {
+  @apply animate-pulse;
+}
+
+.atempo-cal-skeleton {
+  @apply bg-gray-200 dark:bg-gray-700 rounded;
+}
+
+/* Scrollbar styles */
+.atempo-cal-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(156 163 175) transparent;
+}
+
+.atempo-cal-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.atempo-cal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.atempo-cal-scroll::-webkit-scrollbar-thumb {
+  background-color: rgb(156 163 175);
+  border-radius: 3px;
+}
+
+.atempo-cal-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(107 114 128);
+}
+
+/* Dark mode scrollbar */
+.dark .atempo-cal-scroll {
+  scrollbar-color: rgb(75 85 99) transparent;
+}
+
+.dark .atempo-cal-scroll::-webkit-scrollbar-thumb {
+  background-color: rgb(75 85 99);
+}
+
+.dark .atempo-cal-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(107 114 128);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .atempo-cal-resource-column {
+    min-width: 150px;
   }
-  a:hover {
-    color: #747bff;
+  
+  .atempo-cal-event {
+    @apply text-xs px-1;
   }
-  button {
-    background-color: #f9f9f9;
+  
+  .atempo-cal-nav {
+    @apply flex-col space-y-2 p-2;
+  }
+  
+  .atempo-cal-nav-title {
+    @apply text-base;
+  }
+}
+
+/* Animation classes */
+.atempo-cal-fade-enter-active,
+.atempo-cal-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.atempo-cal-fade-enter-from,
+.atempo-cal-fade-leave-to {
+  opacity: 0;
+}
+
+.atempo-cal-slide-enter-active,
+.atempo-cal-slide-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.atempo-cal-slide-enter-from {
+  transform: translateX(-100%);
+}
+
+.atempo-cal-slide-leave-to {
+  transform: translateX(100%);
+}
+
+/* Focus styles for accessibility */
+.atempo-cal *:focus {
+  @apply outline-none;
+}
+
+.atempo-cal *:focus-visible {
+  @apply ring-2 ring-blue-500 ring-opacity-50;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .atempo-cal-event {
+    @apply border-2;
+  }
+  
+  .atempo-cal-nav-button {
+    @apply border-2;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .atempo-cal * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

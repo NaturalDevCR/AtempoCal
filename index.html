@@ -1,13 +1,93 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + Vue</title>
+    <meta name="description" content="AtempoCal - A highly customizable Vue 3 calendar component with atemporal library integration" />
+    <meta name="keywords" content="vue, calendar, scheduler, atemporal, typescript, tailwind" />
+    <meta name="author" content="AtempoCal Team" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="AtempoCal Demo" />
+    <meta property="og:description" content="A highly customizable Vue 3 calendar component with atemporal library integration" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="AtempoCal Demo" />
+    <meta property="twitter:description" content="A highly customizable Vue 3 calendar component with atemporal library integration" />
+    
+    <title>AtempoCal Demo - Vue 3 Calendar Component</title>
+    
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- System font stack for better performance -->
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f9fafb;
+      }
+      
+      /* Dark mode support */
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #111827;
+          color: #f9fafb;
+        }
+      }
+      
+      /* Loading spinner */
+      .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* Initial loading state */
+      #app {
+        min-height: 100vh;
+      }
+      
+      .initial-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        flex-direction: column;
+        gap: 1rem;
+      }
+    </style>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <!-- Initial loading state -->
+      <div class="initial-loading">
+        <div class="loading-spinner"></div>
+        <p>Loading AtempoCal Demo...</p>
+      </div>
+    </div>
+    
+    <!-- Main application script -->
     <script type="module" src="/src/main.ts"></script>
+    
+    <!-- Analytics placeholder (replace with your analytics code) -->
+    <script>
+      // Add your analytics code here
+      console.log('📊 Analytics placeholder - replace with your tracking code');
+    </script>
   </body>
 </html>
