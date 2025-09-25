@@ -4,14 +4,14 @@
     <div class="week-header">
       <!-- Worker column spacer -->
       <div class="resource-spacer">
-        <span class="resource-label">Workers</span>
+        <span class="resource-label">Colaboradores</span>
       </div>
       
       <!-- Day headers -->
       <div class="day-headers">
         <div class="day-grid">
           <div
-            v-for="(date, index) in weekDates"
+            v-for="date in weekDates"
             :key="date.toString()"
             class="day-header"
             :class="{
@@ -21,10 +21,10 @@
             @click="handleDayClick(date)"
           >
             <div class="day-name">
-              {{ getDayName(date, index) }}
+              {{ getSpanishDay(date) }}
             </div>
-            <div class="day-number">
-              {{ date.day }}
+            <div class="day-date">
+              {{ formatSpanishDate(date) }}
             </div>
           </div>
         </div>
@@ -175,6 +175,10 @@ import {
   assignWorkerColors,
   getEventColor
 } from '../utils/colorHelpers'
+import {
+  getSpanishDay,
+  formatSpanishDate
+} from '../utils/spanishDateHelpers'
 
 /**
  * WeeklyView component with true vertical event stacking
@@ -890,19 +894,23 @@ const handleEventClick = (event: CalendarEvent, _eventType: 'single-day' | 'mult
 }
 
 .resource-spacer {
-  border-right: 1px solid var(--atempo-border-primary);
-  background-color: var(--atempo-bg-secondary);
+  width: 200px;
+  min-width: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 160px;
-  height: 80px;
+  padding: 1rem 0.5rem;
+  border-right: 1px solid var(--atempo-border-primary);
+  background-color: #2D3748;
+  height: 90px;
 }
 
 .resource-label {
   font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--atempo-text-secondary);
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 .day-headers {
@@ -921,11 +929,13 @@ const handleEventClick = (event: CalendarEvent, _eventType: 'single-day' | 'mult
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem;
+  padding: 1rem 0.5rem;
   border-right: 1px solid var(--atempo-border-primary);
   cursor: pointer;
   transition: background-color 0.2s ease;
-  height: 80px;
+  height: 90px;
+  background-color: var(--atempo-bg-primary);
+  gap: 0.5rem;
 }
 
 .day-header:hover {
@@ -933,11 +943,14 @@ const handleEventClick = (event: CalendarEvent, _eventType: 'single-day' | 'mult
 }
 
 .day-header.is-today {
-  background-color: color-mix(in srgb, var(--atempo-accent-primary) 10%, var(--atempo-bg-primary));
+  background-color: #FF6B35;
+  color: white;
+  font-weight: 600;
 }
 
 .day-header.is-weekend {
-  background-color: var(--atempo-bg-secondary);
+  background-color: var(--atempo-bg-primary);
+  color: var(--atempo-text-secondary);
 }
 
 .day-header.is-selected {
@@ -946,10 +959,18 @@ const handleEventClick = (event: CalendarEvent, _eventType: 'single-day' | 'mult
 
 .day-name {
   font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--atempo-text-secondary);
+  font-weight: 600;
+  color: inherit;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.25rem;
+}
+
+.day-date {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: inherit;
+  line-height: 1.2;
 }
 
 .day-number {

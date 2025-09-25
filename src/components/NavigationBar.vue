@@ -1,7 +1,7 @@
 <template>
   <div class="atempo-cal-nav">
     <!-- Left section: Navigation controls -->
-    <div class="flex items-center space-x-2">
+    <div class="nav-left">
       <slot 
         name="left" 
         :navigate-previous="() => $emit('navigate-previous')"
@@ -13,25 +13,25 @@
       >
         <!-- Default navigation buttons -->
         <button
-          class="atempo-cal-nav-button"
+          class="nav-arrow-btn"
           :disabled="loading"
           @click="$emit('navigate-previous')"
           :title="getPreviousTitle()"
         >
-          <ChevronLeftIcon class="w-4 h-4" />
+          <ChevronLeftIcon class="w-5 h-5" />
         </button>
         
         <button
-          class="atempo-cal-nav-button"
+          class="nav-arrow-btn"
           :disabled="loading"
           @click="$emit('navigate-next')"
           :title="getNextTitle()"
         >
-          <ChevronRightIcon class="w-4 h-4" />
+          <ChevronRightIcon class="w-5 h-5" />
         </button>
         
         <button
-          class="atempo-cal-nav-button"
+          class="nav-today-btn"
           :disabled="loading"
           @click="$emit('navigate-today')"
           title="Go to today"
@@ -42,21 +42,21 @@
     </div>
 
     <!-- Center section: Current date/period display -->
-    <div class="flex items-center space-x-4">
+    <div class="nav-center">
       <slot 
         name="center" 
         :display-title="getDisplayTitle()"
         :current-date="currentDate"
       >
         <!-- Default title display -->
-        <h2 class="atempo-cal-nav-title">
+        <h1 class="nav-title">
           {{ getDisplayTitle() }}
-        </h2>
+        </h1>
       </slot>
     </div>
 
     <!-- Right section: Date picker and additional controls -->
-    <div class="flex items-center space-x-2">
+    <div class="nav-right">
       <slot 
         name="right" 
         :show-date-picker="showDatePicker"
@@ -67,12 +67,11 @@
         <!-- Default date picker button -->
         <button
           v-if="showDatePicker"
-          class="atempo-cal-nav-button text-sm"
+          class="nav-date-picker-btn"
           @click="toggleDatePicker"
           title="Select date"
         >
-          <CalendarIcon class="w-4 h-4 mr-1" />
-          Pick Date
+          <CalendarIcon class="w-4 h-4" />
         </button>
       </slot>
     </div>
@@ -239,120 +238,192 @@ const handleDateChange = (date: string): void => {
 </script>
 
 <style scoped>
-@reference "tailwindcss";
-
 /* Navigation bar specific styles */
 .atempo-cal-nav {
-  @apply flex items-center justify-between p-4 border-b;
-  background-color: var(--atempo-bg-primary);
-  border-color: var(--atempo-border-primary);
-  color: var(--atempo-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background-color: #2D3748;
+  color: white;
+  border-bottom: 1px solid #4A5568;
+  min-height: 70px;
 }
 
-.atempo-cal-nav-button {
-  @apply inline-flex items-center px-3 py-2 border rounded-md text-sm font-medium transition-all duration-200 cursor-pointer;
-  color: var(--atempo-text-primary);
-  background-color: var(--atempo-bg-primary);
-  border-color: var(--atempo-border-secondary);
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.atempo-cal-nav-button:hover {
-  background-color: var(--atempo-bg-secondary);
+.nav-center {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  justify-content: center;
 }
 
-.atempo-cal-nav-button:focus {
-  @apply outline-none;
-  box-shadow: 0 0 0 2px var(--atempo-accent-primary);
-  border-color: var(--atempo-accent-primary);
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.atempo-cal-nav-button:disabled {
-  @apply opacity-50 cursor-not-allowed;
+.nav-arrow-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: transparent;
+  border: 1px solid #4A5568;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.atempo-cal-nav-title {
-  @apply text-lg font-semibold;
-  color: var(--atempo-text-primary);
+.nav-arrow-btn:hover {
+  background-color: #4A5568;
+  border-color: #718096;
 }
 
-/* Additional component-specific styles */
-.atempo-cal-view-toggle {
-  @apply inline-flex rounded-md shadow-sm;
+.nav-arrow-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.atempo-cal-view-toggle button:not(:first-child) {
-  @apply -ml-px;
+.nav-today-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  border: 1px solid #4A5568;
+  border-radius: 6px;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 0.5rem;
 }
 
-.atempo-cal-view-toggle button:first-child {
-  @apply rounded-l-md;
+.nav-today-btn:hover {
+  background-color: #4A5568;
+  border-color: #718096;
 }
 
-.atempo-cal-view-toggle button:last-child {
-  @apply rounded-r-md;
+.nav-today-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.atempo-cal-view-toggle button.active {
-  @apply bg-blue-600 text-white border-blue-600 z-10;
+.nav-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+  text-align: center;
+}
+
+.nav-date-picker-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: transparent;
+  border: 1px solid #4A5568;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-date-picker-btn:hover {
+  background-color: #4A5568;
+  border-color: #718096;
 }
 
 /* Modal styles */
 .atempo-cal-modal {
-  @apply rounded-lg p-6 max-w-sm w-full shadow-xl;
-  background-color: var(--atempo-bg-primary);
-  border: 1px solid var(--atempo-border-primary);
-  color: var(--atempo-text-primary);
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  color: #1a202c;
 }
 
 .atempo-cal-modal-close {
-  @apply p-1 rounded-md transition-colors duration-200;
-  color: var(--atempo-text-secondary);
+  padding: 0.25rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+  color: #718096;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 .atempo-cal-modal-close:hover {
-  background-color: var(--atempo-bg-secondary);
-  color: var(--atempo-text-primary);
+  background-color: #f7fafc;
+  color: #2d3748;
 }
 
 .atempo-cal-date-input {
-  @apply w-full px-3 py-2 border rounded-md transition-colors duration-200;
-  background-color: var(--atempo-bg-primary);
-  border-color: var(--atempo-border-secondary);
-  color: var(--atempo-text-primary);
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  transition: border-color 0.2s ease;
+  background-color: white;
+  color: #1a202c;
+  font-size: 0.875rem;
 }
 
 .atempo-cal-date-input:focus {
-  @apply outline-none;
-  border-color: var(--atempo-accent-primary);
-  box-shadow: 0 0 0 1px var(--atempo-accent-primary);
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
 }
 
 .atempo-cal-modal-button {
-  @apply px-4 py-2 text-sm rounded-md transition-colors duration-200;
-  color: var(--atempo-text-secondary);
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+  color: #718096;
+  background: none;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
 }
 
 .atempo-cal-modal-button:hover {
-  background-color: var(--atempo-bg-secondary);
-  color: var(--atempo-text-primary);
+  background-color: #f7fafc;
+  color: #2d3748;
 }
 
 /* Responsive adjustments */
 @media (max-width: 640px) {
   .atempo-cal-nav {
-    @apply flex-col space-y-2 p-2;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
   }
   
-  .atempo-cal-nav > div {
-    @apply justify-center;
+  .nav-center {
+    order: -1;
   }
   
-  .atempo-cal-nav-title {
-    @apply text-base text-center;
+  .nav-title {
+    font-size: 1.125rem;
   }
   
   .atempo-cal-modal {
-    @apply mx-4 p-4;
+    margin: 1rem;
+    padding: 1rem;
   }
 }
 </style>
