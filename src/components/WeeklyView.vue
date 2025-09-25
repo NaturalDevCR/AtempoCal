@@ -299,190 +299,178 @@ const displayWorkers = computed((): CalendarResource[] => {
  * Get single-day events (non-multi-day events)
  */
 const singleDayEvents = computed((): CalendarEvent[] => {
-  // Generate test events only for specific weeks to make navigation meaningful
-  const currentWeekStart = weekDates.value[0]
+  // Generate example events for the week of September 22-28, 2025
   const testSingleDayEvents: CalendarEvent[] = []
   
-  // Only generate events for certain weeks (every 2-3 weeks to show variety)
-  const weekNumber = Math.floor(currentWeekStart.valueOf() / (1000 * 60 * 60 * 24 * 7)) // Use timestamp to calculate week number
-  const shouldShowEvents = weekNumber % 3 === 0 || weekNumber % 3 === 1 // Show events 2 out of every 3 weeks
+  // Check if current week contains September 25, 2025 (Thursday)
+  const targetDate = atemporal('2025-09-25')
+  const isTargetWeek = weekDates.value.some(date => date.isSame(targetDate, 'day'))
   
-  if (shouldShowEvents) {
-    // Vary events based on week number to show different schedules
-    const eventVariation = weekNumber % 4
-    
-    // Base events that appear in most weeks
+  if (isTargetWeek) {
+    // September 22, 2025 (Monday) - John Smith (Production Supervisor)
     testSingleDayEvents.push(
-    // John Smith (Shift Supervisor) - Monday events
-    {
-      id: 'john-mon-1',
-      title: 'Morning Shift',
-      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T06:00:00',
-      endTime: weekDates.value[0].format('YYYY-MM-DD') + 'T14:00:00',
-      resourceId: 'emp-001',
-      color: '#1E40AF',
-      metadata: { type: 'shift', shiftType: 'morning' }
-    },
-    {
-      id: 'john-mon-2',
-      title: 'Safety Meeting',
-      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T14:30:00',
-      endTime: weekDates.value[0].format('YYYY-MM-DD') + 'T15:30:00',
-      resourceId: 'emp-001',
-      color: '#DC2626',
-      metadata: { type: 'meeting', category: 'safety' }
-    },
-    {
-      id: 'john-mon-3',
-      title: 'Shift Handover',
-      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T15:45:00',
-      endTime: weekDates.value[0].format('YYYY-MM-DD') + 'T16:00:00',
-      resourceId: 'emp-001',
-      color: '#7C3AED',
-      metadata: { type: 'handover' }
-    },
-    // John Smith - Tuesday events
-    {
-      id: 'john-tue-1',
-      title: 'Morning Shift',
-      startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T06:00:00',
-      endTime: weekDates.value[1].format('YYYY-MM-DD') + 'T14:00:00',
-      resourceId: 'emp-001',
-      color: '#1E40AF',
-      metadata: { type: 'shift', shiftType: 'morning' }
-    },
-    {
-      id: 'john-tue-2',
-      title: 'Performance Review',
-      startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T14:30:00',
-      endTime: weekDates.value[1].format('YYYY-MM-DD') + 'T15:30:00',
-      resourceId: 'emp-001',
-      color: '#059669',
-      metadata: { type: 'meeting', category: 'hr' }
-    },
-    
-    // Sarah Johnson (Customer Service Team Lead) - Wednesday events
-    {
-      id: 'sarah-wed-1',
-      title: 'Day Shift',
-      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T08:00:00',
-      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T16:00:00',
-      resourceId: 'emp-002',
-      color: '#047857',
-      metadata: { type: 'shift', shiftType: 'day' }
-    },
-    {
-      id: 'sarah-wed-2',
-      title: 'Team Training',
-      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T16:30:00',
-      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T17:30:00',
-      resourceId: 'emp-002',
-      color: '#7C2D12',
-      metadata: { type: 'training', category: 'customer-service' }
-    },
-    {
-      id: 'sarah-wed-3',
-      title: 'Quality Review',
-      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T17:45:00',
-      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T18:15:00',
-      resourceId: 'emp-002',
-      color: '#B45309',
-      metadata: { type: 'meeting', category: 'quality' }
-    },
-    {
-      id: 'sarah-wed-4',
-      title: 'Shift Report',
-      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T18:15:00',
-      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T18:30:00',
-      resourceId: 'emp-002',
-      color: '#7C3AED',
-      metadata: { type: 'administrative' }
-    },
-    
-    // Mike Davis (Maintenance Technician) - Thursday events
-    {
-      id: 'mike-thu-1',
-      title: 'Evening Shift',
-      startTime: weekDates.value[3].format('YYYY-MM-DD') + 'T14:00:00',
-      endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T22:00:00',
-      resourceId: 'emp-003',
-      color: '#D97706',
-      metadata: { type: 'shift', shiftType: 'evening' }
-    },
-    {
-      id: 'mike-thu-2',
-      title: 'Equipment Inspection',
-      startTime: weekDates.value[3].format('YYYY-MM-DD') + 'T22:30:00',
-      endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T23:00:00',
-      resourceId: 'emp-003',
-      color: '#92400E',
-      metadata: { type: 'maintenance', category: 'inspection' }
-    },
-    
-    // Lisa Chen (Security Officer) - Friday events
-    {
-      id: 'lisa-fri-1',
-      title: 'Night Shift',
-      startTime: weekDates.value[4].format('YYYY-MM-DD') + 'T22:00:00',
-      endTime: weekDates.value[5].format('YYYY-MM-DD') + 'T06:00:00',
-      resourceId: 'emp-004',
-      color: '#6D28D9',
-      metadata: { type: 'shift', shiftType: 'night' }
-    },
-    {
-      id: 'lisa-fri-2',
-      title: 'Security Training',
-      startTime: weekDates.value[4].format('YYYY-MM-DD') + 'T20:00:00',
-      endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T21:00:00',
-      resourceId: 'emp-004',
-      color: '#7C2D12',
-      metadata: { type: 'training', category: 'security' }
-    },
-    {
-      id: 'lisa-fri-3',
-      title: 'Patrol Briefing',
-      startTime: weekDates.value[4].format('YYYY-MM-DD') + 'T21:30:00',
-      endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T21:45:00',
-      resourceId: 'emp-004',
-      color: '#DC2626',
-      metadata: { type: 'briefing' }
-    })
-    
-    // Add variation-specific events
-    if (eventVariation === 0) {
-      // Week variation 0: Add extra training events
-      testSingleDayEvents.push({
-        id: 'extra-training-' + weekNumber,
-        title: 'Monthly Safety Training',
-        startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T10:00:00',
-        endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T12:00:00',
+      {
+        id: 'john-sep22-1',
+        title: 'Morning Shift Supervision',
+        startTime: '2025-09-22T06:00:00',
+        endTime: '2025-09-22T14:00:00',
         resourceId: 'emp-001',
+        color: '#1E40AF',
+        metadata: { type: 'shift', shiftType: 'morning' }
+      },
+      
+      // September 23, 2025 (Tuesday) - John Smith & Sarah Johnson
+      {
+        id: 'john-sep23-1',
+        title: 'Q3 Performance Reviews',
+        startTime: '2025-09-23T09:00:00',
+        endTime: '2025-09-23T11:00:00',
+        resourceId: 'emp-001',
+        color: '#059669',
+        metadata: { type: 'meeting', category: 'hr' }
+      },
+      {
+        id: 'sarah-sep23-1',
+        title: 'Safety Training Renewal',
+        startTime: '2025-09-23T09:00:00',
+        endTime: '2025-09-23T12:00:00',
+        resourceId: 'emp-002',
         color: '#DC2626',
         metadata: { type: 'training', category: 'safety' }
-      })
-    } else if (eventVariation === 1) {
-      // Week variation 1: Add maintenance events
-      testSingleDayEvents.push({
-        id: 'maintenance-' + weekNumber,
-        title: 'Equipment Maintenance',
-        startTime: weekDates.value[3].format('YYYY-MM-DD') + 'T09:00:00',
-        endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T17:00:00',
+      },
+      {
+        id: 'mike-sep23-1',
+        title: 'Vendor Meeting',
+        startTime: '2025-09-23T10:00:00',
+        endTime: '2025-09-23T11:00:00',
         resourceId: 'emp-003',
+        color: '#7C3AED',
+        metadata: { type: 'meeting', category: 'vendor' }
+      },
+      
+      // September 24, 2025 (Wednesday) - Equipment & Quality Focus
+      {
+        id: 'john-sep24-1',
+        title: 'Equipment Maintenance Oversight',
+        startTime: '2025-09-24T08:00:00',
+        endTime: '2025-09-24T16:00:00',
+        resourceId: 'emp-001',
         color: '#D97706',
-        metadata: { type: 'maintenance', category: 'equipment' }
-      })
-    } else if (eventVariation === 2) {
-      // Week variation 2: Add customer service events
-      testSingleDayEvents.push({
-        id: 'customer-event-' + weekNumber,
-        title: 'Customer Service Review',
-        startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T14:00:00',
-        endTime: weekDates.value[1].format('YYYY-MM-DD') + 'T16:00:00',
+        metadata: { type: 'maintenance', category: 'oversight' }
+      },
+      {
+        id: 'sarah-sep24-1',
+        title: 'Inspection Rounds',
+        startTime: '2025-09-24T06:00:00',
+        endTime: '2025-09-24T14:00:00',
         resourceId: 'emp-002',
         color: '#047857',
-        metadata: { type: 'meeting', category: 'customer-service' }
-      })
-    }
+        metadata: { type: 'inspection', category: 'quality' }
+      },
+      {
+        id: 'mike-sep24-1',
+        title: 'Staff Training',
+        startTime: '2025-09-24T14:00:00',
+        endTime: '2025-09-24T16:00:00',
+        resourceId: 'emp-003',
+        color: '#7C2D12',
+        metadata: { type: 'training', category: 'staff' }
+      },
+      {
+        id: 'lisa-sep24-1',
+        title: 'Emergency Repair',
+        startTime: '2025-09-24T10:00:00',
+        endTime: '2025-09-24T18:00:00',
+        resourceId: 'emp-004',
+        color: '#DC2626',
+        metadata: { type: 'maintenance', category: 'emergency' }
+      },
+      
+      // September 25, 2025 (Thursday) - Today's Events
+      {
+        id: 'john-sep25-1',
+        title: 'Team Meeting',
+        startTime: '2025-09-25T09:00:00',
+        endTime: '2025-09-25T10:00:00',
+        resourceId: 'emp-001',
+        color: '#7C3AED',
+        metadata: { type: 'meeting', category: 'team' }
+      },
+      {
+        id: 'john-sep25-2',
+        title: 'Afternoon Shift',
+        startTime: '2025-09-25T14:00:00',
+        endTime: '2025-09-25T22:00:00',
+        resourceId: 'emp-001',
+        color: '#1E40AF',
+        metadata: { type: 'shift', shiftType: 'afternoon' }
+      },
+      {
+        id: 'sarah-sep25-1',
+        title: 'Quality Review Meeting',
+        startTime: '2025-09-25T13:00:00',
+        endTime: '2025-09-25T14:00:00',
+        resourceId: 'emp-002',
+        color: '#B45309',
+        metadata: { type: 'meeting', category: 'quality' }
+      },
+      {
+        id: 'mike-sep25-1',
+        title: 'Logistics Planning',
+        startTime: '2025-09-25T09:00:00',
+        endTime: '2025-09-25T17:00:00',
+        resourceId: 'emp-003',
+        color: '#047857',
+        metadata: { type: 'planning', category: 'logistics' }
+      },
+      {
+        id: 'lisa-sep25-1',
+        title: 'Maintenance Planning',
+        startTime: '2025-09-25T07:00:00',
+        endTime: '2025-09-25T15:00:00',
+        resourceId: 'emp-004',
+        color: '#D97706',
+        metadata: { type: 'planning', category: 'maintenance' }
+      },
+      
+      // September 26, 2025 (Friday) - End of Quarter Prep
+      {
+        id: 'john-sep26-1',
+        title: 'End-of-Quarter Planning',
+        startTime: '2025-09-26T10:00:00',
+        endTime: '2025-09-26T12:00:00',
+        resourceId: 'emp-001',
+        color: '#059669',
+        metadata: { type: 'planning', category: 'quarterly' }
+      },
+      {
+        id: 'sarah-sep26-1',
+        title: 'Documentation Review',
+        startTime: '2025-09-26T08:00:00',
+        endTime: '2025-09-26T16:00:00',
+        resourceId: 'emp-002',
+        color: '#7C3AED',
+        metadata: { type: 'administrative', category: 'documentation' }
+      },
+      {
+        id: 'mike-sep26-1',
+        title: 'Weekend Prep',
+        startTime: '2025-09-26T07:00:00',
+        endTime: '2025-09-26T15:00:00',
+        resourceId: 'emp-003',
+        color: '#92400E',
+        metadata: { type: 'preparation', category: 'weekend' }
+      },
+      {
+        id: 'lisa-sep26-1',
+        title: 'Tool Inventory',
+        startTime: '2025-09-26T09:00:00',
+        endTime: '2025-09-26T13:00:00',
+        resourceId: 'emp-004',
+        color: '#6D28D9',
+        metadata: { type: 'inventory', category: 'tools' }
+      }
+    )
   }
   
   const userEvents = props.events.filter(event => {
@@ -505,89 +493,64 @@ const multiDayEvents = computed((): CalendarEvent[] => {
     return !startDate.isSame(endDate, 'day')
   })
   
-  // Generate multi-day events only for specific weeks
-  const currentWeekStart = weekDates.value[0]
-  const weekNumber = Math.floor(currentWeekStart.valueOf() / (1000 * 60 * 60 * 24 * 7)) // Use timestamp to calculate week number
+  // Generate multi-day events for September 2025
   const testMultiDayEvents: CalendarEvent[] = []
   
-  // Show multi-day events less frequently (every 4-5 weeks)
-  const shouldShowMultiDayEvents = weekNumber % 5 === 0 || weekNumber % 5 === 2
+  // Check if current week contains September 25, 2025 (Thursday)
+  const targetDate = atemporal('2025-09-25')
+  const isTargetWeek = weekDates.value.some(date => date.isSame(targetDate, 'day'))
   
-  if (shouldShowMultiDayEvents) {
-    const eventVariation = weekNumber % 3
-    
-    if (eventVariation === 0) {
-      // Vacation week
-      testMultiDayEvents.push(
-    // John Smith - Vacation time
-    {
-      id: 'john-vacation-1',
-      title: 'Annual Leave',
-      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T00:00:00',
-      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T23:59:59',
-      resourceId: 'emp-001',
-      color: '#059669',
-      isAllDay: true,
-      metadata: { type: 'time-off', category: 'vacation' }
-    },
-    // Sarah Johnson - Training program
-    {
-      id: 'sarah-training-1',
-      title: 'Customer Excellence Training',
-      startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T00:00:00',
-      endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T23:59:59',
-      resourceId: 'emp-002',
-      color: '#7C2D12',
-      isAllDay: true,
-      metadata: { type: 'training', category: 'professional-development' }
-    },
-    // Mike Davis - Equipment maintenance period
-    {
-      id: 'mike-maintenance-1',
-      title: 'Facility Maintenance Project',
-      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T00:00:00',
-      endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T23:59:59',
-      resourceId: 'emp-003',
-      color: '#92400E',
-      isAllDay: true,
-      metadata: { type: 'project', category: 'maintenance' }
-    },
-    // Lisa Chen - Security certification
-    {
-      id: 'lisa-cert-1',
-      title: 'Security Certification Course',
-      startTime: weekDates.value[3].format('YYYY-MM-DD') + 'T00:00:00',
-      endTime: weekDates.value[5].format('YYYY-MM-DD') + 'T23:59:59',
-      resourceId: 'emp-004',
-      color: '#7C2D12',
-      isAllDay: true,
-      metadata: { type: 'training', category: 'certification' }
-    })
-    } else if (eventVariation === 1) {
-      // Training week
-      testMultiDayEvents.push({
-        id: 'training-week-' + weekNumber,
-        title: 'Professional Development Week',
-        startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T00:00:00',
-        endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T23:59:59',
+  if (isTargetWeek) {
+    // Multi-day events for September 2025
+    testMultiDayEvents.push(
+      // Annual leave period (September 23-25, 2025)
+      {
+        id: 'sarah-leave-sep2025',
+        title: 'Annual Leave',
+        startTime: '2025-09-23T00:00:00',
+        endTime: '2025-09-25T23:59:59',
         resourceId: 'emp-002',
-        color: '#7C2D12',
+        color: '#059669',
         isAllDay: true,
-        metadata: { type: 'training', category: 'professional-development' }
-      })
-    } else if (eventVariation === 2) {
-      // Maintenance week
-      testMultiDayEvents.push({
-        id: 'maintenance-week-' + weekNumber,
-        title: 'Facility Upgrade Project',
-        startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T00:00:00',
-        endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T23:59:59',
+        metadata: { type: 'time-off', category: 'vacation' }
+      },
+      
+      // Equipment upgrade project (September 22-26, 2025)
+      {
+        id: 'equipment-upgrade-sep2025',
+        title: 'Equipment Upgrade Project',
+        startTime: '2025-09-22T00:00:00',
+        endTime: '2025-09-26T23:59:59',
         resourceId: 'emp-003',
         color: '#92400E',
         isAllDay: true,
-        metadata: { type: 'project', category: 'maintenance' }
-      })
-    }
+        metadata: { type: 'project', category: 'equipment' }
+      },
+      
+      // Safety certification course (September 24-25, 2025)
+      {
+        id: 'safety-cert-sep2025',
+        title: 'Safety Certification Course',
+        startTime: '2025-09-24T00:00:00',
+        endTime: '2025-09-25T23:59:59',
+        resourceId: 'emp-004',
+        color: '#7C2D12',
+        isAllDay: true,
+        metadata: { type: 'training', category: 'certification' }
+      },
+      
+      // Facility maintenance shutdown (September 27-28, 2025)
+      {
+        id: 'facility-shutdown-sep2025',
+        title: 'Facility Maintenance Shutdown',
+        startTime: '2025-09-27T00:00:00',
+        endTime: '2025-09-28T23:59:59',
+        resourceId: 'emp-001',
+        color: '#DC2626',
+        isAllDay: true,
+        metadata: { type: 'maintenance', category: 'shutdown' }
+      }
+    )
   }
   
   return [...userEvents, ...testMultiDayEvents]
