@@ -9,7 +9,6 @@
       @navigate-next="navigateNext"
       @navigate-today="navigateToday"
       @date-change="handleDateChange"
-      @toggle-config="showConfigPanel = !showConfigPanel"
     />
 
     <!-- Main Calendar Content -->
@@ -39,22 +38,12 @@
       />
     </div>
 
-    <!-- Configuration Panel -->
-    <Transition name="atempo-cal-slide">
-      <ConfigPanel
-        v-if="showConfigPanel"
-        :config="mergedConfig"
-        :theme="currentTheme"
-        @config-change="handleConfigChange"
-        @theme-change="handleThemeChange"
-        @close="showConfigPanel = false"
-      />
-    </Transition>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, provide } from 'vue'
+import { computed, watch, onMounted, provide } from 'vue'
 import atemporal from 'atemporal'
 import type {
   CalendarEvent,
@@ -69,7 +58,6 @@ import { useEvents } from './composables/useEvents'
 import { useTheme } from './composables/useTheme'
 import NavigationBar from './components/NavigationBar.vue'
 import WeeklyView from './components/WeeklyView.vue'
-import ConfigPanel from './components/ConfigPanel.vue'
 
 /**
  * AtempoCal - Main calendar component
@@ -86,6 +74,7 @@ interface Props {
   customFields?: CustomField[]
   loading?: boolean
   readonly?: boolean
+  theme?: 'light' | 'dark' | 'auto'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -96,7 +85,8 @@ const props = withDefaults(defineProps<Props>(), {
   eventActions: () => [],
   customFields: () => [],
   loading: false,
-  readonly: false
+  readonly: false,
+  theme: 'auto'
 })
 
 // Component emits
@@ -158,10 +148,7 @@ const {
   toggleTheme,
   setTheme,
   isDark
-} = useTheme(mergedConfig.value.theme)
-
-// Local state
-const showConfigPanel = ref(false)
+} = useTheme(props.theme)
 
 // Watch for prop changes
 watch(() => props.events, (newEvents) => {
@@ -207,16 +194,12 @@ const handleDateChange = (date: string): void => {
   navigateToDate(date)
 }
 
-/**
- * Handle config change
- */
-const handleConfigChange = (config: Partial<CalendarConfig>): void => {
-  emit('config-change', config)
-}
-
-const handleThemeChange = (theme: 'light' | 'dark' | 'auto'): void => {
-  setTheme(theme)
-}
+// Watch for theme prop changes
+watch(() => props.theme, (newTheme) => {
+  if (newTheme) {
+    setTheme(newTheme)
+  }
+})
 
 // Provide calendar context to child components
 provide('calendar-config', mergedConfig)

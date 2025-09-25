@@ -50,16 +50,9 @@
       </button>
     </div>
 
-    <!-- Right section: Settings -->
+    <!-- Right section: Additional controls -->
     <div class="flex items-center space-x-2">
-      <!-- Settings button -->
-      <button
-        class="atempo-cal-nav-button"
-        @click="$emit('toggle-config')"
-        title="Settings"
-      >
-        <CogIcon class="w-4 h-4" />
-      </button>
+      <!-- Reserved for future controls -->
     </div>
 
     <!-- Date picker modal (if enabled) -->
@@ -116,7 +109,6 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   CalendarIcon,
-  CogIcon,
   XMarkIcon
 } from '@heroicons/vue/24/outline'
 
@@ -142,7 +134,6 @@ interface Emits {
   'navigate-next': []
   'navigate-today': []
   'date-change': [date: string]
-  'toggle-config': []
 }
 
 const emit = defineEmits<Emits>()

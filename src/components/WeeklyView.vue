@@ -75,8 +75,7 @@
                     backgroundColor: event.color ? event.color + '20' : '#3b82f620',
                     borderLeftColor: event.color || '#3b82f6' 
                   }">
-                  <span class="multiday-title">{{ event.title }}</span>
-                  <span class="multiday-duration">{{ getEventDuration(event) }}</span>
+                  <span class="multiday-title">{{ formatMultiDayEvent(event) }}</span>
                 </div>
               </div>
             </div>
@@ -119,8 +118,7 @@
                       color: '#1f2937'
                     }"
                   >
-                    <span class="event-title">{{ event.title }}</span>
-                    <span v-if="!event.isAllDay" class="event-time">{{ formatEventTime(event) }}</span>
+                    <span class="event-time">{{ formatEventTime(event) }}</span>
                     <!-- Delete button -->
                     <button
                       v-if="!readonly"
@@ -809,7 +807,7 @@ const getEventDuration = (event: CalendarEvent): string => {
 }
 
 /**
- * Format event time for display
+ * Format event time for display in 12-hour format
  */
 const formatEventTime = (event: CalendarEvent): string => {
   if (event.isAllDay) {
@@ -819,10 +817,23 @@ const formatEventTime = (event: CalendarEvent): string => {
   const startTime = atemporal(event.startTime)
   const endTime = atemporal(event.endTime)
   
-  const startFormatted = startTime.format('HH:mm')
-  const endFormatted = endTime.format('HH:mm')
+  const startFormatted = startTime.format('h:mma')
+  const endFormatted = endTime.format('h:mma')
   
-  return `${startFormatted}-${endFormatted}`
+  return `${startFormatted} - ${endFormatted}`
+}
+
+/**
+ * Format multi-day event with title and date range in DD/MM format
+ */
+const formatMultiDayEvent = (event: CalendarEvent): string => {
+  const startDate = atemporal(event.startTime)
+  const endDate = atemporal(event.endTime)
+  
+  const startFormatted = startDate.format('DD/MM')
+  const endFormatted = endDate.format('DD/MM')
+  
+  return `${event.title} ${startFormatted} - ${endFormatted}`
 }
 
 /**
@@ -893,16 +904,7 @@ const handleEventClick = (event: CalendarEvent, eventType: 'single-day' | 'multi
     formattedTime: formatEventTime(event)
   }
   
-  // Console log for debugging
-  console.log('Event clicked:', {
-    eventType,
-    eventId: event.id,
-    title: event.title,
-    resourceId: event.resourceId,
-    resourceName: worker?.name || 'Unknown Resource',
-    dateRange: enhancedEvent.dateRange,
-    fullEventData: enhancedEvent
-  })
+  // Event click handled - data enhanced with resource and date information
   
   emit('event-click', enhancedEvent)
 }

@@ -89,6 +89,7 @@
           :selected-date="selectedDate"
           :event-actions="eventActions"
           :loading="loading"
+          :theme="currentTheme"
           @event-click="handleEventClick"
           @event-create="handleEventCreate"
           @event-update="handleEventUpdate"

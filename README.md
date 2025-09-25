@@ -43,6 +43,7 @@ pnpm add atempo-cal
       :events="events"
       :resources="resources"
       :config="config"
+      :theme="theme"
       @event-click="handleEventClick"
       @event-create="handleEventCreate"
     />
@@ -85,6 +86,9 @@ const config = ref<CalendarConfig>({
   slotDuration: 30
 })
 
+// Theme configuration
+const theme = ref<'light' | 'dark' | 'auto'>('auto')
+
 const handleEventClick = (event: CalendarEvent) => {
   console.log('Event clicked:', event)
 }
@@ -104,12 +108,12 @@ const handleEventCreate = (eventData: Partial<CalendarEvent>) => {
 | `events` | `CalendarEvent[]` | `[]` | Array of calendar events |
 | `resources` | `CalendarResource[]` | `[]` | Array of calendar resources |
 | `config` | `CalendarConfig` | `{}` | Calendar configuration options |
-| `view` | `'week' \| 'day'` | `'week'` | Current calendar view |
 | `selectedDate` | `string` | `undefined` | Currently selected date (ISO string) |
 | `eventActions` | `EventAction[]` | `[]` | Custom actions for events |
 | `customFields` | `CustomField[]` | `[]` | Custom field definitions |
 | `loading` | `boolean` | `false` | Loading state |
 | `readonly` | `boolean` | `false` | Read-only mode |
+| `theme` | `'light' \| 'dark' \| 'auto'` | `'auto'` | Theme configuration |
 
 ### Component Events
 
@@ -217,29 +221,89 @@ import 'atempo-cal/dist/style.css'
 
 ## 🎨 Theming
 
-AtempoCal supports both light and dark themes with automatic detection:
+AtempoCal supports both light and dark themes with automatic detection. Configure themes using the `theme` prop:
 
 ```vue
 <template>
-  <AtempoCal
-    :config="{
-      theme: 'auto', // 'light' | 'dark' | 'auto'
-    }"
-  />
+  <div>
+    <!-- Theme buttons -->
+    <div class="theme-controls">
+      <button @click="theme = 'light'">Light</button>
+      <button @click="theme = 'dark'">Dark</button>
+      <button @click="theme = 'auto'">Auto</button>
+    </div>
+    
+    <!-- Calendar with theme prop -->
+    <AtempoCal
+      :events="events"
+      :resources="resources"
+      :config="config"
+      :theme="theme"
+    />
+  </div>
 </template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+
+// Theme configuration - controlled by parent component
+const theme = ref<'light' | 'dark' | 'auto'>('auto')
+</script>
 ```
+
+### Theme Options
+
+- **`'light'`**: Force light theme
+- **`'dark'`**: Force dark theme  
+- **`'auto'`**: Automatically detect system preference
 
 ### Custom Styling
 
-The component uses Tailwind CSS classes and CSS custom properties for easy customization:
+The component uses CSS custom properties (CSS variables) for easy theme customization:
 
 ```css
-/* Override default colors */
+/* Override theme colors */
+:root {
+  /* Light theme customization */
+  --atempo-bg-primary: #ffffff;
+  --atempo-bg-secondary: #f9fafb;
+  --atempo-text-primary: #111827;
+  --atempo-accent-primary: #3b82f6;
+  --atempo-success: #10b981;
+  --atempo-warning: #f59e0b;
+  --atempo-error: #ef4444;
+}
+
+.dark {
+  /* Dark theme customization */
+  --atempo-bg-primary: #111827;
+  --atempo-bg-secondary: #1f2937;
+  --atempo-text-primary: #f9fafb;
+  --atempo-accent-primary: #60a5fa;
+}
+
+/* Component-specific overrides */
 .atempo-cal {
-  --primary-color: #your-color;
-  --background-color: #your-bg-color;
+  /* Custom calendar styling */
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 ```
+
+### Available CSS Variables
+
+| Variable | Description | Light Default | Dark Default |
+|----------|-------------|---------------|---------------|
+| `--atempo-bg-primary` | Primary background | `#ffffff` | `#111827` |
+| `--atempo-bg-secondary` | Secondary background | `#f9fafb` | `#1f2937` |
+| `--atempo-bg-tertiary` | Tertiary background | `#f3f4f6` | `#374151` |
+| `--atempo-text-primary` | Primary text color | `#111827` | `#f9fafb` |
+| `--atempo-text-secondary` | Secondary text color | `#6b7280` | `#d1d5db` |
+| `--atempo-border-primary` | Primary border color | `#e5e7eb` | `#374151` |
+| `--atempo-accent-primary` | Primary accent color | `#3b82f6` | `#60a5fa` |
+| `--atempo-success` | Success color | `#10b981` | `#34d399` |
+| `--atempo-warning` | Warning color | `#f59e0b` | `#fbbf24` |
+| `--atempo-error` | Error color | `#ef4444` | `#f87171` |
 
 ## 🌍 Internationalization
 
