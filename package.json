@@ -20,7 +20,7 @@
   "scripts": {
     "dev": "cd demo && vite",
     "dev:demo": "cd demo && vite",
-    "build": "vue-tsc && vite build",
+    "build": "vue-tsc --skipLibCheck && vite build",
     "build:demo": "cd demo && vite build",
     "preview": "cd demo && vite preview",
     "preview:demo": "cd demo && vite preview",

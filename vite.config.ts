@@ -33,6 +33,8 @@ export default defineConfig({
           vue: 'Vue',
           atemporal: 'atemporal'
         },
+        // Fix for named and default exports warning
+        exports: 'named',
         // Preserve CSS as separate file
         assetFileNames: (assetInfo) => {
           if (assetInfo.name === 'style.css') {

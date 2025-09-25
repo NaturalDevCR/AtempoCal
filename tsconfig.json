@@ -26,6 +26,7 @@
     "forceConsistentCasingInFileNames": true,
     "useDefineForClassFields": true,
     "skipLibCheck": true,
+    "preserveSymlinks": false,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
