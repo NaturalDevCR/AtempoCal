@@ -1,7 +1,7 @@
 <template>
-  <div class="weekly-view bg-white dark:bg-gray-900">
+  <div class="weekly-view">
     <!-- Week header with days -->
-    <div class="week-header bg-white dark:bg-gray-900">
+    <div class="week-header">
       <!-- Worker column spacer -->
       <div class="resource-spacer">
         <span class="resource-label">Workers</span>
@@ -33,7 +33,7 @@
     </div>
 
     <!-- Scrollable content area -->
-    <div class="week-content bg-white dark:bg-gray-900" ref="scrollContainer">
+    <div class="week-content" ref="scrollContainer">
       <!-- Worker rows -->
       <div class="resource-container">
         <div
@@ -922,64 +922,98 @@ const handleEventClick = (event: CalendarEvent, eventType: 'single-day' | 'multi
 @reference "tailwindcss";
 
 .weekly-view {
-  @apply flex flex-col h-full bg-white dark:bg-gray-900;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--atempo-bg-primary);
+  color: var(--atempo-text-primary);
 }
 
 .week-header {
-  @apply flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800;
+  display: flex;
+  border-bottom: 1px solid var(--atempo-border-primary);
+  background-color: var(--atempo-bg-primary);
 }
 
 .resource-spacer {
-  @apply border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800;
-  @apply flex items-center justify-center;
+  border-right: 1px solid var(--atempo-border-primary);
+  background-color: var(--atempo-bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 160px;
   height: 80px;
 }
 
 .resource-label {
-  @apply text-sm font-medium text-gray-700 dark:text-gray-300;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--atempo-text-secondary);
 }
 
 .day-headers {
-  @apply flex-1 bg-white dark:bg-gray-800;
+  flex: 1;
+  background-color: var(--atempo-bg-primary);
 }
 
 .day-grid {
-  @apply grid grid-cols-7 h-full;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  height: 100%;
 }
 
 .day-header {
-  @apply flex flex-col items-center justify-center p-2 border-r border-gray-200 dark:border-gray-700;
-  @apply cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-right: 1px solid var(--atempo-border-primary);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
   height: 80px;
 }
 
+.day-header:hover {
+  background-color: var(--atempo-bg-secondary);
+}
+
 .day-header.is-today {
-  @apply bg-blue-50 dark:bg-blue-900/20;
+  background-color: color-mix(in srgb, var(--atempo-accent-primary) 10%, var(--atempo-bg-primary));
 }
 
 .day-header.is-weekend {
-  @apply bg-gray-50 dark:bg-gray-800;
+  background-color: var(--atempo-bg-secondary);
 }
 
 .day-header.is-selected {
-  @apply bg-blue-100 dark:bg-blue-800/30;
+  background-color: color-mix(in srgb, var(--atempo-accent-primary) 20%, var(--atempo-bg-primary));
 }
 
 .day-name {
-  @apply text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--atempo-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .day-number {
-  @apply text-lg font-semibold text-gray-900 dark:text-gray-100 mt-1;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--atempo-text-primary);
+  margin-top: 0.25rem;
 }
 
 .day-header.is-today .day-number {
-  @apply text-blue-600 dark:text-blue-400;
+  color: var(--atempo-accent-primary);
 }
 
 .week-content {
-  @apply flex-1 overflow-auto relative;
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  background-color: var(--atempo-bg-primary);
   max-height: calc(100vh - 200px);
 }
 
@@ -995,9 +1029,16 @@ const handleEventClick = (event: CalendarEvent, eventType: 'single-day' | 'multi
 }
 
 .multiday-content {
-  @apply w-full h-full rounded-md shadow-sm border-l-4 px-3 py-1;
-  @apply flex items-center justify-between;
-  @apply text-gray-800 dark:text-gray-100;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 2px 0 var(--atempo-shadow);
+  border-left: 4px solid var(--atempo-accent-primary);
+  padding: 0.25rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--atempo-text-primary);
 }
 
 /* Multi-day event type styles */
@@ -1018,13 +1059,22 @@ const handleEventClick = (event: CalendarEvent, eventType: 'single-day' | 'multi
 }
 
 .multiday-title {
-  @apply text-sm font-medium truncate flex-1;
-  @apply text-gray-800 dark:text-gray-100;
+  font-size: 0.875rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  color: var(--atempo-text-primary);
 }
 
 .multiday-duration {
-  @apply text-xs opacity-75 ml-2 flex-shrink-0 font-medium;
-  @apply text-gray-600 dark:text-gray-300;
+  font-size: 0.75rem;
+  opacity: 0.85;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+  font-weight: 500;
+  color: var(--atempo-text-primary);
 }
 
 .worker-container {
@@ -1066,40 +1116,64 @@ const handleEventClick = (event: CalendarEvent, eventType: 'single-day' | 'multi
 
 /* Keep resource classes for backward compatibility */
 .resource-container {
-  @apply flex flex-col;
+  display: flex;
+  flex-direction: column;
 }
 
 .resource-row {
-  @apply flex border-b border-gray-200 dark:border-gray-600 relative;
+  display: flex;
+  border-bottom: 1px solid var(--atempo-border-primary);
+  position: relative;
 }
 
 .resource-info {
-  @apply flex-shrink-0 border-r border-gray-200 dark:border-gray-700;
+  flex-shrink: 0;
+  border-right: 1px solid var(--atempo-border-primary);
   width: 160px;
 }
 
 .resource-content {
-  @apply flex items-center h-full px-3 py-2 bg-gray-50 dark:bg-gray-800;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--atempo-bg-secondary);
 }
 
 .resource-indicator {
-  @apply w-3 h-3 rounded-full flex-shrink-0;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .resource-details {
-  @apply flex flex-col ml-2;
+  display: flex;
+  flex-direction: column;
+  margin-left: 0.5rem;
 }
 
 .resource-name {
-  @apply text-sm font-medium text-gray-900 dark:text-gray-100 truncate;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--atempo-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .resource-role {
-  @apply text-xs text-gray-500 dark:text-gray-400 truncate;
+  font-size: 0.75rem;
+  color: var(--atempo-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .resource-days {
-  @apply flex flex-1 relative;
+  display: flex;
+  flex: 1;
+  position: relative;
 }
 
 .multiday-events-overlay {
@@ -1112,16 +1186,23 @@ const handleEventClick = (event: CalendarEvent, eventType: 'single-day' | 'multi
 }
 
 .day-cell {
-  @apply flex-1 relative cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors;
-  @apply border-r border-gray-200 dark:border-gray-600;
+  flex: 1;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-right: 1px solid var(--atempo-border-primary);
+}
+
+.day-cell:hover {
+  background-color: var(--atempo-bg-secondary);
 }
 
 .day-cell.is-today {
-  @apply bg-blue-50/30 dark:bg-blue-900/10;
+  background-color: color-mix(in srgb, var(--atempo-accent-primary) 5%, var(--atempo-bg-primary));
 }
 
 .day-cell.is-weekend {
-  @apply bg-gray-50/50 dark:bg-gray-800/50;
+  background-color: color-mix(in srgb, var(--atempo-text-tertiary) 3%, var(--atempo-bg-primary));
 }
 
 .events-stack {
@@ -1133,10 +1214,23 @@ const handleEventClick = (event: CalendarEvent, eventType: 'single-day' | 'multi
 }
 
 .event-bar {
-  @apply w-full h-full rounded-md shadow-sm border-l-4 px-2 py-1 cursor-pointer;
-  @apply transition-all duration-200 hover:shadow-md;
-  @apply flex items-center justify-between;
-  @apply text-gray-800 dark:text-gray-100;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 2px 0 var(--atempo-shadow);
+  border-left: 4px solid var(--atempo-accent-primary);
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--atempo-text-primary);
+  background-color: color-mix(in srgb, var(--atempo-accent-primary) 10%, var(--atempo-bg-primary));
+}
+
+.event-bar:hover {
+  box-shadow: 0 4px 6px -1px var(--atempo-shadow-lg);
 }
 
 /* Worker scheduling event type styles */
@@ -1177,13 +1271,22 @@ const handleEventClick = (event: CalendarEvent, eventType: 'single-day' | 'multi
 }
 
 .event-title {
-  @apply text-xs font-medium truncate flex-1;
-  @apply text-gray-800 dark:text-gray-100;
+  font-size: 0.75rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  color: var(--atempo-text-primary);
 }
 
 .event-time {
-  @apply text-xs opacity-75 ml-2 flex-shrink-0;
-  @apply text-gray-600 dark:text-gray-300;
+  font-size: 0.75rem;
+  opacity: 0.85;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+  color: var(--atempo-text-primary);
+  font-weight: 500;
 }
 
 .event-resource {

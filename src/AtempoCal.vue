@@ -17,9 +17,9 @@
     <!-- Main Calendar Content -->
     <div class="atempo-cal-content relative">
       <!-- Loading Overlay -->
-      <div v-if="loading" class="absolute inset-0 bg-white/50 dark:bg-gray-900/50 z-50 flex items-center justify-center">
+      <div v-if="loading" class="atempo-cal-loading-overlay">
         <div class="atempo-cal-loading">
-          <div class="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+          <div class="atempo-cal-spinner"></div>
         </div>
       </div>
 
@@ -234,11 +234,39 @@ defineExpose({
 @reference "tailwindcss";
 
 .atempo-cal {
-  @apply bg-white dark:bg-gray-900 min-h-full;
+  background-color: var(--atempo-bg-primary);
+  color: var(--atempo-text-primary);
+  min-height: 100%;
 }
 
 .atempo-cal-content {
-  @apply min-h-96 bg-white dark:bg-gray-900;
+  background-color: var(--atempo-bg-primary);
+  min-height: 24rem;
+}
+
+.atempo-cal-loading-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: color-mix(in srgb, var(--atempo-bg-primary) 50%, transparent);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.atempo-cal-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 4px solid color-mix(in srgb, var(--atempo-accent-primary) 20%, transparent);
+  border-top-color: var(--atempo-accent-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Transition animations */
