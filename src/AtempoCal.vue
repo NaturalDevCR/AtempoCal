@@ -3,15 +3,12 @@
     <!-- Navigation Bar -->
     <NavigationBar
       :current-date="currentDate"
-      :current-view="currentView"
       :config="mergedConfig"
       :loading="loading"
-      :is-dark="isDark"
       @navigate-previous="navigatePrevious"
       @navigate-next="navigateNext"
       @navigate-today="navigateToday"
       @date-change="handleDateChange"
-      @toggle-theme="toggleTheme"
     />
 
     <!-- Main Calendar Content -->
@@ -123,7 +120,6 @@ const mergedConfig = computed(() => ({
 // Initialize composables
 const {
   currentDate,
-  currentView,
   visibleRange,
   navigateToDate,
   navigatePrevious,
@@ -146,8 +142,7 @@ const {
 const {
   currentTheme,
   toggleTheme,
-  setTheme,
-  isDark
+  setTheme
 } = useTheme(props.theme)
 
 // Watch for prop changes
@@ -221,7 +216,6 @@ defineExpose({
   navigateToday,
   toggleTheme,
   getCurrentDate: () => currentDate.value,
-  getCurrentView: () => currentView.value,
   getVisibleRange: () => visibleRange.value,
   getEvents: () => filteredEvents.value,
   createEvent,

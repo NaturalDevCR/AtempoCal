@@ -83,20 +83,74 @@
       <!-- Calendar Component -->
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         <AtempoCal
+          :current-date="selectedDate"
           :events="demoEvents"
           :resources="demoResources"
           :config="calendarConfig"
-          :selected-date="selectedDate"
           :event-actions="eventActions"
-          :loading="loading"
-          :theme="currentTheme"
+          :loading="false"
           @event-click="handleEventClick"
           @event-create="handleEventCreate"
           @event-update="handleEventUpdate"
           @event-delete="handleEventDelete"
           @date-change="handleDateChange"
           @slot-click="handleSlotClick"
-        />
+        >
+          <!-- Custom Navigation Slot (Left) -->
+          <template #navigation="{ navigatePrevious, navigateNext, navigateToday }">
+            <div class="flex items-center space-x-2">
+              <button
+                @click="navigatePrevious"
+                class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-200 shadow-sm"
+                title="Previous"
+              >
+                <ChevronLeftIcon class="w-5 h-5" />
+              </button>
+              <button
+                @click="navigateNext"
+                class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-200 shadow-sm"
+                title="Next"
+              >
+                <ChevronRightIcon class="w-5 h-5" />
+              </button>
+              <button
+                @click="navigateToday"
+                class="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white font-medium transition-colors duration-200 shadow-sm"
+                title="Go to Today"
+              >
+                Today
+              </button>
+            </div>
+          </template>
+
+          <!-- Custom Title Slot (Center) -->
+          <template #title="{ displayTitle }">
+            <div class="flex flex-col items-center">
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                📅 {{ displayTitle }}
+              </h2>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Custom Demo Calendar
+              </p>
+            </div>
+          </template>
+
+          <!-- Custom Date Picker Slot (Right) -->
+          <template #datepicker="{ currentDate, onDateChange }">
+            <div class="flex items-center space-x-3">
+              <div class="flex items-center space-x-2">
+                <CalendarDaysIcon class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                <input
+                  type="date"
+                  :value="atemporal(currentDate).format('YYYY-MM-DD')"
+                  @change="(e) => onDateChange((e.target as HTMLInputElement).value)"
+                  class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                />
+              </div>
+              <!-- View selector removed since only one view is supported -->
+            </div>
+          </template>
+        </AtempoCal>
       </div>
 
       <!-- Event Details Modal -->
@@ -156,6 +210,7 @@ import atemporal from 'atemporal'
 import AtempoCal from '../../src/AtempoCal.vue'
 import { useTheme } from '../../src/composables/useTheme'
 import type { CalendarEvent, CalendarResource, CalendarConfig, EventAction } from '../../src/types'
+import { ChevronLeftIcon, ChevronRightIcon, CalendarDaysIcon } from '@heroicons/vue/24/outline'
 
 /**
  * Demo application for AtempoCal component
@@ -167,14 +222,13 @@ const { currentTheme, toggleTheme } = useTheme()
 
 // Calendar state
 // Set to the week where our demo events are located (September 8-14, 2025)
-const selectedDate = ref(atemporal('2025-09-08').toString())
-const loading = ref(false)
+const selectedDate = ref(atemporal().toString())
 const selectedEvent = ref<CalendarEvent | null>(null)
 
 // Calendar configuration
 const calendarConfig = ref<CalendarConfig>({
-  timezone: 'America/New_York',
-  locale: 'en-US',
+  timezone: 'America/Costa_Rica',
+  locale: 'es-ES',
   theme: 'auto',
   showWeekends: true,
   firstDayOfWeek: 1 // Monday

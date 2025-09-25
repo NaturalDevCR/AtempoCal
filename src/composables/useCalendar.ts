@@ -12,7 +12,7 @@ import { createAtemporal, getWeekStart, getWeekEnd } from '../utils/dateHelpers'
  */
 export function useCalendar(
   initialDate?: string | Atemporal,
-  initialView: CalendarView = 'week',
+  _initialView: CalendarView = 'week',
   timezone?: string
 ): UseCalendarReturn {
   // Reactive state
@@ -22,30 +22,14 @@ export function useCalendar(
       : createAtemporal(undefined, timezone)
   ) as Ref<Atemporal>
   
-  const currentView: Ref<CalendarView> = ref(initialView)
-  
   /**
-   * Computed property for visible date range based on current view
+   * Computed property for visible date range (week view only)
    */
   const visibleRange: ComputedRef<{ start: Atemporal; end: Atemporal }> = computed(() => {
     const date = currentDate.value
-    
-    switch (currentView.value) {
-      case 'week':
-        return {
-          start: getWeekStart(date),
-          end: getWeekEnd(date)
-        }
-      case 'day':
-        return {
-          start: date.startOf('day'),
-          end: date.endOf('day')
-        }
-      default:
-        return {
-          start: date.startOf('day'),
-          end: date.endOf('day')
-        }
+    return {
+      start: getWeekStart(date),
+      end: getWeekEnd(date)
     }
   })
   
@@ -62,31 +46,17 @@ export function useCalendar(
   }
   
   /**
-   * Navigate to previous period based on current view
+   * Navigate to previous week
    */
   const navigatePrevious = (): void => {
-    switch (currentView.value) {
-      case 'week':
-        currentDate.value = currentDate.value.subtract(1, 'week')
-        break
-      case 'day':
-        currentDate.value = currentDate.value.subtract(1, 'day')
-        break
-    }
+    currentDate.value = currentDate.value.subtract(1, 'week')
   }
   
   /**
-   * Navigate to next period based on current view
+   * Navigate to next week
    */
   const navigateNext = (): void => {
-    switch (currentView.value) {
-      case 'week':
-        currentDate.value = currentDate.value.add(1, 'week')
-        break
-      case 'day':
-        currentDate.value = currentDate.value.add(1, 'day')
-        break
-    }
+    currentDate.value = currentDate.value.add(1, 'week')
   }
   
   /**
@@ -96,22 +66,12 @@ export function useCalendar(
     currentDate.value = createAtemporal(undefined, timezone)
   }
   
-  /**
-   * Set the current view mode
-   * @param view - New view mode
-   */
-  const setView = (view: CalendarView): void => {
-    currentView.value = view
-  }
-  
   return {
     currentDate,
-    currentView,
     visibleRange,
     navigateToDate,
     navigatePrevious,
     navigateNext,
-    navigateToday,
-    setView
+    navigateToday
   }
 }

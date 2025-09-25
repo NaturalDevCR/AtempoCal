@@ -2,65 +2,79 @@
   <div class="atempo-cal-nav">
     <!-- Left section: Navigation controls -->
     <div class="flex items-center space-x-2">
-      <!-- Previous/Next buttons -->
-      <button
-        class="atempo-cal-nav-button"
-        :disabled="loading"
-        @click="$emit('navigate-previous')"
-        :title="getPreviousTitle()"
+      <slot 
+        name="left" 
+        :navigate-previous="() => $emit('navigate-previous')"
+        :navigate-next="() => $emit('navigate-next')"
+        :navigate-today="() => $emit('navigate-today')"
+        :loading="loading"
+        :previous-title="getPreviousTitle()"
+        :next-title="getNextTitle()"
       >
-        <ChevronLeftIcon class="w-4 h-4" />
-      </button>
-      
-      <button
-        class="atempo-cal-nav-button"
-        :disabled="loading"
-        @click="$emit('navigate-next')"
-        :title="getNextTitle()"
-      >
-        <ChevronRightIcon class="w-4 h-4" />
-      </button>
-      
-      <!-- Today button -->
-      <button
-        class="atempo-cal-nav-button"
-        :disabled="loading"
-        @click="$emit('navigate-today')"
-        title="Go to today"
-      >
-        Today
-      </button>
+        <!-- Default navigation buttons -->
+        <button
+          class="atempo-cal-nav-button"
+          :disabled="loading"
+          @click="$emit('navigate-previous')"
+          :title="getPreviousTitle()"
+        >
+          <ChevronLeftIcon class="w-4 h-4" />
+        </button>
+        
+        <button
+          class="atempo-cal-nav-button"
+          :disabled="loading"
+          @click="$emit('navigate-next')"
+          :title="getNextTitle()"
+        >
+          <ChevronRightIcon class="w-4 h-4" />
+        </button>
+        
+        <button
+          class="atempo-cal-nav-button"
+          :disabled="loading"
+          @click="$emit('navigate-today')"
+          title="Go to today"
+        >
+          Today
+        </button>
+      </slot>
     </div>
 
     <!-- Center section: Current date/period display -->
     <div class="flex items-center space-x-4">
-      <h2 class="atempo-cal-nav-title">
-        {{ getDisplayTitle() }}
-      </h2>
-      
-      <!-- Date picker (optional) -->
-      <button
-        v-if="showDatePicker"
-        class="atempo-cal-nav-button text-sm"
-        @click="toggleDatePicker"
-        title="Select date"
+      <slot 
+        name="center" 
+        :display-title="getDisplayTitle()"
+        :current-date="currentDate"
       >
-        <CalendarIcon class="w-4 h-4 mr-1" />
-        Pick Date
-      </button>
+        <!-- Default title display -->
+        <h2 class="atempo-cal-nav-title">
+          {{ getDisplayTitle() }}
+        </h2>
+      </slot>
     </div>
 
-    <!-- Right section: Additional controls -->
+    <!-- Right section: Date picker and additional controls -->
     <div class="flex items-center space-x-2">
-      <!-- Theme Toggle Button -->
-      <button
-        class="atempo-cal-nav-button"
-        @click="$emit('toggle-theme')"
-        title="Toggle theme"
+      <slot 
+        name="right" 
+        :show-date-picker="showDatePicker"
+        :toggle-date-picker="toggleDatePicker"
+        :current-date="currentDate"
+        :on-date-change="handleDateChange"
       >
-        <SunIcon v-if="isDark" class="w-4 h-4" />
-        <MoonIcon v-else class="w-4 h-4" />
-      </button>
+        <!-- Default date picker button -->
+        <button
+          v-if="showDatePicker"
+          class="atempo-cal-nav-button text-sm"
+          @click="toggleDatePicker"
+          title="Select date"
+        >
+          <CalendarIcon class="w-4 h-4 mr-1" />
+          Pick Date
+        </button>
+      </slot>
     </div>
 
     <!-- Date picker modal (if enabled) -->
@@ -110,7 +124,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { Atemporal, CalendarView, CalendarConfig } from '../types'
+import type { Atemporal, CalendarConfig } from '../types'
 import { formatDateForDisplay, getWeekStart } from '../utils/dateHelpers'
 
 // Icons (using simple SVG icons for now - can be replaced with icon library)
@@ -118,9 +132,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   CalendarIcon,
-  XMarkIcon,
-  SunIcon,
-  MoonIcon
+  XMarkIcon
 } from '@heroicons/vue/24/outline'
 
 /**
@@ -130,18 +142,15 @@ import {
 
 interface Props {
   currentDate: Atemporal
-  currentView: CalendarView
   config?: CalendarConfig
   loading?: boolean
   showDatePicker?: boolean
-  isDark?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   config: () => ({}),
   loading: false,
-  showDatePicker: true,
-  isDark: false
+  showDatePicker: true
 })
 
 interface Emits {
@@ -149,7 +158,6 @@ interface Emits {
   'navigate-next': []
   'navigate-today': []
   'date-change': [date: string]
-  'toggle-theme': []
 }
 
 const emit = defineEmits<Emits>()
@@ -220,6 +228,13 @@ const handleDatePickerChange = (event: Event): void => {
     emit('date-change', selectedDate)
     closeDatePicker()
   }
+}
+
+/**
+ * Handle date change for slot props
+ */
+const handleDateChange = (date: string): void => {
+  emit('date-change', date)
 }
 </script>
 

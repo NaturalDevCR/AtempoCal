@@ -126,13 +126,11 @@ export interface CalendarEvents {
  */
 export interface UseCalendarReturn {
   currentDate: Ref<Atemporal>
-  currentView: Ref<CalendarView>
   visibleRange: ComputedRef<{ start: Atemporal; end: Atemporal }>
   navigateToDate: (date: string | Atemporal) => void
   navigatePrevious: () => void
   navigateNext: () => void
   navigateToday: () => void
-  setView: (view: CalendarView) => void
 }
 
 /**
