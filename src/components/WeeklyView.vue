@@ -46,15 +46,15 @@
           <!-- Multi-day events layer (positioned absolutely to span across day cells) -->
           <div class="absolute inset-0 pointer-events-none" :style="{ left: resourceColumnWidth + 'px' }">
             <div
-               v-for="(event, eventIndex) in getMultiDayEventsForResource(resource.id)"
+               v-for="event in getMultiDayEventsForResource(resource.id)"
                :key="event.id + '-multiday'"
                class="absolute pointer-events-auto atempo-cal-multiday-event"
                :style="{
-                 top: getMultiDayEventPosition(event, eventIndex).top + 'px',
-                 height: getMultiDayEventPosition(event, eventIndex).height + 'px',
-                 left: getMultiDayEventPosition(event, eventIndex).left + '%',
-                 width: getMultiDayEventPosition(event, eventIndex).width + '%',
-                 zIndex: getMultiDayEventPosition(event, eventIndex).zIndex,
+                 top: getMultiDayEventPosition(event).top + 'px',
+                 height: getMultiDayEventPosition(event).height + 'px',
+                 left: getMultiDayEventPosition(event).left + '%',
+                 width: getMultiDayEventPosition(event).width + '%',
+                 zIndex: getMultiDayEventPosition(event).zIndex,
                  borderLeftColor: event.color || '#3b82f6'
                }"
              >
@@ -489,23 +489,86 @@ const formatEventTime = (event: CalendarEvent): string => {
 }
 
 /**
- * Calculate multi-day event position spanning multiple cells
+ * Get all multi-day events across all resources for proper stacking calculation
  */
-const getMultiDayEventPosition = (event: CalendarEvent, eventIndex: number): EventPosition => {
+const getAllMultiDayEvents = (): CalendarEvent[] => {
+  return props.events.filter(event => isMultiDayEvent(event))
+}
+
+/**
+ * Calculate global stack level for multi-day events to prevent overlaps across resources
+ */
+const getMultiDayEventStackLevel = (targetEvent: CalendarEvent): number => {
+  const allMultiDayEvents = getAllMultiDayEvents()
+  
+  // Sort all multi-day events by start time for consistent stacking
+  const sortedEvents = allMultiDayEvents.sort((a, b) => {
+    const startA = atemporal(a.startTime)
+    const startB = atemporal(b.startTime)
+    return startA.isBefore(startB) ? -1 : 1
+  })
+  
+  // Build stack levels by checking time overlaps
+  const stackLevels: { [eventId: string]: number } = {}
+  const stacks: CalendarEvent[][] = []
+  
+  sortedEvents.forEach((event) => {
+    let stackLevel = 0
+    let placed = false
+    
+    // Find the first available stack level where this event doesn't overlap
+    while (stackLevel < stacks.length && !placed) {
+      const stackEvents = stacks[stackLevel]
+      let canPlace = true
+      
+      // Check if this event overlaps with any event in this stack level
+      for (const stackEvent of stackEvents) {
+        if (eventsTimeOverlap(event, stackEvent)) {
+          canPlace = false
+          break
+        }
+      }
+      
+      if (canPlace) {
+        stacks[stackLevel].push(event)
+        stackLevels[event.id] = stackLevel
+        placed = true
+      } else {
+        stackLevel++
+      }
+    }
+    
+    // If no existing stack works, create a new one
+    if (!placed) {
+      stacks.push([event])
+      stackLevels[event.id] = stacks.length - 1
+    }
+  })
+  
+  return stackLevels[targetEvent.id] || 0
+}
+
+/**
+ * Calculate multi-day event position spanning multiple cells with proper stacking
+ */
+const getMultiDayEventPosition = (event: CalendarEvent): EventPosition => {
   const span = getMultiDayEventSpan(event)
   const cellWidth = 100 / 7 // Each day cell is 1/7 of the total width
   
-  // Calculate vertical position to avoid overlapping with single-day events
+  // Get the global stack level for this event to prevent overlaps across resources
+  const stackLevel = getMultiDayEventStackLevel(event)
+  
+  // Calculate vertical position based on stack level
   const multiDayEventHeight = 20
   const multiDayEventSpacing = 3
   const topOffset = 5 // Initial offset from top
   
   return {
-    top: topOffset + (eventIndex * (multiDayEventHeight + multiDayEventSpacing)),
+    top: topOffset + (stackLevel * (multiDayEventHeight + multiDayEventSpacing)),
     height: multiDayEventHeight,
     left: span.startIndex * cellWidth,
     width: span.span * cellWidth,
-    zIndex: 20 + eventIndex // Higher z-index to appear above single-day events
+    zIndex: 20 + stackLevel // Higher z-index based on stack level
   }
 }
 
