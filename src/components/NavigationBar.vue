@@ -50,30 +50,8 @@
       </button>
     </div>
 
-    <!-- Right section: View controls and settings -->
+    <!-- Right section: Settings -->
     <div class="flex items-center space-x-2">
-      <!-- View toggle buttons -->
-      <div class="atempo-cal-view-toggle">
-        <button
-          class="atempo-cal-nav-button"
-          :class="{ 'active': currentView === 'day' }"
-          :disabled="loading"
-          @click="$emit('view-change', 'day')"
-          title="Day view"
-        >
-          Day
-        </button>
-        <button
-          class="atempo-cal-nav-button"
-          :class="{ 'active': currentView === 'week' }"
-          :disabled="loading"
-          @click="$emit('view-change', 'week')"
-          title="Week view"
-        >
-          Week
-        </button>
-      </div>
-      
       <!-- Settings button -->
       <button
         class="atempo-cal-nav-button"
@@ -164,7 +142,6 @@ interface Emits {
   'navigate-next': []
   'navigate-today': []
   'date-change': [date: string]
-  'view-change': [view: CalendarView]
   'toggle-config': []
 }
 
@@ -174,32 +151,24 @@ const emit = defineEmits<Emits>()
 const showDatePickerModal = ref(false)
 
 /**
- * Get display title based on current view and date
+ * Get display title for week view
  */
 const getDisplayTitle = (): string => {
   const date = props.currentDate
   
-  switch (props.currentView) {
-    case 'day':
-      return formatDateForDisplay(date, 'MMMM D, YYYY')
-    case 'week': {
-      // For week view, show the week range
-      const weekStart = date.startOf('week')
-      const weekEnd = date.endOf('week')
-      
-      if (weekStart.month === weekEnd.month) {
-        // Same month
-        return `${formatDateForDisplay(weekStart, 'MMMM D')} - ${formatDateForDisplay(weekEnd, 'D, YYYY')}`
-      } else if (weekStart.year === weekEnd.year) {
-        // Same year, different months
-        return `${formatDateForDisplay(weekStart, 'MMM D')} - ${formatDateForDisplay(weekEnd, 'MMM D, YYYY')}`
-      } else {
-        // Different years
-        return `${formatDateForDisplay(weekStart, 'MMM D, YYYY')} - ${formatDateForDisplay(weekEnd, 'MMM D, YYYY')}`
-      }
-    }
-    default:
-      return formatDateForDisplay(date, 'MMMM YYYY')
+  // For week view, show the week range
+  const weekStart = date.startOf('week')
+  const weekEnd = date.endOf('week')
+  
+  if (weekStart.month === weekEnd.month) {
+    // Same month
+    return `${formatDateForDisplay(weekStart, 'MMMM D')} - ${formatDateForDisplay(weekEnd, 'D, YYYY')}`
+  } else if (weekStart.year === weekEnd.year) {
+    // Same year, different months
+    return `${formatDateForDisplay(weekStart, 'MMM D')} - ${formatDateForDisplay(weekEnd, 'MMM D, YYYY')}`
+  } else {
+    // Different years
+    return `${formatDateForDisplay(weekStart, 'MMM D, YYYY')} - ${formatDateForDisplay(weekEnd, 'MMM D, YYYY')}`
   }
 }
 
@@ -207,28 +176,14 @@ const getDisplayTitle = (): string => {
  * Get tooltip text for previous button
  */
 const getPreviousTitle = (): string => {
-  switch (props.currentView) {
-    case 'day':
-      return 'Previous day'
-    case 'week':
-      return 'Previous week'
-    default:
-      return 'Previous'
-  }
+  return 'Previous week'
 }
 
 /**
  * Get tooltip text for next button
  */
 const getNextTitle = (): string => {
-  switch (props.currentView) {
-    case 'day':
-      return 'Next day'
-    case 'week':
-      return 'Next week'
-    default:
-      return 'Next'
-  }
+  return 'Next week'
 }
 
 /**

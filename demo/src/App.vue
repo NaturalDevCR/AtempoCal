@@ -86,7 +86,6 @@
           :events="demoEvents"
           :resources="demoResources"
           :config="calendarConfig"
-          :view="currentView"
           :selected-date="selectedDate"
           :event-actions="eventActions"
           :loading="loading"
@@ -95,7 +94,6 @@
           @event-update="handleEventUpdate"
           @event-delete="handleEventDelete"
           @date-change="handleDateChange"
-          @view-change="handleViewChange"
           @slot-click="handleSlotClick"
         />
       </div>
@@ -156,7 +154,7 @@ import { ref, onMounted } from 'vue'
 import atemporal from 'atemporal'
 import AtempoCal from '../../src/AtempoCal.vue'
 import { useTheme } from '../../src/composables/useTheme'
-import type { CalendarEvent, CalendarResource, CalendarConfig, CalendarView, EventAction } from '../../src/types'
+import type { CalendarEvent, CalendarResource, CalendarConfig, EventAction } from '../../src/types'
 
 /**
  * Demo application for AtempoCal component
@@ -167,8 +165,8 @@ import type { CalendarEvent, CalendarResource, CalendarConfig, CalendarView, Eve
 const { currentTheme, toggleTheme } = useTheme()
 
 // Calendar state
-const currentView = ref<CalendarView>('week')
-const selectedDate = ref(atemporal().toString())
+// Set to the week where our demo events are located (September 8-14, 2025)
+const selectedDate = ref(atemporal('2025-09-08').toString())
 const loading = ref(false)
 const selectedEvent = ref<CalendarEvent | null>(null)
 
@@ -404,6 +402,47 @@ const demoEvents = ref<CalendarEvent[]>([
     resourceId: 'worker-lisa',
     color: '#06B6D4',
     metadata: { type: 'training', duration: 'multi-day', skills: ['React', 'TypeScript', 'Testing'] }
+  },
+  // ADDITIONAL OVERLAPPING MULTI-DAY EVENTS FOR TESTING STACKING
+  {
+    id: 'event-19',
+    title: 'Summer Vacation',
+    description: 'Annual summer vacation',
+    startTime: '2025-09-08T00:00:00Z', // Monday
+    endTime: '2025-09-12T23:59:59Z',   // Friday
+    resourceId: 'worker-john',
+    color: '#10B981',
+    metadata: { type: 'vacation', duration: 'multi-day' }
+  },
+  {
+    id: 'event-20',
+    title: 'Design Conference',
+    description: 'UX/UI Design conference',
+    startTime: '2025-09-09T08:00:00Z', // Tuesday
+    endTime: '2025-09-11T18:00:00Z',   // Thursday
+    resourceId: 'worker-sarah',
+    color: '#8B5CF6',
+    metadata: { type: 'conference', duration: 'multi-day' }
+  },
+  {
+    id: 'event-21',
+    title: 'Sick Leave',
+    description: 'Medical leave',
+    startTime: '2025-09-11T00:00:00Z', // Thursday
+    endTime: '2025-09-12T23:59:59Z',   // Friday
+    resourceId: 'worker-mike',
+    color: '#F59E0B',
+    metadata: { type: 'leave', duration: 'multi-day' }
+  },
+  {
+    id: 'event-22',
+    title: 'Technical Training',
+    description: 'Advanced technical skills training',
+    startTime: '2025-09-12T08:00:00Z', // Friday
+    endTime: '2025-09-15T17:00:00Z',   // Monday
+    resourceId: 'worker-lisa',
+    color: '#EF4444',
+    metadata: { type: 'training', duration: 'multi-day' }
   }
 ])
 
@@ -466,14 +505,6 @@ const handleEventDelete = (event: CalendarEvent) => {
 const handleDateChange = (date: string) => {
   console.log('Date changed:', date)
   selectedDate.value = date
-}
-
-/**
- * Handle view change
- */
-const handleViewChange = (view: CalendarView) => {
-  console.log('View changed:', view)
-  currentView.value = view
 }
 
 /**

@@ -201,8 +201,47 @@ export function dateRangesOverlap(
  * @returns Formatted date string
  */
 export function formatDateForDisplay(date: Atemporal, format: string = 'YYYY-MM-DD', _locale?: string): string {
-  // Use atemporal's built-in formatting with locale support
-  return date.format(format)
+  try {
+    // Use atemporal's built-in formatting with locale support
+    return date.format(format)
+  } catch (error) {
+    // Fallback to basic formatting if atemporal fails with timezone issues
+    const jsDate = new Date(date.toString())
+    
+    // Handle common format patterns
+    switch (format) {
+      case 'MMMM D, YYYY':
+        return jsDate.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        })
+      case 'MMMM D':
+        return jsDate.toLocaleDateString('en-US', { 
+          month: 'long', 
+          day: 'numeric' 
+        })
+      case 'MMM D':
+        return jsDate.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric' 
+        })
+      case 'MMM D, YYYY':
+        return jsDate.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric' 
+        })
+      case 'D, YYYY':
+        return jsDate.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          day: 'numeric' 
+        })
+      default:
+        // Basic fallback
+        return jsDate.toLocaleDateString('en-US')
+    }
+  }
 }
 
 /**

@@ -9,7 +9,6 @@
       @navigate-next="navigateNext"
       @navigate-today="navigateToday"
       @date-change="handleDateChange"
-      @view-change="handleViewChange"
       @toggle-config="showConfigPanel = !showConfigPanel"
     />
 
@@ -23,40 +22,21 @@
       </div>
 
       <!-- Calendar Views -->
-      <Transition name="atempo-cal-fade" mode="out-in">
-        <WeeklyView
-          v-if="currentView === 'week'"
-          :key="'week-' + currentDate.toString()"
-          :events="filteredEvents"
-          :resources="resources"
-          :config="mergedConfig"
-          :current-date="currentDate"
-          :visible-range="visibleRange"
-          :event-actions="eventActions"
-          :readonly="readonly"
-          @event-click="handleEventClick"
-          @event-create="handleEventCreate"
-          @event-update="handleEventUpdate"
-          @event-delete="handleEventDelete"
-          @slot-click="handleSlotClick"
-        />
-        <DailyView
-          v-else-if="currentView === 'day'"
-          :key="'day-' + currentDate.toString()"
-          :events="filteredEvents"
-          :resources="resources"
-          :config="mergedConfig"
-          :current-date="currentDate"
-          :visible-range="visibleRange"
-          :event-actions="eventActions"
-          :readonly="readonly"
-          @event-click="handleEventClick"
-          @event-create="handleEventCreate"
-          @event-update="handleEventUpdate"
-          @event-delete="handleEventDelete"
-          @slot-click="handleSlotClick"
-        />
-      </Transition>
+      <WeeklyView
+        :key="'week-' + currentDate.toString()"
+        :events="filteredEvents"
+        :resources="resources"
+        :config="mergedConfig"
+        :current-date="currentDate"
+        :visible-range="visibleRange"
+        :event-actions="eventActions"
+        :readonly="readonly"
+        @event-click="handleEventClick"
+        @event-create="handleEventCreate"
+        @event-update="handleEventUpdate"
+        @event-delete="handleEventDelete"
+        @slot-click="handleSlotClick"
+      />
     </div>
 
     <!-- Configuration Panel -->
@@ -75,11 +55,11 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, provide } from 'vue'
+import atemporal from 'atemporal'
 import type {
   CalendarEvent,
   CalendarResource,
   CalendarConfig,
-  CalendarView,
   EventAction,
   CustomField,
   SlotClickInfo
@@ -89,7 +69,6 @@ import { useEvents } from './composables/useEvents'
 import { useTheme } from './composables/useTheme'
 import NavigationBar from './components/NavigationBar.vue'
 import WeeklyView from './components/WeeklyView.vue'
-import DailyView from './components/DailyView.vue'
 import ConfigPanel from './components/ConfigPanel.vue'
 
 /**
@@ -102,7 +81,6 @@ interface Props {
   events?: CalendarEvent[]
   resources?: CalendarResource[]
   config?: Partial<CalendarConfig>
-  view?: CalendarView
   selectedDate?: string
   eventActions?: EventAction[]
   customFields?: CustomField[]
@@ -114,7 +92,6 @@ const props = withDefaults(defineProps<Props>(), {
   events: () => [],
   resources: () => [],
   config: () => ({}),
-  view: 'week',
   selectedDate: undefined,
   eventActions: () => [],
   customFields: () => [],
@@ -129,7 +106,6 @@ interface Emits {
   'event-update': [event: CalendarEvent]
   'event-delete': [event: CalendarEvent]
   'date-change': [date: string]
-  'view-change': [view: CalendarView]
   'slot-click': [slotInfo: SlotClickInfo]
   'config-change': [config: Partial<CalendarConfig>]
 }
@@ -162,11 +138,10 @@ const {
   navigateToDate,
   navigatePrevious,
   navigateNext,
-  navigateToday,
-  setView
+  navigateToday
 } = useCalendar(
   props.selectedDate,
-  props.view,
+  'week',
   mergedConfig.value.timezone
 )
 
@@ -193,24 +168,16 @@ watch(() => props.events, (newEvents) => {
   setEvents(newEvents)
 }, { deep: true })
 
-watch(() => props.view, (newView) => {
-  setView(newView)
-})
-
 watch(() => props.selectedDate, (newDate) => {
   if (newDate) {
-    navigateToDate(newDate)
+    navigateToDate(atemporal(newDate))
   }
 })
 
-// Watch for internal state changes and emit events
+// Emit initial values
 watch(currentDate, (newDate) => {
   emit('date-change', newDate.toString())
-})
-
-watch(currentView, (newView) => {
-  emit('view-change', newView)
-})
+}, { immediate: true })
 
 // Event handlers
 const handleEventClick = (event: CalendarEvent): void => {
@@ -240,10 +207,9 @@ const handleDateChange = (date: string): void => {
   navigateToDate(date)
 }
 
-const handleViewChange = (view: CalendarView): void => {
-  setView(view)
-}
-
+/**
+ * Handle config change
+ */
 const handleConfigChange = (config: Partial<CalendarConfig>): void => {
   emit('config-change', config)
 }
@@ -270,7 +236,6 @@ defineExpose({
   navigatePrevious,
   navigateNext,
   navigateToday,
-  setView,
   toggleTheme,
   getCurrentDate: () => currentDate.value,
   getCurrentView: () => currentView.value,

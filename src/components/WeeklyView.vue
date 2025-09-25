@@ -1,31 +1,10 @@
 <template>
   <div class="weekly-view">
-    <!-- Header with navigation -->
-    <div class="week-header">
-      <div class="week-navigation">
-        <button 
-          class="nav-btn" 
-          @click="$emit('date-change', weekDates[0].subtract(7, 'days').format('YYYY-MM-DD'))"
-        >
-          ‹
-        </button>
-        <h2 class="week-title">
-          {{ weekDates[0].format('MMMM DD') }} - {{ weekDates[6].format('MMMM DD, YYYY') }}
-        </h2>
-        <button 
-          class="nav-btn" 
-          @click="$emit('date-change', weekDates[0].add(7, 'days').format('YYYY-MM-DD'))"
-        >
-          ›
-        </button>
-      </div>
-    </div>
-
     <!-- Week header with days -->
-     <div class="day-headers">
-      <!-- Resource column spacer -->
+    <div class="week-header">
+      <!-- Worker column spacer -->
       <div class="resource-spacer">
-        <span class="resource-label">Resources</span>
+        <span class="resource-label">Workers</span>
       </div>
       
       <!-- Day headers -->
@@ -55,40 +34,47 @@
 
     <!-- Scrollable content area -->
     <div class="week-content" ref="scrollContainer">
-      <!-- Resource rows -->
+      <!-- Worker rows -->
       <div class="resource-container">
         <div
-          v-for="resource in displayResources"
-          :key="resource.id"
+          v-for="worker in displayWorkers"
+          :key="worker.id"
           class="resource-row"
-          :style="{ height: getResourceRowHeight(resource.id) + 'px' }"
+          :style="{ height: getWorkerRowHeight(worker.id) + 'px' }"
         >
-          <!-- Resource info column -->
+          <!-- Worker info column -->
           <div class="resource-info">
             <div class="resource-content">
-              <div class="resource-indicator" :style="{ backgroundColor: resource.color || '#6B7280' }"></div>
+              <div class="resource-indicator" :style="{ backgroundColor: worker.color || '#6B7280' }"></div>
               <div class="resource-details">
-                <span class="resource-name">{{ resource.name }}</span>
-                <span v-if="resource.metadata?.role" class="resource-role">{{ resource.metadata.role }}</span>
+                <span class="resource-name">{{ worker.name }}</span>
+                <span v-if="worker.metadata?.role" class="resource-role">{{ worker.metadata.role }}</span>
               </div>
             </div>
           </div>
 
-          <!-- Day cells for this resource -->
+          <!-- Day cells for this worker -->
           <div class="resource-days">
             <!-- Multi-day events container positioned relative to day cells only -->
             <div class="multiday-events-overlay">
               <div
-                v-for="event in getMultiDayEventsForResourceWithLanes(resource.id)"
+                v-for="event in getMultiDayEventsForWorkerWithLanes(worker.id)"
                 :key="'multiday-' + event.id"
                 class="resource-multiday-event"
-                :style="getResourceMultiDayEventStyle(event, resource.id)"
+                :style="getWorkerMultiDayEventStyle(event, worker.id)"
                 @click="$emit('event-click', event)"
               >
-                <div class="multiday-content" :style="{ 
-                  backgroundColor: event.color ? event.color + '20' : '#3b82f620',
-                  borderLeftColor: event.color || '#3b82f6' 
-                }">
+                <div class="multiday-content" 
+                  :class="{
+                    'time-off': event.metadata?.type === 'time-off',
+                    'training': event.metadata?.type === 'training',
+                    'project': event.metadata?.type === 'project',
+                    'certification': event.metadata?.category === 'certification'
+                  }"
+                  :style="{ 
+                    backgroundColor: event.color ? event.color + '20' : '#3b82f620',
+                    borderLeftColor: event.color || '#3b82f6' 
+                  }">
                   <span class="multiday-title">{{ event.title }}</span>
                   <span class="multiday-duration">{{ getEventDuration(event) }}</span>
                 </div>
@@ -97,25 +83,36 @@
 
             <div
               v-for="date in weekDates"
-              :key="'cell-' + resource.id + '-' + date.toString()"
+              :key="'cell-' + worker.id + '-' + date.toString()"
               class="day-cell"
               :class="{
                 'is-today': isToday(date),
                 'is-weekend': isWeekend(date)
               }"
-              @click="handleResourceSlotClick(resource, date)"
+              @click="handleWorkerSlotClick(worker, date)"
             >
               <!-- Stacked events for this resource and day -->
               <div class="events-stack">
                 <div
-                  v-for="(event, eventIndex) in getSingleDayEventsForResourceAndDay(resource.id, date)"
+                  v-for="(event, eventIndex) in getSingleDayEventsForWorkerAndDay(worker.id, date)"
                   :key="event.id"
                   class="stacked-event"
-                  :style="getStackedEventStyle(eventIndex, resource.id)"
+                  :style="getStackedEventStyle(eventIndex, worker.id)"
                   @click.stop="$emit('event-click', event)"
                 >
                   <div 
                     class="event-bar group"
+                    :class="{
+                      'shift-morning': event.metadata?.shiftType === 'morning',
+                      'shift-day': event.metadata?.shiftType === 'day',
+                      'shift-evening': event.metadata?.shiftType === 'evening',
+                      'shift-night': event.metadata?.shiftType === 'night',
+                      'meeting': event.metadata?.type === 'meeting',
+                      'training': event.metadata?.type === 'training',
+                      'time-off': event.metadata?.type === 'time-off',
+                      'maintenance': event.metadata?.type === 'maintenance',
+                      'administrative': event.metadata?.type === 'administrative'
+                    }"
                     :style="{
                       backgroundColor: event.color ? event.color + '30' : '#3b82f630',
                       borderLeftColor: event.color || '#3b82f6',
@@ -140,7 +137,7 @@
               
               <!-- Add event indicator for empty cells -->
               <div 
-                v-if="!readonly && getSingleDayEventsForResourceAndDay(resource.id, date).length === 0 && getMultiDayEventsForResource(resource.id).length === 0"
+                v-if="!readonly && getSingleDayEventsForWorkerAndDay(worker.id, date).length === 0 && getMultiDayEventsForWorker(worker.id).length === 0"
                 class="add-indicator"
               >
                 <div class="add-btn">
@@ -181,7 +178,7 @@ import {
 
 interface Props {
   events: CalendarEvent[]
-  resources?: CalendarResource[]
+  workers?: CalendarResource[]
   config: CalendarConfig
   currentDate: Atemporal
   visibleRange: { start: Atemporal; end: Atemporal }
@@ -190,7 +187,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  resources: () => [],
+  workers: () => [],
   eventActions: () => [],
   readonly: false
 })
@@ -222,19 +219,79 @@ const weekDates = computed((): Atemporal[] => {
 })
 
 /**
- * Get display resources (use provided resources or create default ones)
+ * Get display workers (use provided workers or create default ones)
  */
-const displayResources = computed((): CalendarResource[] => {
-  if (props.resources && props.resources.length > 0) {
-    return props.resources
+const displayWorkers = computed((): CalendarResource[] => {
+  if (props.workers && props.workers.length > 0) {
+    return props.workers
   }
   
-  // Default resources if none provided
+  // Default workers if none provided
   return [
-    { id: 'worker-john', name: 'John Smith', color: '#3B82F6', metadata: { department: 'Engineering', role: 'Senior Developer' } },
-    { id: 'worker-sarah', name: 'Sarah Johnson', color: '#10B981', metadata: { department: 'Design', role: 'UX Designer' } },
-    { id: 'worker-mike', name: 'Mike Davis', color: '#F59E0B', metadata: { department: 'Marketing', role: 'Marketing Manager' } },
-    { id: 'worker-lisa', name: 'Lisa Chen', color: '#8B5CF6', metadata: { department: 'Engineering', role: 'Frontend Developer' } }
+    { 
+      id: 'emp-001', 
+      name: 'John Smith', 
+      color: '#3B82F6', 
+      metadata: { 
+        employeeId: 'EMP-001',
+        department: 'Operations', 
+        role: 'Shift Supervisor', 
+        email: 'john.smith@company.com',
+        phone: '(555) 123-4567',
+        shiftPreference: 'Morning',
+        skills: ['Leadership', 'Quality Control', 'Safety Training'],
+        certifications: ['OSHA 30', 'First Aid'],
+        hireDate: '2020-03-15'
+      } 
+    },
+    { 
+      id: 'emp-002', 
+      name: 'Sarah Johnson', 
+      color: '#10B981', 
+      metadata: { 
+        employeeId: 'EMP-002',
+        department: 'Customer Service', 
+        role: 'Team Lead', 
+        email: 'sarah.johnson@company.com',
+        phone: '(555) 234-5678',
+        shiftPreference: 'Day',
+        skills: ['Customer Relations', 'Training', 'Conflict Resolution'],
+        certifications: ['Customer Service Excellence'],
+        hireDate: '2019-08-22'
+      } 
+    },
+    { 
+      id: 'emp-003', 
+      name: 'Mike Davis', 
+      color: '#F59E0B', 
+      metadata: { 
+        employeeId: 'EMP-003',
+        department: 'Maintenance', 
+        role: 'Maintenance Technician', 
+        email: 'mike.davis@company.com',
+        phone: '(555) 345-6789',
+        shiftPreference: 'Evening',
+        skills: ['Electrical', 'HVAC', 'Plumbing', 'Preventive Maintenance'],
+        certifications: ['EPA 608', 'Electrical License'],
+        hireDate: '2021-01-10'
+      } 
+    },
+    { 
+      id: 'emp-004', 
+      name: 'Lisa Chen', 
+      color: '#8B5CF6', 
+      metadata: { 
+        employeeId: 'EMP-004',
+        department: 'Security', 
+        role: 'Security Officer', 
+        email: 'lisa.chen@company.com',
+        phone: '(555) 456-7890',
+        shiftPreference: 'Night',
+        skills: ['Surveillance', 'Access Control', 'Emergency Response'],
+        certifications: ['Security Guard License', 'CPR/AED'],
+        hireDate: '2022-06-05'
+      } 
+    }
   ]
 })
 
@@ -242,128 +299,191 @@ const displayResources = computed((): CalendarResource[] => {
  * Get single-day events (non-multi-day events)
  */
 const singleDayEvents = computed((): CalendarEvent[] => {
-  // Add comprehensive test single-day events
-  const testSingleDayEvents: CalendarEvent[] = [
-    // John Smith events (Monday - 3 events, Tuesday - 2 events)
+  // Generate test events only for specific weeks to make navigation meaningful
+  const currentWeekStart = weekDates.value[0]
+  const testSingleDayEvents: CalendarEvent[] = []
+  
+  // Only generate events for certain weeks (every 2-3 weeks to show variety)
+  const weekNumber = Math.floor(currentWeekStart.valueOf() / (1000 * 60 * 60 * 24 * 7)) // Use timestamp to calculate week number
+  const shouldShowEvents = weekNumber % 3 === 0 || weekNumber % 3 === 1 // Show events 2 out of every 3 weeks
+  
+  if (shouldShowEvents) {
+    // Vary events based on week number to show different schedules
+    const eventVariation = weekNumber % 4
+    
+    // Base events that appear in most weeks
+    testSingleDayEvents.push(
+    // John Smith (Shift Supervisor) - Monday events
     {
       id: 'john-mon-1',
-      title: 'Team Meeting',
-      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T09:00:00',
-      endTime: weekDates.value[0].format('YYYY-MM-DD') + 'T10:00:00',
-      resourceId: 'worker-john',
-      color: '#3B82F6'
+      title: 'Morning Shift',
+      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T06:00:00',
+      endTime: weekDates.value[0].format('YYYY-MM-DD') + 'T14:00:00',
+      resourceId: 'emp-001',
+      color: '#1E40AF',
+      metadata: { type: 'shift', shiftType: 'morning' }
     },
     {
       id: 'john-mon-2',
-      title: 'Code Review',
-      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T11:00:00',
-      endTime: weekDates.value[0].format('YYYY-MM-DD') + 'T12:00:00',
-      resourceId: 'worker-john',
-      color: '#3B82F6'
+      title: 'Safety Meeting',
+      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T14:30:00',
+      endTime: weekDates.value[0].format('YYYY-MM-DD') + 'T15:30:00',
+      resourceId: 'emp-001',
+      color: '#DC2626',
+      metadata: { type: 'meeting', category: 'safety' }
     },
     {
       id: 'john-mon-3',
-      title: 'Sprint Planning',
-      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T14:00:00',
-      endTime: weekDates.value[0].format('YYYY-MM-DD') + 'T15:30:00',
-      resourceId: 'worker-john',
-      color: '#3B82F6'
+      title: 'Shift Handover',
+      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T15:45:00',
+      endTime: weekDates.value[0].format('YYYY-MM-DD') + 'T16:00:00',
+      resourceId: 'emp-001',
+      color: '#7C3AED',
+      metadata: { type: 'handover' }
     },
+    // John Smith - Tuesday events
     {
       id: 'john-tue-1',
-      title: 'Client Call',
-      startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T10:00:00',
-      endTime: weekDates.value[1].format('YYYY-MM-DD') + 'T11:00:00',
-      resourceId: 'worker-john',
-      color: '#3B82F6'
+      title: 'Morning Shift',
+      startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T06:00:00',
+      endTime: weekDates.value[1].format('YYYY-MM-DD') + 'T14:00:00',
+      resourceId: 'emp-001',
+      color: '#1E40AF',
+      metadata: { type: 'shift', shiftType: 'morning' }
     },
     {
       id: 'john-tue-2',
-      title: 'Development',
-      startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T13:00:00',
-      endTime: weekDates.value[1].format('YYYY-MM-DD') + 'T17:00:00',
-      resourceId: 'worker-john',
-      color: '#3B82F6'
+      title: 'Performance Review',
+      startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T14:30:00',
+      endTime: weekDates.value[1].format('YYYY-MM-DD') + 'T15:30:00',
+      resourceId: 'emp-001',
+      color: '#059669',
+      metadata: { type: 'meeting', category: 'hr' }
     },
     
-    // Sarah Johnson events (Wednesday - 4 events)
+    // Sarah Johnson (Customer Service Team Lead) - Wednesday events
     {
       id: 'sarah-wed-1',
-      title: 'Design Review',
-      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T09:00:00',
-      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T10:00:00',
-      resourceId: 'worker-sarah',
-      color: '#10B981'
+      title: 'Day Shift',
+      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T08:00:00',
+      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T16:00:00',
+      resourceId: 'emp-002',
+      color: '#047857',
+      metadata: { type: 'shift', shiftType: 'day' }
     },
     {
       id: 'sarah-wed-2',
-      title: 'User Research',
-      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T10:30:00',
-      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T12:00:00',
-      resourceId: 'worker-sarah',
-      color: '#10B981'
+      title: 'Team Training',
+      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T16:30:00',
+      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T17:30:00',
+      resourceId: 'emp-002',
+      color: '#7C2D12',
+      metadata: { type: 'training', category: 'customer-service' }
     },
     {
       id: 'sarah-wed-3',
-      title: 'Wireframing',
-      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T13:00:00',
-      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T15:00:00',
-      resourceId: 'worker-sarah',
-      color: '#10B981'
+      title: 'Quality Review',
+      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T17:45:00',
+      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T18:15:00',
+      resourceId: 'emp-002',
+      color: '#B45309',
+      metadata: { type: 'meeting', category: 'quality' }
     },
     {
       id: 'sarah-wed-4',
-      title: 'Prototype Testing',
-      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T15:30:00',
-      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T17:00:00',
-      resourceId: 'worker-sarah',
-      color: '#10B981'
+      title: 'Shift Report',
+      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T18:15:00',
+      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T18:30:00',
+      resourceId: 'emp-002',
+      color: '#7C3AED',
+      metadata: { type: 'administrative' }
     },
     
-    // Mike Davis events (Thursday - 2 events)
+    // Mike Davis (Maintenance Technician) - Thursday events
     {
       id: 'mike-thu-1',
-      title: 'Campaign Planning',
-      startTime: weekDates.value[3].format('YYYY-MM-DD') + 'T09:00:00',
-      endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T11:00:00',
-      resourceId: 'worker-mike',
-      color: '#F59E0B'
+      title: 'Evening Shift',
+      startTime: weekDates.value[3].format('YYYY-MM-DD') + 'T14:00:00',
+      endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T22:00:00',
+      resourceId: 'emp-003',
+      color: '#D97706',
+      metadata: { type: 'shift', shiftType: 'evening' }
     },
     {
       id: 'mike-thu-2',
-      title: 'Analytics Review',
-      startTime: weekDates.value[3].format('YYYY-MM-DD') + 'T14:00:00',
-      endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T16:00:00',
-      resourceId: 'worker-mike',
-      color: '#F59E0B'
+      title: 'Equipment Inspection',
+      startTime: weekDates.value[3].format('YYYY-MM-DD') + 'T22:30:00',
+      endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T23:00:00',
+      resourceId: 'emp-003',
+      color: '#92400E',
+      metadata: { type: 'maintenance', category: 'inspection' }
     },
     
-    // Lisa Chen events (Friday - 3 events)
+    // Lisa Chen (Security Officer) - Friday events
     {
       id: 'lisa-fri-1',
-      title: 'Bug Fixes',
-      startTime: weekDates.value[4].format('YYYY-MM-DD') + 'T09:00:00',
-      endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T11:00:00',
-      resourceId: 'worker-lisa',
-      color: '#8B5CF6'
+      title: 'Night Shift',
+      startTime: weekDates.value[4].format('YYYY-MM-DD') + 'T22:00:00',
+      endTime: weekDates.value[5].format('YYYY-MM-DD') + 'T06:00:00',
+      resourceId: 'emp-004',
+      color: '#6D28D9',
+      metadata: { type: 'shift', shiftType: 'night' }
     },
     {
       id: 'lisa-fri-2',
-      title: 'Feature Development',
-      startTime: weekDates.value[4].format('YYYY-MM-DD') + 'T11:30:00',
-      endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T14:00:00',
-      resourceId: 'worker-lisa',
-      color: '#8B5CF6'
+      title: 'Security Training',
+      startTime: weekDates.value[4].format('YYYY-MM-DD') + 'T20:00:00',
+      endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T21:00:00',
+      resourceId: 'emp-004',
+      color: '#7C2D12',
+      metadata: { type: 'training', category: 'security' }
     },
     {
       id: 'lisa-fri-3',
-      title: 'Code Documentation',
-      startTime: weekDates.value[4].format('YYYY-MM-DD') + 'T15:00:00',
-      endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T17:00:00',
-      resourceId: 'worker-lisa',
-      color: '#8B5CF6'
+      title: 'Patrol Briefing',
+      startTime: weekDates.value[4].format('YYYY-MM-DD') + 'T21:30:00',
+      endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T21:45:00',
+      resourceId: 'emp-004',
+      color: '#DC2626',
+      metadata: { type: 'briefing' }
+    })
+    
+    // Add variation-specific events
+    if (eventVariation === 0) {
+      // Week variation 0: Add extra training events
+      testSingleDayEvents.push({
+        id: 'extra-training-' + weekNumber,
+        title: 'Monthly Safety Training',
+        startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T10:00:00',
+        endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T12:00:00',
+        resourceId: 'emp-001',
+        color: '#DC2626',
+        metadata: { type: 'training', category: 'safety' }
+      })
+    } else if (eventVariation === 1) {
+      // Week variation 1: Add maintenance events
+      testSingleDayEvents.push({
+        id: 'maintenance-' + weekNumber,
+        title: 'Equipment Maintenance',
+        startTime: weekDates.value[3].format('YYYY-MM-DD') + 'T09:00:00',
+        endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T17:00:00',
+        resourceId: 'emp-003',
+        color: '#D97706',
+        metadata: { type: 'maintenance', category: 'equipment' }
+      })
+    } else if (eventVariation === 2) {
+      // Week variation 2: Add customer service events
+      testSingleDayEvents.push({
+        id: 'customer-event-' + weekNumber,
+        title: 'Customer Service Review',
+        startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T14:00:00',
+        endTime: weekDates.value[1].format('YYYY-MM-DD') + 'T16:00:00',
+        resourceId: 'emp-002',
+        color: '#047857',
+        metadata: { type: 'meeting', category: 'customer-service' }
+      })
     }
-  ]
+  }
   
   const userEvents = props.events.filter(event => {
     const startDate = atemporal(event.startTime)
@@ -378,91 +498,97 @@ const singleDayEvents = computed((): CalendarEvent[] => {
  * Get multi-day events
  */
 const multiDayEvents = computed((): CalendarEvent[] => {
-  // Add test multi-day events with overlapping scenarios to test stacking
-  const testMultiDayEvents: CalendarEvent[] = [
-    // John Smith - Multiple overlapping events to test stacking
-    {
-      id: 'vacation-john',
-      title: 'Summer Vacation',
-      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T00:00:00',
-      endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T23:59:59',
-      resourceId: 'worker-john',
-      color: '#10B981',
-      isAllDay: true
-    },
-    {
-      id: 'conference-john',
-      title: 'Multi-Day Conference',
-      startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T00:00:00',
-      endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T23:59:59',
-      resourceId: 'worker-john',
-      color: '#3B82F6',
-      isAllDay: true
-    },
-    // Sarah Johnson - Overlapping events
-    {
-      id: 'conference-sarah',
-      title: 'Design Conference',
-      startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T00:00:00',
-      endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T23:59:59',
-      resourceId: 'worker-sarah',
-      color: '#8B5CF6',
-      isAllDay: true
-    },
-    {
-      id: 'sprint-sarah',
-      title: 'Design Sprint',
-      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T00:00:00',
-      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T23:59:59',
-      resourceId: 'worker-sarah',
-      color: '#EF4444',
-      isAllDay: true
-    },
-    // Mike Davis - Overlapping events
-    {
-      id: 'sick-mike',
-      title: 'Sick Leave',
-      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T00:00:00',
-      endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T23:59:59',
-      resourceId: 'worker-mike',
-      color: '#F59E0B',
-      isAllDay: true
-    },
-    {
-      id: 'roadshow-mike',
-      title: 'Marketing Roadshow',
-      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T00:00:00',
-      endTime: weekDates.value[6].format('YYYY-MM-DD') + 'T23:59:59',
-      resourceId: 'worker-mike',
-      color: '#8B5CF6',
-      isAllDay: true
-    },
-    // Lisa Chen - Overlapping events
-    {
-      id: 'training-lisa',
-      title: 'Technical Training',
-      startTime: weekDates.value[3].format('YYYY-MM-DD') + 'T00:00:00',
-      endTime: weekDates.value[5].format('YYYY-MM-DD') + 'T23:59:59',
-      resourceId: 'worker-lisa',
-      color: '#EF4444',
-      isAllDay: true
-    },
-    {
-      id: 'workshop-lisa',
-      title: 'Training Workshop',
-      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T00:00:00',
-      endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T23:59:59',
-      resourceId: 'worker-lisa',
-      color: '#10B981',
-      isAllDay: true
-    }
-  ]
-  
+  // Filter events that span multiple days
   const userEvents = props.events.filter(event => {
     const startDate = atemporal(event.startTime)
     const endDate = atemporal(event.endTime)
     return !startDate.isSame(endDate, 'day')
   })
+  
+  // Generate multi-day events only for specific weeks
+  const currentWeekStart = weekDates.value[0]
+  const weekNumber = Math.floor(currentWeekStart.valueOf() / (1000 * 60 * 60 * 24 * 7)) // Use timestamp to calculate week number
+  const testMultiDayEvents: CalendarEvent[] = []
+  
+  // Show multi-day events less frequently (every 4-5 weeks)
+  const shouldShowMultiDayEvents = weekNumber % 5 === 0 || weekNumber % 5 === 2
+  
+  if (shouldShowMultiDayEvents) {
+    const eventVariation = weekNumber % 3
+    
+    if (eventVariation === 0) {
+      // Vacation week
+      testMultiDayEvents.push(
+    // John Smith - Vacation time
+    {
+      id: 'john-vacation-1',
+      title: 'Annual Leave',
+      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T00:00:00',
+      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T23:59:59',
+      resourceId: 'emp-001',
+      color: '#059669',
+      isAllDay: true,
+      metadata: { type: 'time-off', category: 'vacation' }
+    },
+    // Sarah Johnson - Training program
+    {
+      id: 'sarah-training-1',
+      title: 'Customer Excellence Training',
+      startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T00:00:00',
+      endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T23:59:59',
+      resourceId: 'emp-002',
+      color: '#7C2D12',
+      isAllDay: true,
+      metadata: { type: 'training', category: 'professional-development' }
+    },
+    // Mike Davis - Equipment maintenance period
+    {
+      id: 'mike-maintenance-1',
+      title: 'Facility Maintenance Project',
+      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T00:00:00',
+      endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T23:59:59',
+      resourceId: 'emp-003',
+      color: '#92400E',
+      isAllDay: true,
+      metadata: { type: 'project', category: 'maintenance' }
+    },
+    // Lisa Chen - Security certification
+    {
+      id: 'lisa-cert-1',
+      title: 'Security Certification Course',
+      startTime: weekDates.value[3].format('YYYY-MM-DD') + 'T00:00:00',
+      endTime: weekDates.value[5].format('YYYY-MM-DD') + 'T23:59:59',
+      resourceId: 'emp-004',
+      color: '#7C2D12',
+      isAllDay: true,
+      metadata: { type: 'training', category: 'certification' }
+    })
+    } else if (eventVariation === 1) {
+      // Training week
+      testMultiDayEvents.push({
+        id: 'training-week-' + weekNumber,
+        title: 'Professional Development Week',
+        startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T00:00:00',
+        endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T23:59:59',
+        resourceId: 'emp-002',
+        color: '#7C2D12',
+        isAllDay: true,
+        metadata: { type: 'training', category: 'professional-development' }
+      })
+    } else if (eventVariation === 2) {
+      // Maintenance week
+      testMultiDayEvents.push({
+        id: 'maintenance-week-' + weekNumber,
+        title: 'Facility Upgrade Project',
+        startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T00:00:00',
+        endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T23:59:59',
+        resourceId: 'emp-003',
+        color: '#92400E',
+        isAllDay: true,
+        metadata: { type: 'project', category: 'maintenance' }
+      })
+    }
+  }
   
   return [...userEvents, ...testMultiDayEvents]
 })
@@ -495,13 +621,24 @@ const isSameDay = (date1: Atemporal, date2: Atemporal): boolean => {
 const getDayName = (date: Atemporal, _index: number): string => {
   const dayNames = getLocalizedDayNames(props.config.locale || 'en', 'short')
   const dayOfWeek = date.dayOfWeek() as number
-  return dayNames[dayOfWeek] || date.format('ddd')
+  
+  if (dayNames[dayOfWeek]) {
+    return dayNames[dayOfWeek]
+  }
+  
+  // Fallback to JavaScript Date if atemporal format fails
+  try {
+    return date.format('ddd')
+  } catch {
+    const jsDate = new Date(date.toString())
+    return jsDate.toLocaleDateString('en-US', { weekday: 'short' })
+  }
 }
 
 /**
- * Get single-day events for a specific resource and day
+ * Get single-day events for a specific worker and day
  */
-const getSingleDayEventsForResourceAndDay = (resourceId: string, date: Atemporal): CalendarEvent[] => {
+const getSingleDayEventsForWorkerAndDay = (workerId: string, date: Atemporal): CalendarEvent[] => {
   const targetDate = date.format('YYYY-MM-DD')
   
   return singleDayEvents.value.filter(event => {
@@ -511,7 +648,7 @@ const getSingleDayEventsForResourceAndDay = (resourceId: string, date: Atemporal
     const isSameDay = eventStartDate.format('YYYY-MM-DD') === targetDate && 
                       eventEndDate.format('YYYY-MM-DD') === targetDate
     
-    return isSameDay && event.resourceId === resourceId
+    return isSameDay && event.resourceId === workerId
   }).sort((a, b) => {
     // Sort by start time for consistent stacking order
     const startA = atemporal(a.startTime)
@@ -521,13 +658,13 @@ const getSingleDayEventsForResourceAndDay = (resourceId: string, date: Atemporal
 }
 
 /**
- * Calculate the maximum number of events in any single day for a resource
+ * Calculate the maximum number of events in any single day for a worker
  */
-const getMaxEventsForResource = (resourceId: string): number => {
+const getMaxEventsForWorker = (workerId: string): number => {
   let maxEvents = 0
   
   weekDates.value.forEach(date => {
-    const eventsCount = getSingleDayEventsForResourceAndDay(resourceId, date).length
+    const eventsCount = getSingleDayEventsForWorkerAndDay(workerId, date).length
     maxEvents = Math.max(maxEvents, eventsCount)
   })
   
@@ -535,10 +672,10 @@ const getMaxEventsForResource = (resourceId: string): number => {
 }
 
 /**
- * Get multi-day events for a specific resource
+ * Get multi-day events for a specific worker
  */
-const getMultiDayEventsForResource = (resourceId: string): CalendarEvent[] => {
-  return multiDayEvents.value.filter(event => event.resourceId === resourceId)
+const getMultiDayEventsForWorker = (workerId: string): CalendarEvent[] => {
+  return multiDayEvents.value.filter(event => event.resourceId === workerId)
 }
 
 /**
@@ -546,23 +683,24 @@ const getMultiDayEventsForResource = (resourceId: string): CalendarEvent[] => {
  */
 const doMultiDayEventsOverlap = (event1: CalendarEvent, event2: CalendarEvent): boolean => {
   const start1 = atemporal(event1.startTime).startOf('day')
-  const end1 = atemporal(event1.endTime).startOf('day') // Use startOf('day') for consistent comparison
+  const end1 = atemporal(event1.endTime).startOf('day')
   const start2 = atemporal(event2.startTime).startOf('day')
-  const end2 = atemporal(event2.endTime).startOf('day') // Use startOf('day') for consistent comparison
+  const end2 = atemporal(event2.endTime).startOf('day')
   
   // Events overlap if start1 <= end2 && start2 <= end1
+  // Use proper date comparison for multi-day events
   return start1.isSameOrBefore(end2) && start2.isSameOrBefore(end1)
 }
 
 /**
- * Get multi-day events for a specific resource with proper lane assignments
+ * Get multi-day events for a specific worker with proper lane assignments
  */
-const getMultiDayEventsForResourceWithLanes = (resourceId: string): (CalendarEvent & { lane: number })[] => {
-  const resourceEvents = getMultiDayEventsForResource(resourceId)
-  if (resourceEvents.length === 0) return []
+const getMultiDayEventsForWorkerWithLanes = (workerId: string): (CalendarEvent & { lane: number })[] => {
+  const workerEvents = getMultiDayEventsForWorker(workerId)
+  if (workerEvents.length === 0) return []
   
   // Sort events by start time for consistent processing
-  const sortedEvents = resourceEvents.sort((a, b) => {
+  const sortedEvents = workerEvents.sort((a, b) => {
     const startA = atemporal(a.startTime)
     const startB = atemporal(b.startTime)
     return startA.isBefore(startB) ? -1 : 1
@@ -572,7 +710,7 @@ const getMultiDayEventsForResourceWithLanes = (resourceId: string): (CalendarEve
   const lanes: CalendarEvent[][] = []
   const eventsWithLanes: (CalendarEvent & { lane: number })[] = []
   
-  sortedEvents.forEach(event => {
+  sortedEvents.forEach((event) => {
     // Find the first available lane where this event doesn't overlap with any existing event
     let assignedLane = -1
     
@@ -607,10 +745,10 @@ const getMultiDayEventsForResourceWithLanes = (resourceId: string): (CalendarEve
 }
 
 /**
- * Calculate the maximum number of multi-day events for a resource
+ * Calculate the maximum number of multi-day events for a worker
  */
-const getMaxMultiDayEventsForResource = (resourceId: string): number => {
-  const eventsWithLanes = getMultiDayEventsForResourceWithLanes(resourceId)
+const getMaxMultiDayEventsForWorker = (workerId: string): number => {
+  const eventsWithLanes = getMultiDayEventsForWorkerWithLanes(workerId)
   if (eventsWithLanes.length === 0) return 0
   
   // Return the maximum lane number + 1 (since lanes are 0-indexed)
@@ -618,11 +756,11 @@ const getMaxMultiDayEventsForResource = (resourceId: string): number => {
 }
 
 /**
- * Calculate resource row height based on maximum events (both single-day and multi-day)
+ * Calculate worker row height based on maximum events (both single-day and multi-day)
  */
-const getResourceRowHeight = (resourceId: string): number => {
-  const maxSingleDayEvents = getMaxEventsForResource(resourceId)
-  const maxMultiDayEvents = getMaxMultiDayEventsForResource(resourceId)
+const getWorkerRowHeight = (workerId: string): number => {
+  const maxSingleDayEvents = getMaxEventsForWorker(workerId)
+  const maxMultiDayEvents = getMaxMultiDayEventsForWorker(workerId)
   
   const totalMaxEvents = maxSingleDayEvents + maxMultiDayEvents
   if (totalMaxEvents === 0) return MIN_ROW_HEIGHT
@@ -636,8 +774,8 @@ const getResourceRowHeight = (resourceId: string): number => {
 /**
  * Get style for stacked event (positioned below multi-day events)
  */
-const getStackedEventStyle = (eventIndex: number, resourceId: string): Record<string, string | number> => {
-  const multiDayEventsCount = getMaxMultiDayEventsForResource(resourceId)
+const getStackedEventStyle = (eventIndex: number, workerId: string): Record<string, string | number> => {
+  const multiDayEventsCount = getMaxMultiDayEventsForWorker(workerId)
   const multiDayOffset = multiDayEventsCount * (EVENT_HEIGHT + EVENT_GAP)
   const top = 8 + multiDayOffset + eventIndex * (EVENT_HEIGHT + EVENT_GAP) // 8px top padding + multi-day offset
   
@@ -652,9 +790,9 @@ const getStackedEventStyle = (eventIndex: number, resourceId: string): Record<st
 }
 
 /**
- * Get style for resource-specific multi-day event with proper positioning
+ * Get style for worker-specific multi-day event with proper positioning
  */
-const getResourceMultiDayEventStyle = (event: CalendarEvent & { lane: number }, _resourceId: string): Record<string, string | number> => {
+const getWorkerMultiDayEventStyle = (event: CalendarEvent & { lane: number }, _workerId: string): Record<string, string | number> => {
   const eventStartDate = atemporal(event.startTime)
   const eventEndDate = atemporal(event.endTime)
   
@@ -732,16 +870,16 @@ const handleDayClick = (date: Atemporal): void => {
 }
 
 /**
- * Handle resource slot click
+ * Handle worker slot click
  */
-const handleResourceSlotClick = (resource: CalendarResource, date: Atemporal): void => {
+const handleWorkerSlotClick = (worker: CalendarResource, date: Atemporal): void => {
   if (props.readonly) return
   
   const slotInfo: SlotClickInfo = {
     date: date.format('YYYY-MM-DD'),
     time: '09:00', // Default time for new events
-    resourceId: resource.id,
-    resource: resource,
+    resourceId: worker.id,
+    resource: worker,
     dayName: getDayName(date, 0),
     isToday: isToday(date),
     isWeekend: isWeekend(date),
@@ -819,6 +957,11 @@ const handleResourceSlotClick = (resource: CalendarResource, date: Atemporal): v
 
 /* Removed global multi-day section styles */
 
+.worker-multiday-event {
+  @apply cursor-pointer transition-all duration-200 hover:shadow-md;
+}
+
+/* Keep resource-multiday-event for backward compatibility */
 .resource-multiday-event {
   @apply cursor-pointer transition-all duration-200 hover:shadow-md;
 }
@@ -827,6 +970,23 @@ const handleResourceSlotClick = (resource: CalendarResource, date: Atemporal): v
   @apply w-full h-full rounded-md shadow-sm border-l-4 px-3 py-1;
   @apply flex items-center justify-between;
   @apply text-gray-800 dark:text-gray-100;
+}
+
+/* Multi-day event type styles */
+.multiday-content.time-off {
+  @apply bg-green-100 dark:bg-green-900/30 border-l-green-600;
+}
+
+.multiday-content.training {
+  @apply bg-orange-100 dark:bg-orange-900/30 border-l-orange-700;
+}
+
+.multiday-content.project {
+  @apply bg-yellow-100 dark:bg-yellow-900/30 border-l-yellow-700;
+}
+
+.multiday-content.certification {
+  @apply bg-orange-100 dark:bg-orange-900/30 border-l-orange-700;
 }
 
 .multiday-title {
@@ -839,6 +999,44 @@ const handleResourceSlotClick = (resource: CalendarResource, date: Atemporal): v
   @apply text-gray-600 dark:text-gray-300;
 }
 
+.worker-container {
+  @apply flex flex-col;
+}
+
+.worker-row {
+  @apply flex border-b border-gray-200 dark:border-gray-600 relative;
+}
+
+.worker-info {
+  @apply flex-shrink-0 border-r border-gray-200 dark:border-gray-700;
+  width: 160px;
+}
+
+.worker-content {
+  @apply flex items-center h-full px-3 py-2 bg-gray-50 dark:bg-gray-800;
+}
+
+.worker-indicator {
+  @apply w-3 h-3 rounded-full flex-shrink-0;
+}
+
+.worker-details {
+  @apply flex flex-col ml-2;
+}
+
+.worker-name {
+  @apply text-sm font-medium text-gray-900 dark:text-gray-100 truncate;
+}
+
+.worker-role {
+  @apply text-xs text-gray-500 dark:text-gray-400 truncate;
+}
+
+.worker-days {
+  @apply flex flex-1 relative;
+}
+
+/* Keep resource classes for backward compatibility */
 .resource-container {
   @apply flex flex-col;
 }
@@ -880,6 +1078,7 @@ const handleResourceSlotClick = (resource: CalendarResource, date: Atemporal): v
   @apply absolute inset-0 pointer-events-none;
 }
 
+.multiday-events-overlay .worker-multiday-event,
 .multiday-events-overlay .resource-multiday-event {
   @apply pointer-events-auto;
 }
@@ -910,6 +1109,43 @@ const handleResourceSlotClick = (resource: CalendarResource, date: Atemporal): v
   @apply transition-all duration-200 hover:shadow-md;
   @apply flex items-center justify-between;
   @apply text-gray-800 dark:text-gray-100;
+}
+
+/* Worker scheduling event type styles */
+.event-bar.shift-morning {
+  @apply bg-blue-100 dark:bg-blue-900/30 border-l-blue-600;
+}
+
+.event-bar.shift-day {
+  @apply bg-emerald-100 dark:bg-emerald-900/30 border-l-emerald-600;
+}
+
+.event-bar.shift-evening {
+  @apply bg-amber-100 dark:bg-amber-900/30 border-l-amber-600;
+}
+
+.event-bar.shift-night {
+  @apply bg-purple-100 dark:bg-purple-900/30 border-l-purple-600;
+}
+
+.event-bar.meeting {
+  @apply bg-red-100 dark:bg-red-900/30 border-l-red-600;
+}
+
+.event-bar.training {
+  @apply bg-orange-100 dark:bg-orange-900/30 border-l-orange-700;
+}
+
+.event-bar.time-off {
+  @apply bg-green-100 dark:bg-green-900/30 border-l-green-600;
+}
+
+.event-bar.maintenance {
+  @apply bg-yellow-100 dark:bg-yellow-900/30 border-l-yellow-700;
+}
+
+.event-bar.administrative {
+  @apply bg-indigo-100 dark:bg-indigo-900/30 border-l-indigo-600;
 }
 
 .event-title {
