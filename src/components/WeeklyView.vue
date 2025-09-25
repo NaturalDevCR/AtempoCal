@@ -380,13 +380,13 @@ const getEventStyle = (event: CalendarEvent, eventIndex: number, resourceId: str
   const eventsInCell = getSingleDayEventsForResourceAndDay(resourceId, date)
   const totalEvents = eventsInCell.length
   
-  // Single event fills the entire cell
+  // Single event fills most of the cell width
   if (totalEvents === 1) {
     return {
       top: '4px',
-      height: (resourceRowHeight - 12) + 'px', // Full height minus padding
-      left: '0px',
-      right: '4px',
+      height: (resourceRowHeight - 12) + 'px',
+      left: '2px',
+      width: 'calc(100% - 8px)',
       zIndex: 1
     }
   }
@@ -398,41 +398,55 @@ const getEventStyle = (event: CalendarEvent, eventIndex: number, resourceId: str
     return startA.isBefore(startB) ? -1 : 1
   })
 
-  // Find column for this event to prevent overlaps
-  const columns: CalendarEvent[] = []
-  let eventColumn = 0
+  // Build column assignment for all events
+  const eventColumns: { [eventId: string]: number } = {}
+  const columns: CalendarEvent[][] = []
   
-  sortedEvents.forEach((evt, _idx) => {
-    if (evt.id === event.id) {
-      // Find the first available column
-      let columnIndex = 0
-      while (columnIndex < columns.length) {
-        const columnEvent = columns[columnIndex]
-        if (!eventsTimeOverlap(evt, columnEvent)) {
+  sortedEvents.forEach((evt) => {
+    // Find the first available column where this event doesn't overlap
+    let columnIndex = 0
+    let placed = false
+    
+    while (columnIndex < columns.length && !placed) {
+      const columnEvents = columns[columnIndex]
+      let canPlace = true
+      
+      // Check if this event overlaps with any event in this column
+      for (const columnEvent of columnEvents) {
+        if (eventsTimeOverlap(evt, columnEvent)) {
+          canPlace = false
           break
         }
+      }
+      
+      if (canPlace) {
+        columns[columnIndex].push(evt)
+        eventColumns[evt.id] = columnIndex
+        placed = true
+      } else {
         columnIndex++
       }
-      
-      if (columnIndex >= columns.length) {
-        columns.push(evt)
-      } else {
-        columns[columnIndex] = evt
-      }
-      
-      eventColumn = columnIndex
+    }
+    
+    // If no existing column works, create a new one
+    if (!placed) {
+      columns.push([evt])
+      eventColumns[evt.id] = columns.length - 1
     }
   })
 
-  // Calculate dimensions based on column assignment
-  const maxColumns = Math.max(columns.length, getMaxSimultaneousEvents(eventsInCell))
-  const eventWidth = Math.max(85 / maxColumns, 20) // Minimum 20% width, max based on columns
-  const eventLeft = (85 / maxColumns) * eventColumn
+  // Get the column for this specific event
+  const eventColumn = eventColumns[event.id] || 0
+  const totalColumns = columns.length
   
-  // Calculate height based on available space
+  // Calculate dimensions based on column assignment
+  const eventWidth = Math.max(Math.floor(95 / totalColumns), 15) // Minimum 15% width
+  const eventLeft = 2 + (eventColumn * Math.floor(95 / totalColumns))
+  
+  // Calculate height based on available space and number of columns
   const availableHeight = resourceRowHeight - 12
-  const eventHeight = Math.max(16, Math.min(24, availableHeight / Math.min(maxColumns, 3)))
-  const eventTop = 4 + (eventColumn * 2) // Small vertical offset for visual separation
+  const eventHeight = Math.max(18, Math.min(32, availableHeight / Math.min(totalColumns, 4)))
+  const eventTop = 4 + (eventColumn * 1) // Small vertical offset for visual separation
 
   return {
     top: eventTop + 'px',
@@ -455,24 +469,7 @@ const eventsTimeOverlap = (event1: CalendarEvent, event2: CalendarEvent): boolea
   return start1.isBefore(end2) && start2.isBefore(end1)
 }
 
-/**
- * Get maximum number of simultaneous events
- */
-const getMaxSimultaneousEvents = (events: CalendarEvent[]): number => {
-  let maxSimultaneous = 1
-  
-  events.forEach(event => {
-    let simultaneous = 1
-    events.forEach(otherEvent => {
-      if (event.id !== otherEvent.id && eventsTimeOverlap(event, otherEvent)) {
-        simultaneous++
-      }
-    })
-    maxSimultaneous = Math.max(maxSimultaneous, simultaneous)
-  })
-  
-  return maxSimultaneous
-}
+// Legacy function removed as it's no longer needed with the new column-based algorithm
 
 /**
  * Format event time for display
