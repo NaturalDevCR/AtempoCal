@@ -9,7 +9,7 @@
 
 ## ✨ Features
 
-- 📅 **Multiple Views**: Weekly and daily calendar views
+- 📅 **Multiple Views**: Weekly and daily calendar views with intelligent event positioning
 - 🎨 **Highly Customizable**: Configurable fields, actions, and styling
 - 🌍 **Internationalization**: Built-in i18n support using Atemporal's localization
 - 🕐 **Timezone Support**: Global timezone configuration with Atemporal integration
@@ -18,6 +18,9 @@
 - ⚡ **Performance Optimized**: Efficient rendering and state management
 - 🔧 **TypeScript**: Full type safety and excellent developer experience
 - 🎯 **Framework Agnostic**: Easy integration with Vue 3, Nuxt, Quasar, and more
+- 👥 **Advanced Resource Management**: World-class resource scheduling with overlap prevention
+- 🚫 **No Event Overlaps**: Intelligent column-based positioning prevents visual conflicts
+- 🏷️ **Integrated Resource Display**: Resources shown within events for clear identification
 
 ## 🚀 Quick Start
 
@@ -256,6 +259,76 @@ AtempoCal leverages the Atemporal library's built-in internationalization:
 Supported locales include all standard IETF language tags. The component automatically formats dates, times, and day names according to the specified locale.
 
 ## ⚡ Advanced Usage
+
+### Resource Management
+
+AtempoCal provides world-class resource management capabilities, perfect for scheduling workers, rooms, or equipment:
+
+```vue
+<template>
+  <AtempoCal
+    :events="events"
+    :resources="resources"
+    :config="config"
+    @event-click="handleEventClick"
+    @event-create="handleEventCreate"
+  />
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import type { CalendarEvent, CalendarResource } from 'atempo-cal'
+
+// Define resources (workers, rooms, equipment, etc.)
+const resources = ref<CalendarResource[]>([
+  {
+    id: 'worker-1',
+    name: 'John Smith',
+    color: '#3B82F6',
+    metadata: {
+      role: 'Senior Developer',
+      department: 'Engineering'
+    }
+  },
+  {
+    id: 'worker-2',
+    name: 'Sarah Johnson',
+    color: '#10B981',
+    metadata: {
+      role: 'UX Designer',
+      department: 'Design'
+    }
+  }
+])
+
+// Events with resource assignments
+const events = ref<CalendarEvent[]>([
+  {
+    id: '1',
+    title: 'Project Planning',
+    startTime: '2024-01-15T09:00:00Z',
+    endTime: '2024-01-15T11:00:00Z',
+    resourceId: 'worker-1', // Assigned to John Smith
+    color: '#3B82F6'
+  },
+  {
+    id: '2',
+    title: 'Design Review',
+    startTime: '2024-01-15T10:00:00Z',
+    endTime: '2024-01-15T12:00:00Z',
+    resourceId: 'worker-2', // Assigned to Sarah Johnson
+    color: '#10B981'
+  }
+])
+</script>
+```
+
+### Key Resource Management Features
+
+- **No Visual Overlaps**: Advanced column-based positioning ensures events never visually overlap
+- **Integrated Resource Display**: Resource information is shown within event cards for clear identification
+- **Unified Daily View**: Daily view shows all events in a single column with resource badges
+- **Intelligent Positioning**: Events are automatically positioned to prevent conflicts while maximizing space usage
 
 ### Custom Event Actions
 

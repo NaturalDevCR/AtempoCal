@@ -65,6 +65,9 @@
                 :readonly="readonly"
                 :show-time="true"
                 :show-description="false"
+                :show-resource="true"
+                :resource-name="getResourceName(event.resourceId)"
+                :resource-color="getResourceColor(event.resourceId)"
                 :max-title-length="50"
                 @click="$emit('event-click', event)"
                 @update="$emit('event-update', $event)"
@@ -370,7 +373,8 @@ const isInSameCell = (hoveredEventId: string, resourceId: string, date: Atempora
 }
 
 /**
- * Get Google Calendar-style event styling with dynamic sizing
+ * Calculate event style with advanced overlap prevention
+ * Uses column-based positioning to ensure no visual overlaps
  */
 const getEventStyle = (event: CalendarEvent, eventIndex: number, resourceId: string, date: Atemporal) => {
   const eventsInCell = getSingleDayEventsForResourceAndDay(resourceId, date)
@@ -386,67 +390,88 @@ const getEventStyle = (event: CalendarEvent, eventIndex: number, resourceId: str
       zIndex: 1
     }
   }
+
+  // Multiple events - use advanced column-based positioning
+  const sortedEvents = eventsInCell.sort((a, b) => {
+    const startA = atemporal(a.startTime)
+    const startB = atemporal(b.startTime)
+    return startA.isBefore(startB) ? -1 : 1
+  })
+
+  // Find column for this event to prevent overlaps
+  const columns: CalendarEvent[] = []
+  let eventColumn = 0
   
-  // Multiple events - Google Calendar style with proper positioning
-  const isHovered = hoveredEventId.value === event.id
-  const hoveredEventIndex = hoveredEventId.value ? eventsInCell.findIndex(e => e.id === hoveredEventId.value) : -1
-  const hasHoveredEvent = hoveredEventIndex !== -1
-  
-  let height: number
-  let top: number
-  
-  // Define heights for different states
-  const expandedHeight = 50
-  const compactHeight = 16
-  const normalHeight = Math.max(18, Math.min(28, (resourceRowHeight - 12) / totalEvents - 2))
-  
-  if (isHovered) {
-     // Expanded event
-     height = expandedHeight
-     
-     if (eventIndex === 0) {
-       // First event - expand at top
-       top = 4
-     } else if (eventIndex === totalEvents - 1) {
-       // Last event - expand at bottom
-       top = resourceRowHeight - expandedHeight - 4
-     } else {
-       // Middle event - expand in center
-       const beforeEvents = eventIndex
-       top = 4 + (beforeEvents * (compactHeight + 2))
-     }
-  } else if (hasHoveredEvent) {
-    // Compact other events when one is hovered
-    height = compactHeight
-    
-    if (eventIndex < hoveredEventIndex) {
-      // Events before hovered event
-      top = 4 + (eventIndex * (compactHeight + 2))
-    } else {
-      // Events after hovered event
-      const hoveredEventTop = hoveredEventIndex === 0 ? 4 : 
-                             hoveredEventIndex === totalEvents - 1 ? resourceRowHeight - expandedHeight - 4 :
-                             4 + (hoveredEventIndex * (compactHeight + 2))
-      const afterHoveredIndex = eventIndex - hoveredEventIndex - 1
-      top = hoveredEventTop + expandedHeight + 2 + (afterHoveredIndex * (compactHeight + 2))
+  sortedEvents.forEach((evt, _idx) => {
+    if (evt.id === event.id) {
+      // Find the first available column
+      let columnIndex = 0
+      while (columnIndex < columns.length) {
+        const columnEvent = columns[columnIndex]
+        if (!eventsTimeOverlap(evt, columnEvent)) {
+          break
+        }
+        columnIndex++
+      }
+      
+      if (columnIndex >= columns.length) {
+        columns.push(evt)
+      } else {
+        columns[columnIndex] = evt
+      }
+      
+      eventColumn = columnIndex
     }
-  } else {
-    // Normal stacking - no hover state
-    height = normalHeight
-    top = 4 + (eventIndex * (height + 2))
-  }
+  })
+
+  // Calculate dimensions based on column assignment
+  const maxColumns = Math.max(columns.length, getMaxSimultaneousEvents(eventsInCell))
+  const eventWidth = Math.max(85 / maxColumns, 20) // Minimum 20% width, max based on columns
+  const eventLeft = (85 / maxColumns) * eventColumn
   
-  // Ensure event doesn't overflow the cell
-  const maxTop = resourceRowHeight - height - 4
-  top = Math.min(top, maxTop)
-  
+  // Calculate height based on available space
+  const availableHeight = resourceRowHeight - 12
+  const eventHeight = Math.max(16, Math.min(24, availableHeight / Math.min(maxColumns, 3)))
+  const eventTop = 4 + (eventColumn * 2) // Small vertical offset for visual separation
+
   return {
-    top: top + 'px',
-    height: height + 'px',
-    left: '0px',
-    right: '4px',
-    zIndex: isHovered ? 10 : (1 + eventIndex)
+    top: eventTop + 'px',
+    height: eventHeight + 'px',
+    left: eventLeft + '%',
+    width: eventWidth + '%',
+    zIndex: eventColumn + 1
   }
+}
+
+/**
+ * Check if two events overlap in time (helper for positioning)
+ */
+const eventsTimeOverlap = (event1: CalendarEvent, event2: CalendarEvent): boolean => {
+  const start1 = atemporal(event1.startTime)
+  const end1 = atemporal(event1.endTime)
+  const start2 = atemporal(event2.startTime)
+  const end2 = atemporal(event2.endTime)
+  
+  return start1.isBefore(end2) && start2.isBefore(end1)
+}
+
+/**
+ * Get maximum number of simultaneous events
+ */
+const getMaxSimultaneousEvents = (events: CalendarEvent[]): number => {
+  let maxSimultaneous = 1
+  
+  events.forEach(event => {
+    let simultaneous = 1
+    events.forEach(otherEvent => {
+      if (event.id !== otherEvent.id && eventsTimeOverlap(event, otherEvent)) {
+        simultaneous++
+      }
+    })
+    maxSimultaneous = Math.max(maxSimultaneous, simultaneous)
+  })
+  
+  return maxSimultaneous
 }
 
 /**
@@ -512,6 +537,24 @@ const handleResourceSlotClick = (resource: CalendarResource, date: Atemporal): v
   }
   
   emit('slot-click', slotInfo)
+}
+
+/**
+ * Get resource name by ID
+ */
+const getResourceName = (resourceId?: string): string => {
+  if (!resourceId) return ''
+  const resource = displayResources.value.find(r => r.id === resourceId)
+  return resource?.name || ''
+}
+
+/**
+ * Get resource color by ID
+ */
+const getResourceColor = (resourceId?: string): string => {
+  if (!resourceId) return '#3b82f6'
+  const resource = displayResources.value.find(r => r.id === resourceId)
+  return resource?.color || '#3b82f6'
 }
 
 // Removed unused grid styles - now using flexbox layout

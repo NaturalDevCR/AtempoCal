@@ -56,119 +56,44 @@
               class="absolute left-0 right-0 border-t border-gray-100 dark:border-gray-700"
               :style="{ top: (index * slotHeight) + 'px' }"
             />
-            
-            <!-- Vertical lines for resources (if any) -->
-            <template v-if="resources.length > 0">
-              <div
-                v-for="(resource, index) in resources"
-                :key="'vline-' + resource.id"
-                class="absolute top-0 bottom-0 border-l border-gray-200 dark:border-gray-600"
-                :style="{ left: (index * resourceColumnWidth) + 'px' }"
-              />
-            </template>
           </div>
 
-          <!-- Resource columns (if resources are provided) -->
-          <template v-if="resources.length > 0">
-            <!-- Resource headers -->
-            <div class="atempo-cal-resource-headers sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-              <div
-                v-for="resource in resources"
-                :key="'header-' + resource.id"
-                class="atempo-cal-resource-header inline-block"
-                :style="{ width: resourceColumnWidth + 'px' }"
-              >
-                <div class="flex items-center space-x-2 p-3">
-                  <div
-                    class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium"
-                    :style="{ backgroundColor: resource.color || '#3b82f6' }"
-                  >
-                    {{ resource.name.charAt(0).toUpperCase() }}
-                  </div>
-                  <span class="font-medium text-gray-900 dark:text-gray-100">
-                    {{ resource.name }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Resource columns content -->
+          <!-- Single unified column layout for all events -->
+          <div
+            class="atempo-cal-unified-column relative"
+            :style="{ height: gridHeight + 'px' }"
+          >
+            <!-- Time slots for interaction -->
             <div
-              v-for="(resource, resourceIndex) in resources"
-              :key="resource.id"
-              class="atempo-cal-resource-column absolute top-0"
+              v-for="(slot, slotIndex) in timeSlots"
+              :key="'slot-' + slot.time"
+              class="absolute left-0 right-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
               :style="{
-                left: (resourceIndex * resourceColumnWidth) + 'px',
-                width: resourceColumnWidth + 'px',
-                height: gridHeight + 'px',
-                marginTop: '60px'
+                top: (slotIndex * slotHeight) + 'px',
+                height: slotHeight + 'px'
               }"
-            >
-              <!-- Time slots for this resource -->
-              <div
-                v-for="(slot, slotIndex) in timeSlots"
-                :key="'slot-' + resource.id + '-' + slot.time"
-                class="absolute left-0 right-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                :style="{
-                  top: (slotIndex * slotHeight) + 'px',
-                  height: slotHeight + 'px'
-                }"
-                @click="handleSlotClick(slot, resource.id)"
-              />
+              @click="handleSlotClick(slot)"
+            />
 
-              <!-- Events for this resource -->
-              <EventCard
-                v-for="event in getEventsForResource(resource.id)"
-                :key="event.id"
-                :event="event"
-                :position="getEventPosition(event)"
-                :actions="eventActions"
-                :readonly="readonly"
-                :show-description="true"
-                :max-title-length="40"
-                :max-description-length="80"
-                @click="$emit('event-click', event)"
-                @update="$emit('event-update', $event)"
-                @delete="$emit('event-delete', $event)"
-              />
-            </div>
-          </template>
-
-          <!-- Single column layout (no resources) -->
-          <template v-else>
-            <div
-              class="atempo-cal-single-column relative"
-              :style="{ height: gridHeight + 'px' }"
-            >
-              <!-- Time slots -->
-              <div
-                v-for="(slot, slotIndex) in timeSlots"
-                :key="'slot-' + slot.time"
-                class="absolute left-0 right-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                :style="{
-                  top: (slotIndex * slotHeight) + 'px',
-                  height: slotHeight + 'px'
-                }"
-                @click="handleSlotClick(slot)"
-              />
-
-              <!-- All events -->
-              <EventCard
-                v-for="event in dayEvents"
-                :key="event.id"
-                :event="event"
-                :position="getEventPosition(event)"
-                :actions="eventActions"
-                :readonly="readonly"
-                :show-description="true"
-                :max-title-length="50"
-                :max-description-length="100"
-                @click="$emit('event-click', event)"
-                @update="$emit('event-update', $event)"
-                @delete="$emit('event-delete', $event)"
-              />
-            </div>
-          </template>
+            <!-- All events with integrated resource information -->
+            <EventCard
+              v-for="event in dayEvents"
+              :key="event.id"
+              :event="event"
+              :position="getEventPosition(event)"
+              :actions="eventActions"
+              :readonly="readonly"
+              :show-description="true"
+              :show-resource="true"
+              :resource-name="getResourceName(event.resourceId)"
+              :resource-color="getResourceColor(event.resourceId)"
+              :max-title-length="50"
+              :max-description-length="100"
+              @click="$emit('event-click', event)"
+              @update="$emit('event-update', $event)"
+              @delete="$emit('event-delete', $event)"
+            />
+          </div>
         </div>
       </div>
 
@@ -177,7 +102,7 @@
         v-if="showCurrentTime && currentTimePosition >= 0"
         class="atempo-cal-current-time-line"
         :style="{
-          top: currentTimePosition + (resources.length > 0 ? 60 : 0) + 'px',
+          top: currentTimePosition + 'px',
           left: timeColumnWidth + 'px',
           width: `calc(100% - ${timeColumnWidth}px)`
         }"
@@ -307,15 +232,7 @@ const gridHeight = computed((): number => {
   return actualSlots * slotHeight
 })
 
-/**
- * Calculate resource column width
- */
-const resourceColumnWidth = computed((): number => {
-  if (props.resources.length === 0) return 0
-  
-  const availableWidth = 800 // This should be calculated from container width
-  return Math.max(250, availableWidth / props.resources.length)
-})
+// Legacy functions removed as they're no longer needed in unified layout
 
 /**
  * Show current time indicator
@@ -409,14 +326,25 @@ const getCurrentTimeLabel = (): string => {
 }
 
 /**
- * Get events for a specific resource
+ * Get resource name by ID
  */
-const getEventsForResource = (resourceId: string): CalendarEvent[] => {
-  return dayEvents.value.filter(event => event.resourceId === resourceId)
+const getResourceName = (resourceId?: string): string => {
+  if (!resourceId) return ''
+  const resource = props.resources.find(r => r.id === resourceId)
+  return resource?.name || ''
 }
 
 /**
- * Calculate event position within the grid
+ * Get resource color by ID
+ */
+const getResourceColor = (resourceId?: string): string => {
+  if (!resourceId) return '#3b82f6'
+  const resource = props.resources.find(r => r.id === resourceId)
+  return resource?.color || '#3b82f6'
+}
+
+/**
+ * Calculate event position within the grid with overlap prevention
  */
 const getEventPosition = (event: CalendarEvent): EventPosition => {
   const gridConfig = {
@@ -427,8 +355,12 @@ const getEventPosition = (event: CalendarEvent): EventPosition => {
     timezone: props.config.timezone || 'UTC'
   }
   
-  const eventsWithPositions = calculateEventPositions([event], gridConfig, gridHeight.value)
-  return eventsWithPositions[0]?.position || {
+  // Get all events for overlap detection
+  const allEvents = dayEvents.value
+  const eventsWithPositions = calculateEventPositions(allEvents, gridConfig, gridHeight.value)
+  const eventWithPosition = eventsWithPositions.find(e => e.id === event.id)
+  
+  return eventWithPosition?.position || {
     top: 0,
     height: slotHeight,
     left: 0,

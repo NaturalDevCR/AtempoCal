@@ -26,6 +26,19 @@
         {{ formatEventTime() }}
       </div>
       
+      <!-- Resource information -->
+      <div v-if="showResource && (resourceName || event.resourceId)" class="atempo-cal-event-resource">
+        <div class="flex items-center space-x-1">
+          <div
+            class="w-2 h-2 rounded-full flex-shrink-0"
+            :style="{ backgroundColor: resourceColor }"
+          />
+          <span class="text-xs font-medium truncate">
+            {{ resourceName || event.resourceId }}
+          </span>
+        </div>
+      </div>
+      
       <!-- Event description -->
       <div v-if="event.description && showDescription" class="atempo-cal-event-description">
         {{ truncatedDescription }}
@@ -87,6 +100,9 @@ interface Props {
   selected?: boolean
   showTime?: boolean
   showDescription?: boolean
+  showResource?: boolean
+  resourceName?: string
+  resourceColor?: string
   allowResize?: boolean
   allowDrag?: boolean
   maxTitleLength?: number
@@ -99,6 +115,9 @@ const props = withDefaults(defineProps<Props>(), {
   selected: false,
   showTime: true,
   showDescription: true,
+  showResource: false,
+  resourceName: '',
+  resourceColor: '#3b82f6',
   allowResize: true,
   allowDrag: true,
   maxTitleLength: 30,
@@ -306,6 +325,10 @@ const handleResizeStart = (direction: 'top' | 'bottom', event: MouseEvent): void
 
 .atempo-cal-event-time {
   @apply text-xs opacity-75 mt-0.5;
+}
+
+.atempo-cal-event-resource {
+  @apply text-xs text-gray-700 dark:text-gray-300 mt-1;
 }
 
 .atempo-cal-event-description {

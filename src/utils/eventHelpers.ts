@@ -41,7 +41,8 @@ export function calculateEventPosition(
 }
 
 /**
- * Detect overlapping events and adjust their positions
+ * Advanced overlap detection and positioning for resource-based calendar
+ * Prevents any visual overlapping by using proper column-based positioning
  * @param events - Array of calendar events
  * @param config - Grid configuration
  * @param containerHeight - Height of the container in pixels
@@ -56,29 +57,81 @@ export function calculateEventPositions(
     ...event,
     position: calculateEventPosition(event, config, containerHeight)
   }))
-  
-  // Group overlapping events
-  const overlapGroups = findOverlapGroups(eventsWithPositions)
-  
-  // Adjust positions for overlapping events
-  overlapGroups.forEach(group => {
-    const groupSize = group.length
-    group.forEach((event, index) => {
-      event.position.width = 100 / groupSize
-      event.position.left = (100 / groupSize) * index
-      event.position.zIndex = index + 1
-    })
+
+  // Sort events by start time for proper column assignment
+  const sortedEvents = eventsWithPositions.sort((a, b) => {
+    const startA = parseISOString(a.startTime)
+    const startB = parseISOString(b.startTime)
+    return startA.isBefore(startB) ? -1 : 1
   })
+
+  // Advanced column-based positioning to prevent overlaps
+  const columns: Array<CalendarEvent & { position: EventPosition }> = []
   
+  sortedEvents.forEach(event => {
+    let columnIndex = 0
+    
+    // Find the first available column where this event doesn't overlap
+    while (columnIndex < columns.length) {
+      const columnEvent = columns[columnIndex]
+      if (!eventsOverlap(event, columnEvent)) {
+        break
+      }
+      columnIndex++
+    }
+    
+    // Assign event to column
+    if (columnIndex >= columns.length) {
+      columns.push(event)
+    } else {
+      columns[columnIndex] = event
+    }
+    
+    // Calculate position based on column
+    const totalColumns = Math.max(columns.length, getMaxOverlappingEvents(sortedEvents, event))
+    event.position.width = Math.max(20, 100 / totalColumns) // Minimum 20% width
+    event.position.left = (100 / totalColumns) * columnIndex
+    event.position.zIndex = columnIndex + 1
+  })
+
   return eventsWithPositions
 }
 
 /**
- * Find groups of overlapping events
+ * Get maximum number of overlapping events at any point in time
+ * @param events - Array of events
+ * @param targetEvent - Event to check overlaps for
+ * @returns Maximum overlap count
+ */
+function getMaxOverlappingEvents(
+  events: Array<CalendarEvent & { position: EventPosition }>,
+  targetEvent: CalendarEvent
+): number {
+  let maxOverlap = 1
+  
+  events.forEach(event => {
+    if (event.id === targetEvent.id) return
+    
+    let overlapCount = 1
+    events.forEach(otherEvent => {
+      if (otherEvent.id === event.id || otherEvent.id === targetEvent.id) return
+      if (eventsOverlap(event, otherEvent) && eventsOverlap(targetEvent, otherEvent)) {
+        overlapCount++
+      }
+    })
+    
+    maxOverlap = Math.max(maxOverlap, overlapCount)
+  })
+  
+  return maxOverlap
+}
+
+/**
+ * Find groups of overlapping events (exported for external use)
  * @param events - Array of events with positions
  * @returns Array of overlap groups
  */
-function findOverlapGroups(
+export function findOverlapGroups(
   events: Array<CalendarEvent & { position: EventPosition }>
 ): Array<Array<CalendarEvent & { position: EventPosition }>> {
   const groups: Array<Array<CalendarEvent & { position: EventPosition }>> = []
@@ -100,7 +153,9 @@ function findOverlapGroups(
       }
     })
     
-    groups.push(group)
+    if (group.length > 1) {
+      groups.push(group)
+    }
   })
   
   return groups
