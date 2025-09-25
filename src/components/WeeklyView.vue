@@ -165,8 +165,7 @@ import type {
 } from '../types'
 import {
   getWeekDates,
-  isToday as checkIsToday,
-  getLocalizedDayNames
+  isToday as checkIsToday
 } from '../utils/dateHelpers'
 
 /**
@@ -584,26 +583,6 @@ const getDayName = (date: Atemporal, _index: number): string => {
   try {
     return date.format('ddd') // This should give us the correct abbreviated day name
   } catch {
-    // Fallback to manual mapping if atemporal format fails
-    const dayNames = getLocalizedDayNames(props.config.locale || 'en', 'short')
-    const dayOfWeek = date.dayOfWeek() as number
-    
-    // Convert atemporal's 1-7 system (Monday=1, Sunday=7) to 0-6 array index (Sunday=0, Saturday=6)
-    // atemporal: Monday=1, Tuesday=2, ..., Saturday=6, Sunday=7
-    // dayNames array: [Sun, Mon, Tue, Wed, Thu, Fri, Sat] (indices 0-6)
-    let arrayIndex: number
-    if (dayOfWeek === 7) {
-      // Sunday in atemporal (7) maps to index 0 in dayNames array
-      arrayIndex = 0
-    } else {
-      // Monday-Saturday in atemporal (1-6) maps to indices 1-6 in dayNames array
-      arrayIndex = dayOfWeek
-    }
-    
-    if (dayNames[arrayIndex]) {
-       return dayNames[arrayIndex]!
-     }
-    
     // Final fallback - avoid timezone issues by using date string directly
     const dateStr = date.format('YYYY-MM-DD')
     const jsDate = new Date(dateStr + 'T12:00:00') // Add noon time to avoid timezone shifts

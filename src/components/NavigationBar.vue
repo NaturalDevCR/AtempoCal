@@ -111,7 +111,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Atemporal, CalendarView, CalendarConfig } from '../types'
-import { formatDateForDisplay, getWeekStart, getWeekEnd } from '../utils/dateHelpers'
+import { formatDateForDisplay, getWeekStart } from '../utils/dateHelpers'
 
 // Icons (using simple SVG icons for now - can be replaced with icon library)
 import {
@@ -166,7 +166,8 @@ const getDisplayTitle = (): string => {
   
   // For week view, show the week range using the same calculation as WeeklyView
   const weekStart = getWeekStart(date, firstDayOfWeek)
-  const weekEnd = getWeekEnd(date, firstDayOfWeek)
+  // Use the last day of the week (6 days after start) instead of getWeekEnd which goes to end of day
+  const weekEnd = weekStart.add(6, 'days')
   
   if (weekStart.month === weekEnd.month) {
     // Same month
