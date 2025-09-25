@@ -540,6 +540,7 @@ const getMultiDayEventStackLevel = (targetEvent: CalendarEvent): number => {
 
 /**
  * Calculate multi-day event position spanning multiple cells with proper stacking
+ * Now positions events relative to their resource row
  */
 const getMultiDayEventPosition = (event: CalendarEvent): EventPosition => {
   const span = getMultiDayEventSpan(event)
@@ -548,13 +549,21 @@ const getMultiDayEventPosition = (event: CalendarEvent): EventPosition => {
   // Get the global stack level for this event to prevent overlaps across resources
   const stackLevel = getMultiDayEventStackLevel(event)
   
-  // Calculate vertical position based on stack level
+  // Find the resource row index for this event
+  const resourceIndex = displayResources.value.findIndex(r => r.id === event.resourceId)
+  const resourceRowIndex = resourceIndex >= 0 ? resourceIndex : 0
+  
+  // Calculate vertical position based on resource row and stack level
   const multiDayEventHeight = 20
   const multiDayEventSpacing = 3
-  const topOffset = 5 // Initial offset from top
+  const topOffset = 5 // Initial offset from top of each resource row
+  
+  // Position relative to the resource row (120px per row) plus stack offset
+  const resourceRowTop = resourceRowIndex * resourceRowHeight
+  const stackOffset = topOffset + (stackLevel * (multiDayEventHeight + multiDayEventSpacing))
   
   return {
-    top: topOffset + (stackLevel * (multiDayEventHeight + multiDayEventSpacing)),
+    top: resourceRowTop + stackOffset,
     height: multiDayEventHeight,
     left: span.startIndex * cellWidth,
     width: span.span * cellWidth,
