@@ -37,7 +37,7 @@ const SPANISH_DAYS: Record<number, string> = {
  * @returns Spanish month abbreviation (e.g., "sept")
  */
 export const getSpanishMonth = (date: Atemporal): string => {
-  const month = date.month()
+  const month = date.month
   return SPANISH_MONTHS[month] || 'ene'
 }
 
@@ -47,7 +47,7 @@ export const getSpanishMonth = (date: Atemporal): string => {
  * @returns Spanish day abbreviation (e.g., "LUN")
  */
 export const getSpanishDay = (date: Atemporal): string => {
-  const dayOfWeek = date.dayOfWeek() as number
+  const dayOfWeek = date.dayOfWeek as number
   return SPANISH_DAYS[dayOfWeek] || 'LUN'
 }
 
