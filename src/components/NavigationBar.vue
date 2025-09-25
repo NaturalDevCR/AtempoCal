@@ -206,6 +206,8 @@ const handleDatePickerChange = (event: Event): void => {
 </script>
 
 <style scoped>
+@reference "tailwindcss";
+
 /* Additional component-specific styles */
 .atempo-cal-view-toggle {
   @apply inline-flex rounded-md shadow-sm;

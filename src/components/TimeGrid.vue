@@ -310,6 +310,8 @@ const handleSlotClick = (slot: TimeSlot, resource: CalendarResource): void => {
 </script>
 
 <style scoped>
+@reference "tailwindcss";
+
 .atempo-cal-time-grid {
   @apply bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden;
 }

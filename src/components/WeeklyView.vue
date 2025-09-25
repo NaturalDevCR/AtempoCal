@@ -919,6 +919,8 @@ const handleEventClick = (event: CalendarEvent, eventType: 'single-day' | 'multi
 </script>
 
 <style scoped>
+@reference "tailwindcss";
+
 .weekly-view {
   @apply flex flex-col h-full bg-white dark:bg-gray-900;
 }

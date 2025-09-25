@@ -228,6 +228,8 @@ defineExpose({
 </script>
 
 <style scoped>
+@reference "tailwindcss";
+
 .atempo-cal-content {
   @apply min-h-96;
 }

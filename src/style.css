@@ -1,6 +1,216 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@reference;
+
+@theme {
+  /* Color palette */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-primary-950: #172554;
+  
+  /* Gray colors */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+  
+  /* Additional colors */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-red-600: #dc2626;
+  --color-green-600: #16a34a;
+  --color-blue-600: #2563eb;
+  --color-yellow-600: #ca8a04;
+  --color-purple-600: #9333ea;
+  --color-orange-600: #ea580c;
+  --color-indigo-600: #4f46e5;
+  
+  /* Spacing */
+  --spacing-0: 0px;
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-10: 2.5rem;
+  --spacing-12: 3rem;
+  --spacing-16: 4rem;
+  --spacing-20: 5rem;
+  --spacing-24: 6rem;
+  --spacing-32: 8rem;
+  --spacing-40: 10rem;
+  --spacing-48: 12rem;
+  --spacing-56: 14rem;
+  --spacing-64: 16rem;
+  --spacing-72: 18rem;
+  --spacing-80: 20rem;
+  --spacing-96: 24rem;
+  
+  /* Border radius */
+  --radius-none: 0px;
+  --radius-sm: 0.125rem;
+  --radius: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --radius-full: 9999px;
+  
+  /* Additional spacing values for sizing utilities */
+  --spacing-0\.5: 0.125rem;
+  --spacing-1\.5: 0.375rem;
+  --spacing-2\.5: 0.625rem;
+  --spacing-3\.5: 0.875rem;
+  --spacing-14: 3.5rem;
+  --spacing-36: 9rem;
+  --spacing-44: 11rem;
+  --spacing-52: 13rem;
+  --spacing-60: 15rem;
+  --spacing-68: 17rem;
+  --spacing-76: 19rem;
+  --spacing-84: 21rem;
+  --spacing-92: 23rem;
+  
+  /* Size utilities using spacing scale */
+  --size-0: 0px;
+  --size-px: 1px;
+  --size-0\.5: 0.125rem;
+  --size-1: 0.25rem;
+  --size-1\.5: 0.375rem;
+  --size-2: 0.5rem;
+  --size-2\.5: 0.625rem;
+  --size-3: 0.75rem;
+  --size-3\.5: 0.875rem;
+  --size-4: 1rem;
+  --size-5: 1.25rem;
+  --size-6: 1.5rem;
+  --size-7: 1.75rem;
+  --size-8: 2rem;
+  --size-9: 2.25rem;
+  --size-10: 2.5rem;
+  --size-11: 2.75rem;
+  --size-12: 3rem;
+  --size-14: 3.5rem;
+  --size-16: 4rem;
+  --size-20: 5rem;
+  --size-24: 6rem;
+  --size-28: 7rem;
+  --size-32: 8rem;
+  --size-36: 9rem;
+  --size-40: 10rem;
+  --size-44: 11rem;
+  --size-48: 12rem;
+  --size-52: 13rem;
+  --size-56: 14rem;
+  --size-60: 15rem;
+  --size-64: 16rem;
+  --size-72: 18rem;
+  --size-80: 20rem;
+  --size-96: 24rem;
+  --size-auto: auto;
+  --size-full: 100%;
+  --size-screen: 100vh;
+  --size-min: min-content;
+  --size-max: max-content;
+  --size-fit: fit-content;
+  
+  /* Opacity utilities */
+  --opacity-0: 0;
+  --opacity-25: 0.25;
+  --opacity-50: 0.5;
+  --opacity-75: 0.75;
+  --opacity-100: 1;
+  
+  /* Z-index utilities */
+  --z-index-0: 0;
+  --z-index-10: 10;
+  --z-index-20: 20;
+  --z-index-30: 30;
+  --z-index-40: 40;
+  --z-index-50: 50;
+  
+  /* Animation utilities */
+  --animate-spin: spin 1s linear infinite;
+  
+  /* Keyframes */
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  /* Font sizes */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+  
+  /* Line heights */
+  --line-height-3: 0.75rem;
+  --line-height-4: 1rem;
+  --line-height-5: 1.25rem;
+  --line-height-6: 1.5rem;
+  --line-height-7: 1.75rem;
+  --line-height-8: 2rem;
+  --line-height-9: 2.25rem;
+  --line-height-10: 2.5rem;
+  
+  /* Font weights */
+  --font-weight-thin: 100;
+  --font-weight-extralight: 200;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+  --shadow-none: 0 0 #0000;
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] {
+  --color-primary-50: #172554;
+  --color-primary-100: #1e3a8a;
+  --color-primary-200: #1e40af;
+  --color-primary-300: #1d4ed8;
+  --color-primary-400: #2563eb;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #60a5fa;
+  --color-primary-700: #93c5fd;
+  --color-primary-800: #bfdbfe;
+  --color-primary-900: #dbeafe;
+  --color-primary-950: #eff6ff;
+}
 
 /* AtempoCal Custom Styles */
 

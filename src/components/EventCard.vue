@@ -297,6 +297,8 @@ const handleResizeStart = (direction: 'top' | 'bottom', event: MouseEvent): void
 </script>
 
 <style scoped>
+@reference "tailwindcss";
+
 .atempo-cal-event {
   @apply absolute rounded-md shadow-sm border-l-4 px-2 py-1 cursor-pointer transition-all duration-200;
   @apply hover:shadow-md hover:z-10;

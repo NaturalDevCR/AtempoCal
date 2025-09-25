@@ -1,13 +1,14 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
+import tailwindcss from '@tailwindcss/vite'
 
 /**
  * Vite configuration for AtempoCal demo application
  * Separate from the library build configuration
  */
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), tailwindcss()],
   
   // Development server configuration
   server: {
@@ -35,10 +36,7 @@ export default defineConfig({
     }
   },
   
-  // CSS configuration
-  css: {
-    postcss: resolve(__dirname, './postcss.config.js')
-  },
+  // CSS configuration removed - handled by @tailwindcss/vite plugin
   
   // Define global constants
   define: {

@@ -405,6 +405,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@reference "tailwindcss";
+
 .atempo-cal-daily-view {
   @apply flex flex-col h-full;
 }
