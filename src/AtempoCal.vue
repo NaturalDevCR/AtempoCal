@@ -25,11 +25,15 @@
         :key="'week-' + currentDate.toString()"
         :events="filteredEvents"
         :resources="resources"
-        :config="mergedConfig"
-        :current-date="currentDate"
-        :visible-range="visibleRange"
-        :event-actions="eventActions"
+        :week-start="visibleRange.start"
+        :on-prev-week="navigatePrevious"
+        :on-next-week="navigateNext"
+        :on-date-select="(date) => navigateToDate(date)"
         :readonly="readonly"
+        :special-event-colors="specialEventColors"
+        :max-workers-before-scroll="mergedConfig.maxWorkersBeforeScroll"
+        :fixed-height="mergedConfig.fixedHeight"
+        :enable-auto-scroll="mergedConfig.enableAutoScroll"
         @event-click="handleEventClick"
         @event-create="handleEventCreate"
         @event-update="handleEventUpdate"
@@ -51,7 +55,8 @@ import type {
   CalendarConfig,
   EventAction,
   CustomField,
-  SlotClickInfo
+  SlotClickInfo,
+  SpecialEventColors
 } from './types'
 import { useCalendar } from './composables/useCalendar'
 import { useEvents } from './composables/useEvents'
@@ -75,6 +80,7 @@ interface Props {
   loading?: boolean
   readonly?: boolean
   theme?: 'light' | 'dark' | 'auto'
+  specialEventColors?: Partial<SpecialEventColors>
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -86,7 +92,8 @@ const props = withDefaults(defineProps<Props>(), {
   customFields: () => [],
   loading: false,
   readonly: false,
-  theme: 'auto'
+  theme: 'auto',
+  specialEventColors: () => ({})
 })
 
 // Component emits
@@ -114,7 +121,8 @@ const defaultConfig: CalendarConfig = {
 // Merged configuration
 const mergedConfig = computed(() => ({
   ...defaultConfig,
-  ...props.config
+  ...props.config,
+  specialEventColors: props.specialEventColors
 }))
 
 // Initialize composables

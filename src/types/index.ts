@@ -7,6 +7,37 @@ import atemporal from 'atemporal'
 export type Atemporal = ReturnType<typeof atemporal>
 
 /**
+ * Special event types for unified color coding
+ */
+export type SpecialEventType = 
+  | 'day-off'
+  | 'annual-leave'
+  | 'sick-leave'
+  | 'personal-leave'
+  | 'training'
+  | 'meeting'
+  | 'maintenance'
+  | 'holiday'
+  | 'overtime'
+  | 'vacation'
+
+/**
+ * Special event color palette configuration
+ */
+export interface SpecialEventColors {
+  'day-off': string
+  'annual-leave': string
+  'sick-leave': string
+  'personal-leave': string
+  'training': string
+  'meeting': string
+  'maintenance': string
+  'holiday': string
+  'overtime': string
+  'vacation': string
+}
+
+/**
  * Calendar event data structure
  */
 export interface CalendarEvent {
@@ -16,7 +47,8 @@ export interface CalendarEvent {
   startTime: string // ISO 8601 format
   endTime: string // ISO 8601 format
   resourceId?: string
-  color?: string
+  color?: string // Manual color override
+  eventType?: SpecialEventType // Special event type for unified coloring
   metadata?: Record<string, any>
   isAllDay?: boolean
 }
@@ -41,6 +73,12 @@ export interface CalendarConfig {
   theme?: 'light' | 'dark' | 'auto'
   showWeekends?: boolean
   firstDayOfWeek?: number // 0-6, 0 = Sunday
+  specialEventColors?: Partial<SpecialEventColors> // Custom colors for special event types
+  
+  // Scroll configuration options
+  maxWorkersBeforeScroll?: number // Maximum number of workers before enabling scroll
+  fixedHeight?: string | number // Fixed height for calendar content (e.g., '400px', 500)
+  enableAutoScroll?: boolean // Enable automatic scroll behavior (default: true)
   
   // Deprecated properties - not used in weekly scheduling calendar
   /** @deprecated Not used in weekly calendar */

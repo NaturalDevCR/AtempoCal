@@ -77,9 +77,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { CalendarEvent, EventPosition, EventAction } from '../types'
-import { truncateEventTitle, getEventColor, isAllDayEvent } from '../utils/eventHelpers'
+import type { CalendarEvent, EventPosition, EventAction, CalendarResource, SpecialEventColors } from '../types'
+import { truncateEventTitle, isAllDayEvent } from '../utils/eventHelpers'
 import { formatTime } from '../utils/dateHelpers'
+import { getEventColor } from '../utils/colorHelpers'
 import {
   PencilIcon,
   TrashIcon,
@@ -107,6 +108,8 @@ interface Props {
   allowDrag?: boolean
   maxTitleLength?: number
   maxDescriptionLength?: number
+  resources?: CalendarResource[] // Available resources for color calculation
+  customSpecialColors?: Partial<SpecialEventColors> // Custom special event colors
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -166,6 +169,13 @@ const visibleActions = computed(() => {
 })
 
 /**
+ * Get the computed event color using the new color system
+ */
+const computedEventColor = computed(() => {
+  return getEventColor(props.event, props.resources, props.customSpecialColors)
+})
+
+/**
  * Event style based on position
  */
 const eventStyle = computed(() => ({
@@ -174,7 +184,7 @@ const eventStyle = computed(() => ({
   left: `${props.position.left}%`,
   width: `${props.position.width}%`,
   zIndex: props.position.zIndex,
-  borderLeftColor: getEventColor(props.event)
+  borderLeftColor: computedEventColor.value
 }))
 
 /**
@@ -198,21 +208,30 @@ const truncatedDescription = computed(() => {
 })
 
 /**
- * Get event color CSS class
+ * Get event color CSS class based on the computed color
  */
 const getEventColorClass = (): string => {
-  const color = props.event.color || '#3b82f6'
+  const color = computedEventColor.value
   
-  // Map common colors to CSS classes
+  // Map colors to CSS classes - expanded to support our full palette
   const colorMap: Record<string, string> = {
     '#3b82f6': 'color-blue',
-    '#10b981': 'color-green',
+    '#10b981': 'color-emerald',
     '#ef4444': 'color-red',
-    '#f59e0b': 'color-yellow',
-    '#8b5cf6': 'color-purple',
+    '#f59e0b': 'color-amber',
+    '#8b5cf6': 'color-violet',
     '#6366f1': 'color-indigo',
     '#ec4899': 'color-pink',
-    '#6b7280': 'color-gray'
+    '#6b7280': 'color-gray',
+    '#06b6d4': 'color-cyan',
+    '#84cc16': 'color-lime',
+    '#f97316': 'color-orange',
+    '#14b8a6': 'color-teal',
+    '#f43f5e': 'color-rose',
+    '#a855f7': 'color-purple',
+    '#22c55e': 'color-green',
+    '#eab308': 'color-yellow',
+    '#0ea5e9': 'color-sky'
   }
   
   return colorMap[color] || 'color-blue'
@@ -364,25 +383,25 @@ const handleResizeStart = (direction: 'top' | 'bottom', event: MouseEvent): void
   @apply bg-blue-500 opacity-50;
 }
 
-/* Event color classes */
+/* Event color classes - expanded palette */
 .atempo-cal-event.color-blue {
   @apply bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100;
 }
 
-.atempo-cal-event.color-green {
-  @apply bg-green-100 dark:bg-green-900/30 text-green-900 dark:text-green-100;
+.atempo-cal-event.color-emerald {
+  @apply bg-emerald-100 dark:bg-emerald-900/30 text-emerald-900 dark:text-emerald-100;
 }
 
 .atempo-cal-event.color-red {
   @apply bg-red-100 dark:bg-red-900/30 text-red-900 dark:text-red-100;
 }
 
-.atempo-cal-event.color-yellow {
-  @apply bg-yellow-100 dark:bg-yellow-900/30 text-yellow-900 dark:text-yellow-100;
+.atempo-cal-event.color-amber {
+  @apply bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-100;
 }
 
-.atempo-cal-event.color-purple {
-  @apply bg-purple-100 dark:bg-purple-900/30 text-purple-900 dark:text-purple-100;
+.atempo-cal-event.color-violet {
+  @apply bg-violet-100 dark:bg-violet-900/30 text-violet-900 dark:text-violet-100;
 }
 
 .atempo-cal-event.color-indigo {
@@ -395,6 +414,42 @@ const handleResizeStart = (direction: 'top' | 'bottom', event: MouseEvent): void
 
 .atempo-cal-event.color-gray {
   @apply bg-gray-100 dark:bg-gray-900/30 text-gray-900 dark:text-gray-100;
+}
+
+.atempo-cal-event.color-cyan {
+  @apply bg-cyan-100 dark:bg-cyan-900/30 text-cyan-900 dark:text-cyan-100;
+}
+
+.atempo-cal-event.color-lime {
+  @apply bg-lime-100 dark:bg-lime-900/30 text-lime-900 dark:text-lime-100;
+}
+
+.atempo-cal-event.color-orange {
+  @apply bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100;
+}
+
+.atempo-cal-event.color-teal {
+  @apply bg-teal-100 dark:bg-teal-900/30 text-teal-900 dark:text-teal-100;
+}
+
+.atempo-cal-event.color-rose {
+  @apply bg-rose-100 dark:bg-rose-900/30 text-rose-900 dark:text-rose-100;
+}
+
+.atempo-cal-event.color-purple {
+  @apply bg-purple-100 dark:bg-purple-900/30 text-purple-900 dark:text-purple-100;
+}
+
+.atempo-cal-event.color-green {
+  @apply bg-green-100 dark:bg-green-900/30 text-green-900 dark:text-green-100;
+}
+
+.atempo-cal-event.color-yellow {
+  @apply bg-yellow-100 dark:bg-yellow-900/30 text-yellow-900 dark:text-yellow-100;
+}
+
+.atempo-cal-event.color-sky {
+  @apply bg-sky-100 dark:bg-sky-900/30 text-sky-900 dark:text-sky-100;
 }
 
 /* Responsive adjustments */

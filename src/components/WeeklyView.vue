@@ -16,8 +16,7 @@
             class="day-header"
             :class="{
               'is-today': isToday(date),
-              'is-weekend': isWeekend(date),
-              'is-selected': isSameDay(date, currentDate)
+              'is-weekend': isWeekend(date)
             }"
             @click="handleDayClick(date)"
           >
@@ -33,7 +32,14 @@
     </div>
 
     <!-- Scrollable content area -->
-    <div class="week-content" ref="scrollContainer">
+    <div 
+      class="week-content" 
+      ref="scrollContainer"
+      :style="{
+        maxHeight: weekContentHeight,
+        overflow: shouldEnableScroll ? 'auto' : 'visible'
+      }"
+    >
       <!-- Worker rows -->
       <div class="resource-container">
         <div
@@ -72,8 +78,8 @@
                     'certification': event.metadata?.category === 'certification'
                   }"
                   :style="{ 
-                    backgroundColor: event.color ? event.color + '20' : '#3b82f620',
-                    borderLeftColor: event.color || '#3b82f6' 
+                    backgroundColor: getEventColor(event, props.resources, props.specialEventColors) ? getEventColor(event, props.resources, props.specialEventColors) + '20' : '#3b82f620',
+                    borderLeftColor: getEventColor(event, props.resources, props.specialEventColors) || '#3b82f6' 
                   }">
                   <span class="multiday-title">{{ formatMultiDayEvent(event) }}</span>
                 </div>
@@ -113,8 +119,8 @@
                       'administrative': event.metadata?.type === 'administrative'
                     }"
                     :style="{
-                      backgroundColor: event.color ? event.color + '30' : '#3b82f630',
-                      borderLeftColor: event.color || '#3b82f6',
+                      backgroundColor: getEventColor(event, props.resources, props.specialEventColors) ? getEventColor(event, props.resources, props.specialEventColors) + '30' : '#3b82f630',
+                      borderLeftColor: getEventColor(event, props.resources, props.specialEventColors) || '#3b82f6',
                       color: '#1f2937'
                     }"
                   >
@@ -153,13 +159,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, withDefaults } from 'vue'
 import atemporal from 'atemporal'
 import type {
   CalendarEvent,
   CalendarResource,
-  CalendarConfig,
-  EventAction,
   SlotClickInfo,
   Atemporal
 } from '../types'
@@ -167,6 +171,10 @@ import {
   getWeekDates,
   isToday as checkIsToday
 } from '../utils/dateHelpers'
+import {
+  assignWorkerColors,
+  getEventColor
+} from '../utils/colorHelpers'
 
 /**
  * WeeklyView component with true vertical event stacking
@@ -175,18 +183,22 @@ import {
 
 interface Props {
   events: CalendarEvent[]
-  workers?: CalendarResource[]
-  config: CalendarConfig
-  currentDate: Atemporal
-  visibleRange: { start: Atemporal; end: Atemporal }
-  eventActions?: EventAction[]
+  resources: CalendarResource[]
+  weekStart: Atemporal
+  onPrevWeek: () => void
+  onNextWeek: () => void
+  onDateSelect: (date: Atemporal) => void
+  specialEventColors?: Record<string, string>
   readonly?: boolean
+  // Scroll configuration options
+  maxWorkersBeforeScroll?: number
+  fixedHeight?: string | number
+  enableAutoScroll?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  workers: () => [],
-  eventActions: () => [],
-  readonly: false
+  readonly: false,
+  enableAutoScroll: true
 })
 
 interface Emits {
@@ -209,88 +221,72 @@ const MIN_ROW_HEIGHT = 60
 const scrollContainer = ref<HTMLElement>()
 
 /**
- * Get week dates based on current date
+ * Get week dates based on week start
  */
 const weekDates = computed((): Atemporal[] => {
-  return getWeekDates(props.currentDate, props.config.firstDayOfWeek || 1)
+  return getWeekDates(props.weekStart, 1)
 })
 
 /**
- * Get display workers (use provided workers or create default ones)
+ * Get display workers (use provided resources)
+ * Ensures consistent color assignment using the color helper system
  */
 const displayWorkers = computed((): CalendarResource[] => {
-  if (props.workers && props.workers.length > 0) {
-    return props.workers
+  return assignWorkerColors(props.resources)
+})
+
+/**
+ * Calculate dynamic height for the week content based on scroll configuration
+ */
+const weekContentHeight = computed((): string => {
+  // Priority 1: Fixed height if specified
+  if (props.fixedHeight) {
+    return typeof props.fixedHeight === 'number' 
+      ? `${props.fixedHeight}px` 
+      : props.fixedHeight
   }
   
-  // Default workers if none provided
-  return [
-    { 
-      id: 'emp-001', 
-      name: 'John Smith', 
-      color: '#3B82F6', 
-      metadata: { 
-        employeeId: 'EMP-001',
-        department: 'Operations', 
-        role: 'Shift Supervisor', 
-        email: 'john.smith@company.com',
-        phone: '(555) 123-4567',
-        shiftPreference: 'Morning',
-        skills: ['Leadership', 'Quality Control', 'Safety Training'],
-        certifications: ['OSHA 30', 'First Aid'],
-        hireDate: '2020-03-15'
-      } 
-    },
-    { 
-      id: 'emp-002', 
-      name: 'Sarah Johnson', 
-      color: '#10B981', 
-      metadata: { 
-        employeeId: 'EMP-002',
-        department: 'Customer Service', 
-        role: 'Team Lead', 
-        email: 'sarah.johnson@company.com',
-        phone: '(555) 234-5678',
-        shiftPreference: 'Day',
-        skills: ['Customer Relations', 'Training', 'Conflict Resolution'],
-        certifications: ['Customer Service Excellence'],
-        hireDate: '2019-08-22'
-      } 
-    },
-    { 
-      id: 'emp-003', 
-      name: 'Mike Davis', 
-      color: '#F59E0B', 
-      metadata: { 
-        employeeId: 'EMP-003',
-        department: 'Maintenance', 
-        role: 'Maintenance Technician', 
-        email: 'mike.davis@company.com',
-        phone: '(555) 345-6789',
-        shiftPreference: 'Evening',
-        skills: ['Electrical', 'HVAC', 'Plumbing', 'Preventive Maintenance'],
-        certifications: ['EPA 608', 'Electrical License'],
-        hireDate: '2021-01-10'
-      } 
-    },
-    { 
-      id: 'emp-004', 
-      name: 'Lisa Chen', 
-      color: '#8B5CF6', 
-      metadata: { 
-        employeeId: 'EMP-004',
-        department: 'Security', 
-        role: 'Security Officer', 
-        email: 'lisa.chen@company.com',
-        phone: '(555) 456-7890',
-        shiftPreference: 'Night',
-        skills: ['Surveillance', 'Access Control', 'Emergency Response'],
-        certifications: ['Security Guard License', 'CPR/AED'],
-        hireDate: '2022-06-05'
-      } 
+  // Priority 2: Check maxWorkersBeforeScroll threshold
+  if (props.maxWorkersBeforeScroll && props.enableAutoScroll) {
+    const workerCount = displayWorkers.value.length
+    if (workerCount > props.maxWorkersBeforeScroll) {
+      // Calculate height based on maxWorkersBeforeScroll
+      const maxHeight = props.maxWorkersBeforeScroll * MIN_ROW_HEIGHT + 100 // Add padding
+      return `${maxHeight}px`
+    } else {
+      // Don't enable scroll, let content expand naturally
+      return 'auto'
     }
-  ]
+  }
+  
+  // Priority 3: Auto scroll behavior (default)
+  if (props.enableAutoScroll) {
+    return 'calc(100vh - 200px)'
+  }
+  
+  // Priority 4: No scroll, expand to fit content
+  return 'auto'
 })
+
+/**
+ * Determine if scroll should be enabled based on configuration
+ */
+const shouldEnableScroll = computed((): boolean => {
+  // Always enable scroll if fixed height is set
+  if (props.fixedHeight) {
+    return true
+  }
+  
+  // Check worker count threshold
+  if (props.maxWorkersBeforeScroll) {
+    return displayWorkers.value.length > props.maxWorkersBeforeScroll
+  }
+  
+  // Default auto scroll behavior
+  return props.enableAutoScroll ?? true
+})
+
+
 
 /**
  * Get single-day events (non-multi-day events)
@@ -312,7 +308,6 @@ const singleDayEvents = computed((): CalendarEvent[] => {
         startTime: '2025-09-22T06:00:00',
         endTime: '2025-09-22T14:00:00',
         resourceId: 'emp-001',
-        color: '#1E40AF',
         metadata: { type: 'shift', shiftType: 'morning' }
       },
       
@@ -361,7 +356,6 @@ const singleDayEvents = computed((): CalendarEvent[] => {
         startTime: '2025-09-24T06:00:00',
         endTime: '2025-09-24T14:00:00',
         resourceId: 'emp-002',
-        color: '#047857',
         metadata: { type: 'inspection', category: 'quality' }
       },
       {
@@ -399,7 +393,6 @@ const singleDayEvents = computed((): CalendarEvent[] => {
         startTime: '2025-09-25T14:00:00',
         endTime: '2025-09-25T22:00:00',
         resourceId: 'emp-001',
-        color: '#1E40AF',
         metadata: { type: 'shift', shiftType: 'afternoon' }
       },
       {
@@ -458,14 +451,35 @@ const singleDayEvents = computed((): CalendarEvent[] => {
         color: '#92400E',
         metadata: { type: 'preparation', category: 'weekend' }
       },
-      {
+      {  
         id: 'lisa-sep26-1',
         title: 'Tool Inventory',
         startTime: '2025-09-26T09:00:00',
         endTime: '2025-09-26T13:00:00',
         resourceId: 'emp-004',
-        color: '#6D28D9',
         metadata: { type: 'inventory', category: 'tools' }
+      },
+      
+      // September 27, 2025 (Saturday) - Special Events Examples
+      {
+        id: 'mike-sep27-dayoff',
+        title: 'Day Off',
+        startTime: '2025-09-27T00:00:00',
+        endTime: '2025-09-27T23:59:59',
+        resourceId: 'emp-003',
+        eventType: 'day-off',
+        isAllDay: true,
+        metadata: { type: 'time-off', category: 'personal' }
+      },
+      {
+        id: 'lisa-sep28-sick',
+        title: 'Sick Leave',
+        startTime: '2025-09-28T00:00:00',
+        endTime: '2025-09-28T23:59:59',
+        resourceId: 'emp-004',
+        eventType: 'sick-leave',
+        isAllDay: true,
+        metadata: { type: 'time-off', category: 'medical' }
       }
     )
   }
@@ -507,7 +521,7 @@ const multiDayEvents = computed((): CalendarEvent[] => {
         startTime: '2025-09-23T00:00:00',
         endTime: '2025-09-25T23:59:59',
         resourceId: 'emp-002',
-        color: '#059669',
+        eventType: 'annual-leave',
         isAllDay: true,
         metadata: { type: 'time-off', category: 'vacation' }
       },
@@ -531,7 +545,7 @@ const multiDayEvents = computed((): CalendarEvent[] => {
         startTime: '2025-09-24T00:00:00',
         endTime: '2025-09-25T23:59:59',
         resourceId: 'emp-004',
-        color: '#7C2D12',
+        eventType: 'training',
         isAllDay: true,
         metadata: { type: 'training', category: 'certification' }
       },
@@ -543,7 +557,7 @@ const multiDayEvents = computed((): CalendarEvent[] => {
         startTime: '2025-09-27T00:00:00',
         endTime: '2025-09-28T23:59:59',
         resourceId: 'emp-001',
-        color: '#DC2626',
+        eventType: 'maintenance',
         isAllDay: true,
         metadata: { type: 'maintenance', category: 'shutdown' }
       }
@@ -557,7 +571,7 @@ const multiDayEvents = computed((): CalendarEvent[] => {
  * Check if date is today
  */
 const isToday = (date: Atemporal): boolean => {
-  return checkIsToday(date, props.config.timezone)
+  return checkIsToday(date)
 }
 
 /**
@@ -568,12 +582,7 @@ const isWeekend = (date: Atemporal): boolean => {
   return dayOfWeek === 6 || dayOfWeek === 0 // Saturday or Sunday
 }
 
-/**
- * Check if two dates are the same day
- */
-const isSameDay = (date1: Atemporal, date2: Atemporal): boolean => {
-  return date1.isSame(date2, 'day')
-}
+
 
 /**
  * Get localized day name
@@ -797,16 +806,6 @@ const getWorkerMultiDayEventStyle = (event: CalendarEvent & { lane: number }, _w
 // Removed global multi-day events functions - now handled per resource
 
 /**
- * Get event duration text
- */
-const getEventDuration = (event: CalendarEvent): string => {
-  const startDate = atemporal(event.startTime)
-  const endDate = atemporal(event.endTime)
-  const days = endDate.diff(startDate, 'days') + 1
-  return `${days} day${days > 1 ? 's' : ''}`
-}
-
-/**
  * Format event time for display in 12-hour format
  */
 const formatEventTime = (event: CalendarEvent): string => {
@@ -864,49 +863,10 @@ const handleWorkerSlotClick = (worker: CalendarResource, date: Atemporal): void 
 }
 
 /**
- * Handle event click with enhanced data
+ * Handle event click
  */
-const handleEventClick = (event: CalendarEvent, eventType: 'single-day' | 'multiday'): void => {
-  // Find the worker/resource information
-  const worker = displayWorkers.value.find(w => w.id === event.resourceId)
-  
-  // Create enhanced event data with resource information and date range
-  const enhancedEvent = {
-    ...event,
-    // Add resource information
-    resource: worker ? {
-      id: worker.id,
-      name: worker.name,
-      color: worker.color,
-      metadata: worker.metadata
-    } : {
-      id: event.resourceId || 'unknown',
-      name: 'Unknown Resource',
-      color: '#6B7280',
-      metadata: {}
-    },
-    // Add date range information for multi-day events
-    dateRange: eventType === 'multiday' ? {
-      startDate: atemporal(event.startTime).format('YYYY-MM-DD'),
-      endDate: atemporal(event.endTime).format('YYYY-MM-DD'),
-      startDateFormatted: atemporal(event.startTime).format('MMM DD, YYYY'),
-      endDateFormatted: atemporal(event.endTime).format('MMM DD, YYYY'),
-      duration: getEventDuration(event),
-      totalDays: atemporal(event.endTime).diff(atemporal(event.startTime), 'days') + 1
-    } : {
-      date: atemporal(event.startTime).format('YYYY-MM-DD'),
-      dateFormatted: atemporal(event.startTime).format('MMM DD, YYYY'),
-      timeRange: formatEventTime(event)
-    },
-    // Add event type classification
-    eventType,
-    // Add formatted time information
-    formattedTime: formatEventTime(event)
-  }
-  
-  // Event click handled - data enhanced with resource and date information
-  
-  emit('event-click', enhancedEvent)
+const handleEventClick = (event: CalendarEvent, _eventType: 'single-day' | 'multiday'): void => {
+  emit('event-click', event)
 }
 
 // Removed getResourceName function - no longer needed
@@ -1005,10 +965,9 @@ const handleEventClick = (event: CalendarEvent, eventType: 'single-day' | 'multi
 
 .week-content {
   flex: 1;
-  overflow: auto;
   position: relative;
   background-color: var(--atempo-bg-primary);
-  max-height: calc(100vh - 200px);
+  /* Height and overflow are now controlled dynamically via inline styles */
 }
 
 /* Removed global multi-day section styles */

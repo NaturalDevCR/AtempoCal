@@ -104,6 +104,8 @@
             :event="event"
             :position="getEventPosition(event)"
             :actions="eventActions"
+            :resources="resources"
+            :custom-special-colors="config.specialEventColors"
             :readonly="readonly"
             @click="$emit('event-click', event)"
             @update="$emit('event-update', $event)"

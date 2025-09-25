@@ -87,6 +87,8 @@
               :show-resource="true"
               :resource-name="getResourceName(event.resourceId)"
               :resource-color="getResourceColor(event.resourceId)"
+              :resources="resources"
+              :custom-special-colors="config.specialEventColors"
               :max-title-length="50"
               :max-description-length="100"
               @click="$emit('event-click', event)"

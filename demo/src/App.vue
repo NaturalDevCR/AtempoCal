@@ -80,6 +80,90 @@
         </div>
       </div>
 
+      <!-- Scroll Configuration Demo Controls -->
+      <div class="mb-8">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            🔧 Scroll Configuration Demo
+          </h3>
+          <p class="text-gray-600 dark:text-gray-300 mb-4">
+            Test different scroll behaviors with {{ demoResources.length }} workers. Change the settings below to see how the calendar adapts.
+          </p>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Scroll Mode Selection -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Scroll Mode
+              </label>
+              <select 
+                v-model="scrollMode"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="auto">Auto (Default)</option>
+                <option value="fixed">Fixed Height</option>
+                <option value="workers">Max Workers Threshold</option>
+                <option value="disabled">No Scroll</option>
+              </select>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <span v-if="scrollMode === 'auto'">Automatic scroll when content exceeds viewport</span>
+                <span v-else-if="scrollMode === 'fixed'">Fixed height with scroll</span>
+                <span v-else-if="scrollMode === 'workers'">Scroll after worker count threshold</span>
+                <span v-else>No scroll, expand to fit content</span>
+              </p>
+            </div>
+
+            <!-- Fixed Height Control -->
+            <div :class="{ 'opacity-50': scrollMode !== 'fixed' }">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Fixed Height (px)
+              </label>
+              <input 
+                v-model.number="fixedHeightValue"
+                type="range"
+                min="200"
+                max="800"
+                step="50"
+                :disabled="scrollMode !== 'fixed'"
+                class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              />
+              <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <span>200px</span>
+                <span class="font-medium">{{ fixedHeightValue }}px</span>
+                <span>800px</span>
+              </div>
+            </div>
+
+            <!-- Max Workers Control -->
+            <div :class="{ 'opacity-50': scrollMode !== 'workers' }">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Max Workers Before Scroll
+              </label>
+              <input 
+                v-model.number="maxWorkersValue"
+                type="range"
+                min="3"
+                max="15"
+                step="1"
+                :disabled="scrollMode !== 'workers'"
+                class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              />
+              <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <span>3</span>
+                <span class="font-medium">{{ maxWorkersValue }} workers</span>
+                <span>15</span>
+              </div>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Current: {{ demoResources.length }} workers
+                <span v-if="scrollMode === 'workers'" class="ml-2">
+                  ({{ demoResources.length > maxWorkersValue ? 'Scroll enabled' : 'No scroll' }})
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Calendar Component -->
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         <AtempoCal
@@ -89,6 +173,11 @@
           :config="calendarConfig"
           :event-actions="eventActions"
           :loading="false"
+          :special-event-colors="{
+            'day-off': '#EF4444',
+            'annual-leave': '#3B82F6',
+            'training': '#10B981'
+          }"
           @event-click="handleEventClick"
           @event-create="handleEventCreate"
           @event-update="handleEventUpdate"
@@ -205,7 +294,7 @@
 
 <script setup lang="ts">
 /* eslint-disable no-console */
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import atemporal from 'atemporal'
 import AtempoCal from '../../src/AtempoCal.vue'
 import { useTheme } from '../../src/composables/useTheme'
@@ -225,40 +314,95 @@ const { currentTheme, toggleTheme } = useTheme()
 const selectedDate = ref(atemporal().toString())
 const selectedEvent = ref<CalendarEvent | null>(null)
 
+// Scroll configuration options for demo
+const scrollMode = ref<'auto' | 'fixed' | 'workers' | 'disabled'>('auto')
+const fixedHeightValue = ref(400)
+const maxWorkersValue = ref(8)
+
 // Calendar configuration
 const calendarConfig = ref<CalendarConfig>({
   timezone: 'America/Costa_Rica',
   locale: 'es-ES',
   theme: 'auto',
   showWeekends: true,
-  firstDayOfWeek: 1 // Monday
+  firstDayOfWeek: 1, // Monday
+  // Scroll configuration - dynamically updated based on demo controls
+  maxWorkersBeforeScroll: scrollMode.value === 'workers' ? maxWorkersValue.value : undefined,
+  fixedHeight: scrollMode.value === 'fixed' ? `${fixedHeightValue.value}px` : undefined,
+  enableAutoScroll: scrollMode.value !== 'disabled'
 })
 
-// Demo resources (Workers)
+// Demo resources (Workers) - 14 total workers
 const demoResources = ref<CalendarResource[]>([
   {
     id: 'worker-john',
     name: 'John Smith',
-    color: '#3B82F6',
     metadata: { department: 'Engineering', role: 'Senior Developer', email: 'john.smith@company.com' }
   },
   {
     id: 'worker-sarah',
     name: 'Sarah Johnson',
-    color: '#10B981',
     metadata: { department: 'Design', role: 'UX Designer', email: 'sarah.johnson@company.com' }
   },
   {
     id: 'worker-mike',
     name: 'Mike Davis',
-    color: '#F59E0B',
     metadata: { department: 'Marketing', role: 'Marketing Manager', email: 'mike.davis@company.com' }
   },
   {
     id: 'worker-lisa',
     name: 'Lisa Chen',
-    color: '#8B5CF6',
     metadata: { department: 'Engineering', role: 'Frontend Developer', email: 'lisa.chen@company.com' }
+  },
+  {
+    id: 'worker-alex',
+    name: 'Alex Rodriguez',
+    metadata: { department: 'Engineering', role: 'Backend Developer', email: 'alex.rodriguez@company.com' }
+  },
+  {
+    id: 'worker-emma',
+    name: 'Emma Wilson',
+    metadata: { department: 'Design', role: 'UI Designer', email: 'emma.wilson@company.com' }
+  },
+  {
+    id: 'worker-david',
+    name: 'David Brown',
+    metadata: { department: 'Engineering', role: 'DevOps Engineer', email: 'david.brown@company.com' }
+  },
+  {
+    id: 'worker-maria',
+    name: 'Maria Garcia',
+    metadata: { department: 'Product', role: 'Product Manager', email: 'maria.garcia@company.com' }
+  },
+  {
+    id: 'worker-james',
+    name: 'James Taylor',
+    metadata: { department: 'QA', role: 'QA Engineer', email: 'james.taylor@company.com' }
+  },
+  {
+    id: 'worker-sophia',
+    name: 'Sophia Lee',
+    metadata: { department: 'Marketing', role: 'Content Manager', email: 'sophia.lee@company.com' }
+  },
+  {
+    id: 'worker-ryan',
+    name: 'Ryan Miller',
+    metadata: { department: 'Sales', role: 'Sales Manager', email: 'ryan.miller@company.com' }
+  },
+  {
+    id: 'worker-olivia',
+    name: 'Olivia Davis',
+    metadata: { department: 'HR', role: 'HR Specialist', email: 'olivia.davis@company.com' }
+  },
+  {
+    id: 'worker-noah',
+    name: 'Noah Anderson',
+    metadata: { department: 'Finance', role: 'Financial Analyst', email: 'noah.anderson@company.com' }
+  },
+  {
+    id: 'worker-ava',
+    name: 'Ava Thompson',
+    metadata: { department: 'Operations', role: 'Operations Manager', email: 'ava.thompson@company.com' }
   }
 ])
 
@@ -390,7 +534,6 @@ const demoEvents = ref<CalendarEvent[]>([
     startTime: '2025-09-12T09:00:00Z',
     endTime: '2025-09-12T11:00:00Z',
     resourceId: 'worker-lisa',
-    color: '#8B5CF6',
     metadata: { type: 'development', feature: 'dashboard' }
   },
   {
@@ -400,7 +543,6 @@ const demoEvents = ref<CalendarEvent[]>([
     startTime: '2025-09-12T11:30:00Z',
     endTime: '2025-09-12T13:00:00Z',
     resourceId: 'worker-lisa',
-    color: '#8B5CF6',
     metadata: { type: 'maintenance', priority: 'critical' }
   },
   {
@@ -410,8 +552,217 @@ const demoEvents = ref<CalendarEvent[]>([
     startTime: '2025-09-12T14:00:00Z',
     endTime: '2025-09-12T16:00:00Z',
     resourceId: 'worker-lisa',
-    color: '#8B5CF6',
     metadata: { type: 'documentation', components: ['API', 'Components'] }
+  },
+
+  // NEW WORKERS EVENTS - Alex Rodriguez (Backend Developer)
+  {
+    id: 'event-alex-1',
+    title: 'API Development',
+    description: 'Build REST API endpoints',
+    startTime: '2025-09-08T10:00:00Z',
+    endTime: '2025-09-08T12:00:00Z',
+    resourceId: 'worker-alex',
+    metadata: { type: 'development', feature: 'api' }
+  },
+  {
+    id: 'event-alex-2',
+    title: 'Database Optimization',
+    description: 'Optimize database queries and indexes',
+    startTime: '2025-09-09T14:00:00Z',
+    endTime: '2025-09-09T16:00:00Z',
+    resourceId: 'worker-alex',
+    metadata: { type: 'optimization', priority: 'high' }
+  },
+  {
+    id: 'event-alex-3',
+    title: 'Code Review',
+    description: 'Review backend pull requests',
+    startTime: '2025-09-11T09:00:00Z',
+    endTime: '2025-09-11T10:30:00Z',
+    resourceId: 'worker-alex',
+    metadata: { type: 'review' }
+  },
+
+  // Emma Wilson (UI Designer)
+  {
+    id: 'event-emma-1',
+    title: 'UI Mockups',
+    description: 'Create UI mockups for mobile app',
+    startTime: '2025-09-08T09:00:00Z',
+    endTime: '2025-09-08T11:00:00Z',
+    resourceId: 'worker-emma',
+    metadata: { type: 'design', platform: 'mobile' }
+  },
+  {
+    id: 'event-emma-2',
+    title: 'Design System Update',
+    description: 'Update component library',
+    startTime: '2025-09-10T13:00:00Z',
+    endTime: '2025-09-10T15:00:00Z',
+    resourceId: 'worker-emma',
+    metadata: { type: 'design-system' }
+  },
+
+  // David Brown (DevOps Engineer)
+  {
+    id: 'event-david-1',
+    title: 'CI/CD Pipeline Setup',
+    description: 'Configure deployment pipeline',
+    startTime: '2025-09-09T10:00:00Z',
+    endTime: '2025-09-09T12:00:00Z',
+    resourceId: 'worker-david',
+    metadata: { type: 'devops', feature: 'pipeline' }
+  },
+  {
+    id: 'event-david-2',
+    title: 'Server Maintenance',
+    description: 'Update server configurations',
+    startTime: '2025-09-11T15:00:00Z',
+    endTime: '2025-09-11T17:00:00Z',
+    resourceId: 'worker-david',
+    metadata: { type: 'maintenance', priority: 'medium' }
+  },
+
+  // Maria Garcia (Product Manager)
+  {
+    id: 'event-maria-1',
+    title: 'Product Planning',
+    description: 'Plan next quarter roadmap',
+    startTime: '2025-09-08T14:00:00Z',
+    endTime: '2025-09-08T16:00:00Z',
+    resourceId: 'worker-maria',
+    metadata: { type: 'planning', quarter: 'Q4' }
+  },
+  {
+    id: 'event-maria-2',
+    title: 'Stakeholder Meeting',
+    description: 'Weekly stakeholder sync',
+    startTime: '2025-09-10T10:00:00Z',
+    endTime: '2025-09-10T11:00:00Z',
+    resourceId: 'worker-maria',
+    metadata: { type: 'meeting', stakeholders: true }
+  },
+
+  // James Taylor (QA Engineer)
+  {
+    id: 'event-james-1',
+    title: 'Test Automation',
+    description: 'Write automated test scripts',
+    startTime: '2025-09-09T09:00:00Z',
+    endTime: '2025-09-09T11:00:00Z',
+    resourceId: 'worker-james',
+    metadata: { type: 'testing', automation: true }
+  },
+  {
+    id: 'event-james-2',
+    title: 'Bug Testing',
+    description: 'Test recent bug fixes',
+    startTime: '2025-09-12T10:00:00Z',
+    endTime: '2025-09-12T12:00:00Z',
+    resourceId: 'worker-james',
+    metadata: { type: 'testing', priority: 'high' }
+  },
+
+  // Sophia Lee (Content Manager)
+  {
+    id: 'event-sophia-1',
+    title: 'Content Creation',
+    description: 'Create blog posts and social media content',
+    startTime: '2025-09-08T10:00:00Z',
+    endTime: '2025-09-08T12:00:00Z',
+    resourceId: 'worker-sophia',
+    metadata: { type: 'content', platforms: ['blog', 'social'] }
+  },
+  {
+    id: 'event-sophia-2',
+    title: 'Content Review',
+    description: 'Review and approve marketing content',
+    startTime: '2025-09-11T14:00:00Z',
+    endTime: '2025-09-11T15:30:00Z',
+    resourceId: 'worker-sophia',
+    metadata: { type: 'review', content: 'marketing' }
+  },
+
+  // Ryan Miller (Sales Manager)
+  {
+    id: 'event-ryan-1',
+    title: 'Sales Calls',
+    description: 'Client prospecting calls',
+    startTime: '2025-09-09T13:00:00Z',
+    endTime: '2025-09-09T15:00:00Z',
+    resourceId: 'worker-ryan',
+    metadata: { type: 'sales', activity: 'prospecting' }
+  },
+  {
+    id: 'event-ryan-2',
+    title: 'Sales Training',
+    description: 'Train new sales team members',
+    startTime: '2025-09-12T09:00:00Z',
+    endTime: '2025-09-12T11:00:00Z',
+    resourceId: 'worker-ryan',
+    eventType: 'training',
+    metadata: { type: 'training', team: 'sales' }
+  },
+
+  // Olivia Davis (HR Specialist)
+  {
+    id: 'event-olivia-1',
+    title: 'Employee Interviews',
+    description: 'Conduct candidate interviews',
+    startTime: '2025-09-10T09:00:00Z',
+    endTime: '2025-09-10T12:00:00Z',
+    resourceId: 'worker-olivia',
+    metadata: { type: 'interview', candidates: 3 }
+  },
+  {
+    id: 'event-olivia-2',
+    title: 'HR Policy Review',
+    description: 'Review and update HR policies',
+    startTime: '2025-09-11T10:00:00Z',
+    endTime: '2025-09-11T12:00:00Z',
+    resourceId: 'worker-olivia',
+    metadata: { type: 'policy', department: 'hr' }
+  },
+
+  // Noah Anderson (Financial Analyst)
+  {
+    id: 'event-noah-1',
+    title: 'Financial Analysis',
+    description: 'Quarterly financial report analysis',
+    startTime: '2025-09-08T13:00:00Z',
+    endTime: '2025-09-08T15:00:00Z',
+    resourceId: 'worker-noah',
+    metadata: { type: 'analysis', period: 'quarterly' }
+  },
+  {
+    id: 'event-noah-2',
+    title: 'Budget Planning',
+    description: 'Plan next year budget allocations',
+    startTime: '2025-09-12T13:00:00Z',
+    endTime: '2025-09-12T16:00:00Z',
+    resourceId: 'worker-noah',
+    metadata: { type: 'planning', budget: 'annual' }
+  },
+
+  // Ava Thompson (Operations Manager)
+  {
+    id: 'event-ava-1',
+    title: 'Operations Review',
+    description: 'Weekly operations performance review',
+    startTime: '2025-09-09T08:00:00Z',
+    endTime: '2025-09-09T09:30:00Z',
+    resourceId: 'worker-ava',
+    metadata: { type: 'review', scope: 'operations' }
+  },
+  {
+    id: 'event-ava-2',
+    title: 'Process Optimization',
+    description: 'Optimize workflow processes',
+    startTime: '2025-09-11T13:00:00Z',
+    endTime: '2025-09-11T15:00:00Z',
+    resourceId: 'worker-ava',
+    metadata: { type: 'optimization', area: 'workflow' }
   },
 
   // MULTI-DAY EVENTS
@@ -453,6 +804,7 @@ const demoEvents = ref<CalendarEvent[]>([
     endTime: '2025-09-14T17:00:00Z',   // Sunday
     resourceId: 'worker-lisa',
     color: '#06B6D4',
+    eventType: 'training',
     metadata: { type: 'training', duration: 'multi-day', skills: ['React', 'TypeScript', 'Testing'] }
   },
   // ADDITIONAL OVERLAPPING MULTI-DAY EVENTS FOR TESTING STACKING
@@ -591,6 +943,18 @@ const getResourceName = (resourceId: string): string => {
   const resource = demoResources.value.find(r => r.id === resourceId)
   return resource?.name || 'Unknown Resource'
 }
+
+/**
+ * Watch for scroll configuration changes and update calendar config
+ */
+watch([scrollMode, fixedHeightValue, maxWorkersValue], () => {
+  calendarConfig.value = {
+    ...calendarConfig.value,
+    maxWorkersBeforeScroll: scrollMode.value === 'workers' ? maxWorkersValue.value : undefined,
+    fixedHeight: scrollMode.value === 'fixed' ? `${fixedHeightValue.value}px` : undefined,
+    enableAutoScroll: scrollMode.value !== 'disabled'
+  }
+}, { deep: true })
 
 /**
  * Initialize demo data on mount
