@@ -9,7 +9,8 @@
 
 ## ✨ Features
 
-- 📅 **Multiple Views**: Weekly and daily calendar views with intelligent event positioning
+- 📅 **Weekly Scheduling Focus**: Optimized weekly calendar view for resource scheduling
+- 👥 **Worker/Resource Management**: Advanced resource scheduling with intelligent event positioning
 - 🎨 **Highly Customizable**: Configurable fields, actions, and styling
 - 🌍 **Internationalization**: Built-in i18n support using Atemporal's localization
 - 🕐 **Timezone Support**: Global timezone configuration with Atemporal integration
@@ -18,9 +19,9 @@
 - ⚡ **Performance Optimized**: Efficient rendering and state management
 - 🔧 **TypeScript**: Full type safety and excellent developer experience
 - 🎯 **Framework Agnostic**: Easy integration with Vue 3, Nuxt, Quasar, and more
-- 👥 **Advanced Resource Management**: World-class resource scheduling with overlap prevention
-- 🚫 **No Event Overlaps**: Intelligent column-based positioning prevents visual conflicts
-- 🏷️ **Integrated Resource Display**: Resources shown within events for clear identification
+- 🚫 **No Event Overlaps**: Intelligent vertical stacking prevents visual conflicts
+- 🏷️ **Multi-Day Event Support**: Seamless handling of events spanning multiple days
+- ⏰ **Time Range Display**: Clear time ranges for single-day events and date ranges for multi-day events
 
 ## 🚀 Quick Start
 
@@ -77,13 +78,12 @@ const resources = ref<CalendarResource[]>([
   }
 ])
 
-// Configuration
+// Configuration for weekly scheduling calendar
 const config = ref<CalendarConfig>({
   timezone: 'America/New_York',
   locale: 'en-US',
-  startHour: 8,
-  endHour: 18,
-  slotDuration: 30
+  showWeekends: true,
+  firstDayOfWeek: 1 // Monday
 })
 
 // Theme configuration
@@ -154,9 +154,6 @@ interface CalendarConfig {
   timezone?: string
   locale?: string
   theme?: 'light' | 'dark' | 'auto'
-  startHour?: number
-  endHour?: number
-  slotDuration?: number // minutes
   showWeekends?: boolean
   firstDayOfWeek?: number // 0-6, 0 = Sunday
 }

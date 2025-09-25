@@ -33,17 +33,22 @@ export interface CalendarResource {
 }
 
 /**
- * Component configuration options
+ * Component configuration options for weekly scheduling calendar
  */
 export interface CalendarConfig {
   timezone?: string
   locale?: string
   theme?: 'light' | 'dark' | 'auto'
-  startHour?: number
-  endHour?: number
-  slotDuration?: number // minutes
   showWeekends?: boolean
   firstDayOfWeek?: number // 0-6, 0 = Sunday
+  
+  // Deprecated properties - not used in weekly scheduling calendar
+  /** @deprecated Not used in weekly calendar */
+  startHour?: number
+  /** @deprecated Not used in weekly calendar */
+  endHour?: number
+  /** @deprecated Not used in weekly calendar */
+  slotDuration?: number
 }
 
 /**
@@ -213,6 +218,7 @@ export interface EventPosition {
 
 /**
  * Grid configuration for time-based layouts
+ * @deprecated This interface is not used in weekly scheduling calendar
  */
 export interface GridConfig {
   startHour: number

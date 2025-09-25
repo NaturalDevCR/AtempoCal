@@ -102,14 +102,11 @@ interface Emits {
 
 const emit = defineEmits<Emits>()
 
-// Default configuration
+// Default configuration for weekly scheduling calendar
 const defaultConfig: CalendarConfig = {
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   locale: 'en',
   theme: 'auto',
-  startHour: 0,
-  endHour: 24,
-  slotDuration: 60,
   showWeekends: true,
   firstDayOfWeek: 1 // Monday
 }

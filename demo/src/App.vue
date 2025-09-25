@@ -176,9 +176,6 @@ const calendarConfig = ref<CalendarConfig>({
   timezone: 'America/New_York',
   locale: 'en-US',
   theme: 'auto',
-  startHour: 8,
-  endHour: 18,
-  slotDuration: 30,
   showWeekends: true,
   firstDayOfWeek: 1 // Monday
 })
