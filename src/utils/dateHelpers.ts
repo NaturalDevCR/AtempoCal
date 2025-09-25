@@ -204,7 +204,7 @@ export function formatDateForDisplay(date: Atemporal, format: string = 'YYYY-MM-
   try {
     // Use atemporal's built-in formatting with locale support
     return date.format(format)
-  } catch (error) {
+  } catch {
     // Fallback to basic formatting if atemporal fails with timezone issues
     const jsDate = new Date(date.toString())
     

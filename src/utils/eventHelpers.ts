@@ -74,7 +74,7 @@ export function calculateEventPositions(
     // Find the first available column where this event doesn't overlap
     while (columnIndex < columns.length) {
       const columnEvent = columns[columnIndex]
-      if (!eventsOverlap(event, columnEvent)) {
+      if (columnEvent && !eventsOverlap(event, columnEvent)) {
         break
       }
       columnIndex++

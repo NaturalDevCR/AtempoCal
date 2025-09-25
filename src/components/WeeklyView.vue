@@ -679,16 +679,22 @@ const getMultiDayEventsForWorkerWithLanes = (workerId: string): (CalendarEvent &
       let canPlaceInLane = true
       
       // Check if this event overlaps with any event in this lane
-      for (const laneEvent of lanes[i]) {
-        if (doMultiDayEventsOverlap(event, laneEvent)) {
-          canPlaceInLane = false
-          break
+      const currentLane = lanes[i]
+      if (currentLane) {
+        for (const laneEvent of currentLane) {
+          if (doMultiDayEventsOverlap(event, laneEvent)) {
+            canPlaceInLane = false
+            break
+          }
         }
       }
       
       if (canPlaceInLane) {
         assignedLane = i
-        lanes[i].push(event)
+        const targetLane = lanes[i]
+        if (targetLane) {
+          targetLane.push(event)
+        }
         break
       }
     }
