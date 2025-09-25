@@ -1,30 +1,30 @@
 <template>
-  <div class="atempo-cal-weekly-view">
+  <div class="weekly-view">
     <!-- Week header with days -->
-    <div class="atempo-cal-week-header">
+    <div class="week-header">
       <!-- Resource column spacer -->
-      <div class="atempo-cal-resource-spacer" :style="{ width: resourceColumnWidth + 'px' }">
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Resources</span>
+      <div class="resource-spacer">
+        <span class="resource-label">Resources</span>
       </div>
       
       <!-- Day headers -->
-      <div class="atempo-cal-day-headers flex-1">
-        <div class="grid grid-cols-7 h-full">
+      <div class="day-headers">
+        <div class="day-grid">
           <div
             v-for="(date, index) in weekDates"
             :key="date.toString()"
-            class="atempo-cal-day-header"
+            class="day-header"
             :class="{
-              'today': isToday(date),
-              'weekend': isWeekend(date),
-              'selected': isSameDay(date, currentDate)
+              'is-today': isToday(date),
+              'is-weekend': isWeekend(date),
+              'is-selected': isSameDay(date, currentDate)
             }"
             @click="handleDayClick(date)"
           >
-            <div class="atempo-cal-day-name">
+            <div class="day-name">
               {{ getDayName(date, index) }}
             </div>
-            <div class="atempo-cal-day-number">
+            <div class="day-number">
               {{ date.day }}
             </div>
           </div>
@@ -33,121 +33,79 @@
     </div>
 
     <!-- Scrollable content area -->
-    <div class="atempo-cal-week-content atempo-cal-scroll" ref="scrollContainer">
-      <!-- Resource calendar layout using flexbox -->
-      <div class="atempo-cal-resource-calendar relative">
-        <!-- Global multi-day events layer (positioned absolutely above all resources) -->
-        <div class="absolute inset-0 pointer-events-none" :style="{ left: resourceColumnWidth + 'px', zIndex: 10 }">
-          <div
-             v-for="event in getAllMultiDayEvents()"
-             :key="event.id + '-multiday'"
-             class="absolute pointer-events-auto atempo-cal-multiday-event"
-             :style="{
-               top: getMultiDayEventPosition(event).top + 'px',
-               height: getMultiDayEventPosition(event).height + 'px',
-               left: getMultiDayEventPosition(event).left + '%',
-               width: getMultiDayEventPosition(event).width + '%',
-               zIndex: getMultiDayEventPosition(event).zIndex,
-               borderLeftColor: event.color || '#3b82f6'
-             }"
-           >
-            <EventCard
-              :event="event"
-              :position="{ top: 0, height: 100, left: 0, width: 100, zIndex: 1 }"
-              :actions="eventActions"
-              :readonly="readonly"
-              :show-time="true"
-              :show-description="false"
-              :show-resource="true"
-              :resource-name="getResourceName(event.resourceId)"
-              :resource-color="getResourceColor(event.resourceId)"
-              :max-title-length="50"
-              @click="$emit('event-click', event)"
-              @update="$emit('event-update', $event)"
-              @delete="$emit('event-delete', $event)"
-            />
+    <div class="week-content" ref="scrollContainer">
+      <!-- Multi-day events overlay -->
+      <div class="multiday-overlay" v-if="multiDayEvents.length > 0">
+        <div
+          v-for="event in multiDayEvents"
+          :key="'multiday-' + event.id"
+          class="multiday-event"
+          :style="getMultiDayEventStyle(event)"
+          @click="$emit('event-click', event)"
+        >
+          <div class="event-content" :style="{ borderLeftColor: event.color || '#3b82f6' }">
+            <span class="event-title">{{ event.title }}</span>
+            <span class="event-resource">{{ getResourceName(event.resourceId) }}</span>
           </div>
         </div>
-        <!-- For each resource, create a complete row -->
+      </div>
+
+      <!-- Resource rows -->
+      <div class="resource-container">
         <div
           v-for="resource in displayResources"
           :key="resource.id"
-          class="atempo-cal-resource-calendar-row relative"
-          :style="{ height: resourceRowHeight + 'px' }"
+          class="resource-row"
+          :style="{ height: getResourceRowHeight(resource.id) + 'px' }"
         >
           <!-- Resource info column -->
-          <div 
-            class="atempo-cal-resource-info"
-            :style="{ width: resourceColumnWidth + 'px' }"
-          >
-            <div class="flex items-center h-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
-              <div class="flex items-center space-x-2">
-                <div 
-                  class="w-3 h-3 rounded-full flex-shrink-0"
-                  :style="{ backgroundColor: resource.color || '#6B7280' }"
-                />
-                <div class="flex flex-col">
-                  <span class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                    {{ resource.name }}
-                  </span>
-                  <span v-if="resource.metadata?.role" class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                    {{ resource.metadata.role }}
-                  </span>
-                </div>
+          <div class="resource-info">
+            <div class="resource-content">
+              <div class="resource-indicator" :style="{ backgroundColor: resource.color || '#6B7280' }"></div>
+              <div class="resource-details">
+                <span class="resource-name">{{ resource.name }}</span>
+                <span v-if="resource.metadata?.role" class="resource-role">{{ resource.metadata.role }}</span>
               </div>
             </div>
           </div>
 
           <!-- Day cells for this resource -->
-          <div class="atempo-cal-resource-days flex flex-1">
+          <div class="resource-days">
             <div
               v-for="date in weekDates"
               :key="'cell-' + resource.id + '-' + date.toString()"
-              class="atempo-cal-resource-day-cell group flex-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors border-r border-gray-200 dark:border-gray-600 relative"
+              class="day-cell"
               :class="{
-                'today': isToday(date),
-                'weekend': isWeekend(date)
-              }"
-              :style="{ 
-                height: resourceRowHeight + 'px',
-                minHeight: resourceRowHeight + 'px'
+                'is-today': isToday(date),
+                'is-weekend': isWeekend(date)
               }"
               @click="handleResourceSlotClick(resource, date)"
             >
-              <!-- Single-day events for this resource and day -->
-              <div class="absolute inset-0 p-1 overflow-hidden">
+              <!-- Stacked events for this resource and day -->
+              <div class="events-stack">
                 <div
                   v-for="(event, eventIndex) in getSingleDayEventsForResourceAndDay(resource.id, date)"
-                  :key="event.id + '-single'"
-                  class="absolute transition-all duration-300 ease-in-out"
-                  :class="{
-                    'atempo-cal-event-expanded': hoveredEventId === event.id,
-                    'atempo-cal-event-compact': hoveredEventId && hoveredEventId !== event.id && isInSameCell(hoveredEventId, resource.id, date)
-                  }"
-                  :style="getEventStyle(event, eventIndex, resource.id, date)"
-                  @mouseenter="hoveredEventId = event.id"
-                  @mouseleave="hoveredEventId = null"
+                  :key="event.id"
+                  class="stacked-event"
+                  :style="getStackedEventStyle(eventIndex)"
+                  @click.stop="$emit('event-click', event)"
                 >
                   <div 
-                    class="w-full h-full rounded-md shadow-sm border-l-4 px-2 py-1 cursor-pointer transition-all duration-300 hover:shadow-md text-xs font-medium truncate flex items-center group"
+                    class="event-bar group"
                     :style="{
                       backgroundColor: event.color ? event.color + '20' : '#3b82f620',
-                      borderLeftColor: event.color || '#3b82f6',
-                      color: event.color || '#1f2937'
+                      borderLeftColor: event.color || '#3b82f6'
                     }"
-                    @click="$emit('event-click', event)"
                   >
-                    <span class="truncate">{{ event.title }}</span>
-                    <span v-if="!event.isAllDay && (hoveredEventId === event.id || getSingleDayEventsForResourceAndDay(resource.id, date).length === 1)" class="ml-2 text-xs opacity-75 flex-shrink-0">
-                      {{ formatEventTime(event) }}
-                    </span>
+                    <span class="event-title">{{ event.title }}</span>
+                    <span v-if="!event.isAllDay" class="event-time">{{ formatEventTime(event) }}</span>
                     <!-- Delete button -->
                     <button
                       v-if="!readonly"
-                      class="ml-auto opacity-0 group-hover:opacity-100 w-4 h-4 rounded bg-white/80 shadow-sm flex items-center justify-center text-gray-600 hover:bg-white transition-all"
+                      class="delete-btn"
                       @click.stop="$emit('event-delete', event)"
                     >
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="delete-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                       </svg>
                     </button>
@@ -158,10 +116,10 @@
               <!-- Add event indicator for empty cells -->
               <div 
                 v-if="!readonly && getSingleDayEventsForResourceAndDay(resource.id, date).length === 0"
-                class="atempo-cal-add-event-indicator opacity-0 group-hover:opacity-100 transition-opacity absolute inset-0 flex items-center justify-center pointer-events-none"
+                class="add-indicator"
               >
-                <div class="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="add-btn">
+                  <svg class="add-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                   </svg>
                 </div>
@@ -175,13 +133,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import atemporal from 'atemporal'
 import type {
   CalendarEvent,
   CalendarResource,
   CalendarConfig,
-  EventPosition,
   EventAction,
   SlotClickInfo,
   Atemporal
@@ -191,11 +148,10 @@ import {
   isToday as checkIsToday,
   getLocalizedDayNames
 } from '../utils/dateHelpers'
-import EventCard from './EventCard.vue'
 
 /**
- * WeeklyView component
- * Displays calendar in weekly view with 7-day grid
+ * WeeklyView component with true vertical event stacking
+ * Events are positioned in separate rows without any overlaps
  */
 
 interface Props {
@@ -225,15 +181,15 @@ interface Emits {
 
 const emit = defineEmits<Emits>()
 
-// Component configuration
-const resourceColumnWidth = 160
-const resourceRowHeight = 140 // Increased height to accommodate vertically stacked events
+// Configuration constants
+const RESOURCE_COLUMN_WIDTH = 160
+const EVENT_HEIGHT = 24
+const EVENT_GAP = 2
+const MIN_ROW_HEIGHT = 60
+const MULTIDAY_EVENT_HEIGHT = 20
 
 // Template refs
 const scrollContainer = ref<HTMLElement>()
-
-// Hover state for Google Calendar-style expansion
-const hoveredEventId = ref<string | null>(null)
 
 /**
  * Get week dates based on current date
@@ -250,13 +206,35 @@ const displayResources = computed((): CalendarResource[] => {
     return props.resources
   }
   
-  // Default resources if none provided (Worker examples)
+  // Default resources if none provided
   return [
     { id: 'worker-john', name: 'John Smith', color: '#3B82F6', metadata: { department: 'Engineering', role: 'Senior Developer' } },
     { id: 'worker-sarah', name: 'Sarah Johnson', color: '#10B981', metadata: { department: 'Design', role: 'UX Designer' } },
     { id: 'worker-mike', name: 'Mike Davis', color: '#F59E0B', metadata: { department: 'Marketing', role: 'Marketing Manager' } },
     { id: 'worker-lisa', name: 'Lisa Chen', color: '#8B5CF6', metadata: { department: 'Engineering', role: 'Frontend Developer' } }
   ]
+})
+
+/**
+ * Get single-day events (non-multi-day events)
+ */
+const singleDayEvents = computed((): CalendarEvent[] => {
+  return props.events.filter(event => {
+    const startDate = atemporal(event.startTime)
+    const endDate = atemporal(event.endTime)
+    return startDate.isSame(endDate, 'day')
+  })
+})
+
+/**
+ * Get multi-day events
+ */
+const multiDayEvents = computed((): CalendarEvent[] => {
+  return props.events.filter(event => {
+    const startDate = atemporal(event.startTime)
+    const endDate = atemporal(event.endTime)
+    return !startDate.isSame(endDate, 'day')
+  })
 })
 
 /**
@@ -291,36 +269,74 @@ const getDayName = (date: Atemporal, _index: number): string => {
 }
 
 /**
- * Check if an event spans multiple days
- */
-const isMultiDayEvent = (event: CalendarEvent): boolean => {
-  const startDate = atemporal(event.startTime)
-  const endDate = atemporal(event.endTime)
-  return !startDate.isSame(endDate, 'day')
-}
-
-/**
  * Get single-day events for a specific resource and day
  */
 const getSingleDayEventsForResourceAndDay = (resourceId: string, date: Atemporal): CalendarEvent[] => {
-  return props.events.filter(event => {
+  const targetDate = date.format('YYYY-MM-DD')
+  
+  return singleDayEvents.value.filter(event => {
     const eventStartDate = atemporal(event.startTime)
     const eventEndDate = atemporal(event.endTime)
-    const targetDate = date.format('YYYY-MM-DD')
     
-    // Only include single-day events that match this exact date
     const isSameDay = eventStartDate.format('YYYY-MM-DD') === targetDate && 
                       eventEndDate.format('YYYY-MM-DD') === targetDate
     
-    const matchesResource = event.resourceId === resourceId
-    return isSameDay && matchesResource
+    return isSameDay && event.resourceId === resourceId
+  }).sort((a, b) => {
+    // Sort by start time for consistent stacking order
+    const startA = atemporal(a.startTime)
+    const startB = atemporal(b.startTime)
+    return startA.isBefore(startB) ? -1 : 1
   })
 }
 
 /**
- * Calculate multi-day event position and span
+ * Calculate the maximum number of events in any single day for a resource
  */
-const getMultiDayEventSpan = (event: CalendarEvent): { startIndex: number; span: number; isVisible: boolean } => {
+const getMaxEventsForResource = (resourceId: string): number => {
+  let maxEvents = 0
+  
+  weekDates.value.forEach(date => {
+    const eventsCount = getSingleDayEventsForResourceAndDay(resourceId, date).length
+    maxEvents = Math.max(maxEvents, eventsCount)
+  })
+  
+  return maxEvents
+}
+
+/**
+ * Calculate resource row height based on maximum events
+ */
+const getResourceRowHeight = (resourceId: string): number => {
+  const maxEvents = getMaxEventsForResource(resourceId)
+  if (maxEvents === 0) return MIN_ROW_HEIGHT
+  
+  const eventsHeight = maxEvents * EVENT_HEIGHT + (maxEvents - 1) * EVENT_GAP
+  const padding = 16 // Top and bottom padding
+  
+  return Math.max(MIN_ROW_HEIGHT, eventsHeight + padding)
+}
+
+/**
+ * Get style for stacked event (simple vertical positioning)
+ */
+const getStackedEventStyle = (eventIndex: number): Record<string, string | number> => {
+  const top = 8 + eventIndex * (EVENT_HEIGHT + EVENT_GAP) // 8px top padding
+  
+  return {
+    position: 'absolute',
+    top: top + 'px',
+    left: '4px',
+    right: '4px',
+    height: EVENT_HEIGHT + 'px',
+    zIndex: 1
+  }
+}
+
+/**
+ * Get style for multi-day event
+ */
+const getMultiDayEventStyle = (event: CalendarEvent): Record<string, string | number> => {
   const eventStartDate = atemporal(event.startTime)
   const eventEndDate = atemporal(event.endTime)
   
@@ -346,65 +362,21 @@ const getMultiDayEventSpan = (event: CalendarEvent): { startIndex: number; span:
   if (endIndex === -1) endIndex = weekDates.value.length - 1
   
   const span = endIndex - startIndex + 1
-  const isVisible = span > 0
+  const cellWidth = 100 / 7 // Each day cell is 1/7 of the total width
   
-  return { startIndex, span, isVisible }
-}
-
-/**
- * Check if an event is in the same cell as the hovered event
- */
-const isInSameCell = (hoveredEventId: string, resourceId: string, date: Atemporal): boolean => {
-  const hoveredEvent = props.events.find(e => e.id === hoveredEventId)
-  if (!hoveredEvent) return false
-  
-  const eventsInCell = getSingleDayEventsForResourceAndDay(resourceId, date)
-  return eventsInCell.some(e => e.id === hoveredEventId)
-}
-
-/**
- * Calculate event style with vertical stacking (no overlaps)
- * Events are positioned one below another in vertical order
- */
-const getEventStyle = (event: CalendarEvent, eventIndex: number, resourceId: string, date: Atemporal) => {
-  const eventsInCell = getSingleDayEventsForResourceAndDay(resourceId, date)
-  const totalEvents = eventsInCell.length
-  
-  // Sort events by start time to maintain consistent order
-  const sortedEvents = eventsInCell.sort((a, b) => {
-    const startA = atemporal(a.startTime)
-    const startB = atemporal(b.startTime)
-    return startA.isBefore(startB) ? -1 : 1
-  })
-  
-  // Find the index of current event in sorted array
-  const currentEventIndex = sortedEvents.findIndex(e => e.id === event.id)
-  
-  // Calculate vertical stacking parameters
-  const eventSpacing = 2 // Space between events
-  const topPadding = 4 // Top padding in cell
-  const bottomPadding = 4 // Bottom padding in cell
-  const availableHeight = resourceRowHeight - topPadding - bottomPadding
-  
-  // Calculate event height based on number of events
-  const eventHeight = Math.max(
-    16, // Minimum height
-    Math.floor((availableHeight - (totalEvents - 1) * eventSpacing) / totalEvents)
-  )
-  
-  // Calculate vertical position (stacked from top to bottom)
-  const eventTop = topPadding + (currentEventIndex * (eventHeight + eventSpacing))
+  // Find resource index for vertical positioning
+  const resourceIndex = displayResources.value.findIndex(r => r.id === event.resourceId)
+  const resourceRowTop = resourceIndex >= 0 ? resourceIndex * MIN_ROW_HEIGHT : 0
   
   return {
-    top: eventTop + 'px',
-    height: eventHeight + 'px',
-    left: '4px',
-    width: 'calc(100% - 8px)',
-    zIndex: currentEventIndex + 1
+    position: 'absolute',
+    top: resourceRowTop + 'px',
+    left: RESOURCE_COLUMN_WIDTH + (startIndex * (100 / 7)) + '%',
+    width: (span * cellWidth) + '%',
+    height: MULTIDAY_EVENT_HEIGHT + 'px',
+    zIndex: 10
   }
 }
-
-// Removed eventsTimeOverlap function as it's no longer needed with vertical stacking
 
 /**
  * Format event time for display
@@ -420,115 +392,7 @@ const formatEventTime = (event: CalendarEvent): string => {
   const startFormatted = startTime.format('HH:mm')
   const endFormatted = endTime.format('HH:mm')
   
-  return `${startFormatted} - ${endFormatted}`
-}
-
-/**
- * Get all multi-day events across all resources
- */
-const getAllMultiDayEvents = (): CalendarEvent[] => {
-  return props.events.filter(event => isMultiDayEvent(event))
-}
-
-/**
- * Interface for simplified event layout information
- */
-interface EventLayout {
-  event: CalendarEvent
-  stackIndex: number
-  totalInStack: number
-  resourceIndex: number
-}
-
-/**
- * Group multi-day events by resource for vertical stacking
- */
-const getMultiDayEventsByResource = (): Map<string, CalendarEvent[]> => {
-  const eventsByResource = new Map<string, CalendarEvent[]>()
-  
-  getAllMultiDayEvents().forEach(event => {
-    const resourceId = event.resourceId || 'default'
-    if (!eventsByResource.has(resourceId)) {
-      eventsByResource.set(resourceId, [])
-    }
-    eventsByResource.get(resourceId)!.push(event)
-  })
-  
-  return eventsByResource
-}
-
-/**
- * Calculate vertical stack positions for multi-day events
- * Events are simply stacked vertically by start time order
- */
-const calculateEventStacks = (events: CalendarEvent[]): Map<string, EventLayout> => {
-  const layouts = new Map<string, EventLayout>()
-  
-  // Sort events by start time for consistent stacking order
-  const sortedEvents = events.sort((a, b) => {
-    const startA = atemporal(a.startTime)
-    const startB = atemporal(b.startTime)
-    return startA.isBefore(startB) ? -1 : startA.isAfter(startB) ? 1 : 0
-  })
-  
-  // Assign stack positions based on sorted order
-  sortedEvents.forEach((event, index) => {
-    const resourceIndex = displayResources.value.findIndex(r => r.id === event.resourceId)
-    
-    layouts.set(event.id, {
-      event,
-      stackIndex: index,
-      totalInStack: sortedEvents.length,
-      resourceIndex: resourceIndex >= 0 ? resourceIndex : 0
-    })
-  })
-  
-  return layouts
-}
-
-/**
- * Get layout information for a specific multi-day event
- */
-const getEventLayout = (event: CalendarEvent): EventLayout => {
-  const eventsByResource = getMultiDayEventsByResource()
-  const resourceId = event.resourceId || 'default'
-  const resourceEvents = eventsByResource.get(resourceId) || []
-  
-  const layouts = calculateEventStacks(resourceEvents)
-  return layouts.get(event.id) || {
-    event,
-    stackIndex: 0,
-    totalInStack: 1,
-    resourceIndex: displayResources.value.findIndex(r => r.id === event.resourceId)
-  }
-}
-
-/**
- * Calculate multi-day event position using vertical stacking
- */
-const getMultiDayEventPosition = (event: CalendarEvent): EventPosition => {
-  const span = getMultiDayEventSpan(event)
-  const cellWidth = 100 / 7 // Each day cell is 1/7 of the total width
-  
-  // Get layout information using vertical stacking
-  const layout = getEventLayout(event)
-  
-  // Calculate vertical position with stacking
-  const multiDayEventHeight = 20
-  const multiDayEventSpacing = 2
-  const topOffset = 8 // Initial offset from top of each resource row
-  
-  // Position relative to the resource row with vertical stacking
-  const resourceRowTop = layout.resourceIndex * resourceRowHeight
-  const stackOffset = topOffset + (layout.stackIndex * (multiDayEventHeight + multiDayEventSpacing))
-  
-  return {
-    top: resourceRowTop + stackOffset,
-    height: multiDayEventHeight,
-    left: span.startIndex * cellWidth,
-    width: span.span * cellWidth,
-    zIndex: 20 + layout.stackIndex // Higher z-index based on stack position
-  }
+  return `${startFormatted}-${endFormatted}`
 }
 
 /**
@@ -548,7 +412,7 @@ const handleResourceSlotClick = (resource: CalendarResource, date: Atemporal): v
     date: date.format('YYYY-MM-DD'),
     time: '09:00', // Default time for new events
     resourceId: resource.id,
-    resource: resource, // Complete resource object
+    resource: resource,
     dayName: getDayName(date, 0),
     isToday: isToday(date),
     isWeekend: isWeekend(date),
@@ -566,204 +430,199 @@ const getResourceName = (resourceId?: string): string => {
   const resource = displayResources.value.find(r => r.id === resourceId)
   return resource?.name || ''
 }
-
-/**
- * Get resource color by ID
- */
-const getResourceColor = (resourceId?: string): string => {
-  if (!resourceId) return '#3b82f6'
-  const resource = displayResources.value.find(r => r.id === resourceId)
-  return resource?.color || '#3b82f6'
-}
-
-// Using flexbox layout with vertical event stacking
-
-// Lifecycle
-onMounted(() => {
-  // Component mounted - resource calendar ready
-})
 </script>
 
 <style scoped>
-.atempo-cal-weekly-view {
-  @apply flex flex-col h-full;
+.weekly-view {
+  @apply flex flex-col h-full bg-white dark:bg-gray-900;
 }
 
-.atempo-cal-week-header {
+.week-header {
   @apply flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800;
 }
 
-.atempo-cal-resource-spacer {
+.resource-spacer {
   @apply border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800;
   @apply flex items-center justify-center;
+  width: 160px;
   height: 80px;
 }
 
-.atempo-cal-day-headers {
-  @apply bg-white dark:bg-gray-800;
+.resource-label {
+  @apply text-sm font-medium text-gray-700 dark:text-gray-300;
 }
 
-.atempo-cal-day-header {
+.day-headers {
+  @apply flex-1 bg-white dark:bg-gray-800;
+}
+
+.day-grid {
+  @apply grid grid-cols-7 h-full;
+}
+
+.day-header {
   @apply flex flex-col items-center justify-center p-2 border-r border-gray-200 dark:border-gray-700;
   @apply cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors;
   height: 80px;
 }
 
-.atempo-cal-day-header.today {
+.day-header.is-today {
   @apply bg-blue-50 dark:bg-blue-900/20;
 }
 
-.atempo-cal-day-header.weekend {
+.day-header.is-weekend {
   @apply bg-gray-50 dark:bg-gray-800;
 }
 
-.atempo-cal-day-header.selected {
+.day-header.is-selected {
   @apply bg-blue-100 dark:bg-blue-800/30;
 }
 
-.atempo-cal-day-name {
+.day-name {
   @apply text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide;
 }
 
-.atempo-cal-day-number {
+.day-number {
   @apply text-lg font-semibold text-gray-900 dark:text-gray-100 mt-1;
 }
 
-.atempo-cal-day-header.today .atempo-cal-day-number {
+.day-header.is-today .day-number {
   @apply text-blue-600 dark:text-blue-400;
 }
 
-.atempo-cal-week-content {
-  @apply flex-1 overflow-auto;
+.week-content {
+  @apply flex-1 overflow-auto relative;
   max-height: calc(100vh - 200px);
 }
 
-.atempo-cal-resource-calendar {
+.multiday-overlay {
+  @apply absolute inset-0 pointer-events-none;
+  z-index: 10;
+}
+
+.multiday-event {
+  @apply pointer-events-auto cursor-pointer;
+}
+
+.resource-container {
   @apply flex flex-col;
 }
 
-.atempo-cal-resource-calendar-row {
-  @apply flex border-b border-gray-200 dark:border-gray-600;
+.resource-row {
+  @apply flex border-b border-gray-200 dark:border-gray-600 relative;
 }
 
-.atempo-cal-resource-info {
-  @apply flex-shrink-0;
+.resource-info {
+  @apply flex-shrink-0 border-r border-gray-200 dark:border-gray-700;
+  width: 160px;
 }
 
-.atempo-cal-resource-days {
-  @apply flex;
+.resource-content {
+  @apply flex items-center h-full px-3 py-2 bg-gray-50 dark:bg-gray-800;
 }
 
-.atempo-cal-resource-day-cell {
-  @apply relative overflow-hidden;
+.resource-indicator {
+  @apply w-3 h-3 rounded-full flex-shrink-0;
+}
+
+.resource-details {
+  @apply flex flex-col ml-2;
+}
+
+.resource-name {
+  @apply text-sm font-medium text-gray-900 dark:text-gray-100 truncate;
+}
+
+.resource-role {
+  @apply text-xs text-gray-500 dark:text-gray-400 truncate;
+}
+
+.resource-days {
+  @apply flex flex-1;
+}
+
+.day-cell {
+  @apply flex-1 relative cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors;
   @apply border-r border-gray-200 dark:border-gray-600;
 }
 
-.atempo-cal-resource-day-cell.today {
+.day-cell.is-today {
   @apply bg-blue-50/30 dark:bg-blue-900/10;
 }
 
-.atempo-cal-resource-day-cell.weekend {
+.day-cell.is-weekend {
   @apply bg-gray-50/50 dark:bg-gray-800/50;
 }
 
-/* Vertically stacked multi-day event styles */
-.atempo-cal-multiday-event {
-  @apply rounded-sm shadow-sm border-l-4 px-2 py-1 cursor-pointer transition-all duration-200;
-  @apply hover:shadow-md;
-  min-height: 20px;
-  margin-bottom: 2px;
+.events-stack {
+  @apply relative w-full h-full;
 }
 
-.atempo-cal-multiday-event .atempo-cal-event {
-  @apply static w-full h-full;
-  min-height: 20px;
+.stacked-event {
+  @apply absolute;
 }
 
-.atempo-cal-multiday-event .atempo-cal-event-content {
-  @apply flex items-center h-full;
+.event-bar {
+  @apply w-full h-full rounded-md shadow-sm border-l-4 px-2 py-1 cursor-pointer;
+  @apply transition-all duration-200 hover:shadow-md;
+  @apply flex items-center justify-between;
 }
 
-.atempo-cal-multiday-event .atempo-cal-event-title {
-  @apply text-xs font-medium truncate;
+.event-title {
+  @apply text-xs font-medium truncate flex-1;
 }
 
-.atempo-cal-multiday-event .atempo-cal-event-time {
+.event-time {
   @apply text-xs opacity-75 ml-2 flex-shrink-0;
 }
 
-.atempo-cal-multiday-event:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+.event-resource {
+  @apply text-xs opacity-75 ml-2 flex-shrink-0;
 }
 
-/* Vertical stacking styles for single-day events */
-.atempo-cal-resource-day-cell .atempo-cal-event {
-  @apply static w-full;
-  min-height: 16px;
-  margin-bottom: 2px;
+.delete-btn {
+  @apply opacity-0 group-hover:opacity-100 w-4 h-4 rounded bg-white/80 shadow-sm;
+  @apply flex items-center justify-center text-gray-600 hover:bg-white transition-all ml-1;
 }
 
-.atempo-cal-resource-day-cell .atempo-cal-event-content {
-  @apply flex items-center h-full;
+.delete-icon {
+  @apply w-3 h-3;
 }
 
-.atempo-cal-resource-day-cell .atempo-cal-event-title {
-  @apply text-xs font-medium truncate;
+.add-indicator {
+  @apply opacity-0 hover:opacity-100 transition-opacity absolute inset-0;
+  @apply flex items-center justify-center pointer-events-none;
 }
 
-.atempo-cal-resource-day-cell .atempo-cal-event-time {
-  @apply text-xs opacity-75 ml-1 flex-shrink-0;
+.add-btn {
+  @apply bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg;
 }
 
-/* Improved event card styling for stacked layout */
-.atempo-cal-resource-day-cell .atempo-cal-event > div {
-  @apply rounded-sm border-l-4 transition-all duration-200;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  height: 100%;
+.add-icon {
+  @apply w-4 h-4;
 }
 
-.atempo-cal-resource-day-cell .atempo-cal-event > div:hover {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-  transform: translateY(-1px);
-}
-
-.atempo-cal-current-time-line {
-  @apply absolute bg-red-500 h-0.5 z-20;
-}
-
-.atempo-cal-current-time-dot {
-  @apply absolute -left-1 -top-1 w-2 h-2 bg-red-500 rounded-full;
-}
-
-/* Google Calendar-style event transitions */
-.atempo-cal-event-expanded {
-  transform: scale(1.02);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.atempo-cal-event-compact {
-  opacity: 0.7;
-  transform: scale(0.98);
+.event-content {
+  @apply w-full h-full rounded-md shadow-sm border-l-4 px-2 py-1;
+  @apply bg-blue-50 dark:bg-blue-900/20 flex items-center justify-between;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .atempo-cal-day-header {
+  .day-header {
     @apply p-1;
     height: 60px;
   }
   
-  .atempo-cal-day-name {
+  .day-name {
     @apply text-xs;
   }
   
-  .atempo-cal-day-number {
+  .day-number {
     @apply text-sm;
   }
   
-  .atempo-cal-time-spacer {
+  .resource-spacer {
     height: 60px;
   }
 }
