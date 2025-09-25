@@ -239,6 +239,10 @@ defineExpose({
   background-color: var(--atempo-bg-primary);
   color: var(--atempo-text-primary);
   min-height: 100%;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--atempo-border-primary);
+  overflow: hidden;
 }
 
 .atempo-cal-content {

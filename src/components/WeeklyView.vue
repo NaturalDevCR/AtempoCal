@@ -640,10 +640,24 @@ const getMaxEventsForWorker = (workerId: string): number => {
 }
 
 /**
- * Get multi-day events for a specific worker
+ * Get multi-day events for a specific worker that intersect with the current week
  */
 const getMultiDayEventsForWorker = (workerId: string): CalendarEvent[] => {
-  return multiDayEvents.value.filter(event => event.resourceId === workerId)
+  const weekStart = weekDates.value[0]
+  const weekEnd = weekDates.value[weekDates.value.length - 1]
+  
+  return multiDayEvents.value.filter(event => {
+    if (event.resourceId !== workerId) return false
+    
+    const eventStart = atemporal(event.startTime).startOf('day')
+    const eventEnd = atemporal(event.endTime).startOf('day')
+    const weekStartDay = weekStart.startOf('day')
+    const weekEndDay = weekEnd.startOf('day')
+    
+    // Event intersects with week if:
+    // event start <= week end AND event end >= week start
+    return eventStart.isSameOrBefore(weekEndDay) && eventEnd.isSameOrAfter(weekStartDay)
+  })
 }
 
 /**
@@ -767,31 +781,46 @@ const getStackedEventStyle = (eventIndex: number, workerId: string): Record<stri
  * Get style for worker-specific multi-day event with proper positioning
  */
 const getWorkerMultiDayEventStyle = (event: CalendarEvent & { lane: number }, _workerId: string): Record<string, string | number> => {
-  const eventStartDate = atemporal(event.startTime)
-  const eventEndDate = atemporal(event.endTime)
+  const eventStartDate = atemporal(event.startTime).startOf('day')
+  const eventEndDate = atemporal(event.endTime).startOf('day')
+  const weekStart = weekDates.value[0].startOf('day')
+  const weekEnd = weekDates.value[weekDates.value.length - 1].startOf('day')
+  
+  // Calculate the actual start and end dates within the current week
+  const displayStartDate = eventStartDate.isBefore(weekStart) ? weekStart : eventStartDate
+  const displayEndDate = eventEndDate.isAfter(weekEnd) ? weekEnd : eventEndDate
   
   // Find start and end indices within the current week
   let startIndex = -1
   let endIndex = -1
   
   weekDates.value.forEach((date, index) => {
-    const dateStr = date.format('YYYY-MM-DD')
-    const eventStartStr = eventStartDate.format('YYYY-MM-DD')
-    const eventEndStr = eventEndDate.format('YYYY-MM-DD')
+    const dateDay = date.startOf('day')
     
-    if (dateStr === eventStartStr || (dateStr > eventStartStr && startIndex === -1)) {
+    if (dateDay.isSame(displayStartDate)) {
       startIndex = index
     }
-    if (dateStr === eventEndStr || (dateStr < eventEndStr && dateStr >= eventStartStr)) {
+    if (dateDay.isSame(displayEndDate)) {
       endIndex = index
     }
   })
   
-  // Handle events that start before or end after the current week
-  if (startIndex === -1) startIndex = 0
-  if (endIndex === -1) endIndex = weekDates.value.length - 1
+  // Fallback: if exact dates not found, find closest indices
+  if (startIndex === -1) {
+    startIndex = weekDates.value.findIndex(date => 
+      date.startOf('day').isSameOrAfter(displayStartDate)
+    )
+    if (startIndex === -1) startIndex = 0
+  }
   
-  const span = endIndex - startIndex + 1
+  if (endIndex === -1) {
+    endIndex = weekDates.value.findIndex(date => 
+      date.startOf('day').isSameOrAfter(displayEndDate)
+    )
+    if (endIndex === -1) endIndex = weekDates.value.length - 1
+  }
+  
+  const span = Math.max(1, endIndex - startIndex + 1)
   const cellWidth = 100 / 7 // Each day cell is 1/7 of the total width
   
   // Position using the pre-calculated lane from the event object
@@ -800,7 +829,7 @@ const getWorkerMultiDayEventStyle = (event: CalendarEvent & { lane: number }, _w
   return {
     position: 'absolute',
     top: top + 'px',
-    left: (startIndex * cellWidth) + '%', // Now positioned relative to day cells container
+    left: (startIndex * cellWidth) + '%',
     width: (span * cellWidth) + '%',
     height: EVENT_HEIGHT + 'px',
     zIndex: 10 + event.lane
@@ -890,25 +919,25 @@ const handleEventClick = (event: CalendarEvent, _eventType: 'single-day' | 'mult
 .week-header {
   display: flex;
   border-bottom: 1px solid var(--atempo-border-primary);
-  background-color: var(--atempo-bg-primary);
+  background-color: var(--atempo-header-bg);
 }
 
 .resource-spacer {
-  width: 200px;
-  min-width: 200px;
+  width: 160px;
+  min-width: 160px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem 0.5rem;
   border-right: 1px solid var(--atempo-border-primary);
-  background-color: #2D3748;
+  background-color: var(--atempo-colaboradores-bg);
   height: 90px;
 }
 
 .resource-label {
   font-size: 0.875rem;
   font-weight: 600;
-  color: white;
+  color: var(--atempo-text-primary);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -943,7 +972,7 @@ const handleEventClick = (event: CalendarEvent, _eventType: 'single-day' | 'mult
 }
 
 .day-header.is-today {
-  background-color: #FF6B35;
+  background-color: var(--atempo-accent-primary);
   color: white;
   font-weight: 600;
 }
@@ -1104,6 +1133,7 @@ const handleEventClick = (event: CalendarEvent, _eventType: 'single-day' | 'mult
   flex-shrink: 0;
   border-right: 1px solid var(--atempo-border-primary);
   width: 160px;
+  min-width: 160px;
 }
 
 .resource-content {

@@ -237,6 +237,11 @@
   --atempo-error: #ef4444;
   --atempo-shadow: rgba(0, 0, 0, 0.1);
   --atempo-shadow-lg: rgba(0, 0, 0, 0.15);
+  
+  /* Navigation and header color separation */
+  --atempo-nav-bg: #f8fafc;
+  --atempo-header-bg: #ffffff;
+  --atempo-colaboradores-bg: #f1f5f9;
 }
 
 /* Dark theme colors */
@@ -256,6 +261,11 @@
   --atempo-error: #f87171;
   --atempo-shadow: rgba(0, 0, 0, 0.3);
   --atempo-shadow-lg: rgba(0, 0, 0, 0.4);
+  
+  /* Navigation and header color separation */
+  --atempo-nav-bg: #0f172a;
+  --atempo-header-bg: #111827;
+  --atempo-colaboradores-bg: #1e293b;
 }
 
 /* Base calendar container */

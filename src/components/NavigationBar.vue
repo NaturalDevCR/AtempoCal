@@ -244,9 +244,9 @@ const handleDateChange = (date: string): void => {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  background-color: #2D3748;
-  color: white;
-  border-bottom: 1px solid #4A5568;
+  background-color: var(--atempo-nav-bg);
+  color: var(--atempo-text-primary);
+  border-bottom: 1px solid var(--atempo-border-primary);
   min-height: 70px;
 }
 
@@ -276,16 +276,16 @@ const handleDateChange = (date: string): void => {
   width: 40px;
   height: 40px;
   background-color: transparent;
-  border: 1px solid #4A5568;
+  border: 1px solid var(--atempo-border-secondary);
   border-radius: 6px;
-  color: white;
+  color: var(--atempo-text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .nav-arrow-btn:hover {
-  background-color: #4A5568;
-  border-color: #718096;
+  background-color: var(--atempo-bg-secondary);
+  border-color: var(--atempo-border-primary);
 }
 
 .nav-arrow-btn:disabled {
@@ -299,9 +299,9 @@ const handleDateChange = (date: string): void => {
   justify-content: center;
   padding: 0.5rem 1rem;
   background-color: transparent;
-  border: 1px solid #4A5568;
+  border: 1px solid var(--atempo-border-secondary);
   border-radius: 6px;
-  color: white;
+  color: var(--atempo-text-primary);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -310,8 +310,8 @@ const handleDateChange = (date: string): void => {
 }
 
 .nav-today-btn:hover {
-  background-color: #4A5568;
-  border-color: #718096;
+  background-color: var(--atempo-bg-secondary);
+  border-color: var(--atempo-border-primary);
 }
 
 .nav-today-btn:disabled {
@@ -322,7 +322,7 @@ const handleDateChange = (date: string): void => {
 .nav-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: white;
+  color: var(--atempo-text-primary);
   margin: 0;
   text-align: center;
 }
@@ -334,59 +334,59 @@ const handleDateChange = (date: string): void => {
   width: 40px;
   height: 40px;
   background-color: transparent;
-  border: 1px solid #4A5568;
+  border: 1px solid var(--atempo-border-secondary);
   border-radius: 6px;
-  color: white;
+  color: var(--atempo-text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .nav-date-picker-btn:hover {
-  background-color: #4A5568;
-  border-color: #718096;
+  background-color: var(--atempo-bg-secondary);
+  border-color: var(--atempo-border-primary);
 }
 
 /* Modal styles */
 .atempo-cal-modal {
-  background-color: white;
+  background-color: var(--atempo-bg-primary);
   border-radius: 8px;
   padding: 1.5rem;
   max-width: 400px;
   width: 100%;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  color: #1a202c;
+  box-shadow: var(--shadow-xl);
+  color: var(--atempo-text-primary);
 }
 
 .atempo-cal-modal-close {
   padding: 0.25rem;
   border-radius: 6px;
   transition: background-color 0.2s ease;
-  color: #718096;
+  color: var(--atempo-text-secondary);
   background: none;
   border: none;
   cursor: pointer;
 }
 
 .atempo-cal-modal-close:hover {
-  background-color: #f7fafc;
-  color: #2d3748;
+  background-color: var(--atempo-bg-secondary);
+  color: var(--atempo-text-primary);
 }
 
 .atempo-cal-date-input {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--atempo-border-primary);
   border-radius: 6px;
   transition: border-color 0.2s ease;
-  background-color: white;
-  color: #1a202c;
+  background-color: var(--atempo-bg-primary);
+  color: var(--atempo-text-primary);
   font-size: 0.875rem;
 }
 
 .atempo-cal-date-input:focus {
   outline: none;
-  border-color: #4299e1;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+  border-color: var(--atempo-accent-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--atempo-accent-primary) 10%, transparent);
 }
 
 .atempo-cal-modal-button {
@@ -394,15 +394,15 @@ const handleDateChange = (date: string): void => {
   font-size: 0.875rem;
   border-radius: 6px;
   transition: background-color 0.2s ease;
-  color: #718096;
+  color: var(--atempo-text-secondary);
   background: none;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--atempo-border-primary);
   cursor: pointer;
 }
 
 .atempo-cal-modal-button:hover {
-  background-color: #f7fafc;
-  color: #2d3748;
+  background-color: var(--atempo-bg-secondary);
+  color: var(--atempo-text-primary);
 }
 
 /* Responsive adjustments */
