@@ -1,0 +1,66 @@
+# Development files
+.trae/
+demo/
+src/
+*.log
+*.lock
+
+# Build artifacts
+node_modules/
+.vite/
+.turbo/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+
+# Testing
+coverage/
+*.test.*
+*.spec.*
+
+# Documentation (keep README.md)
+CHANGELOG.md
+
+# Configuration files
+vite.config.ts
+tsconfig.json
+tailwind.config.js
+postcss.config.js
+.eslintrc.cjs
+.eslintignore
+
+# Environment files
+.env*
+
+# Temporary files
+tmp/
+temp/
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Only include dist folder and essential files
+# Everything else is excluded by default

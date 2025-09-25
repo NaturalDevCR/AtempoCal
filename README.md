@@ -1,6 +1,6 @@
 # AtempoCal
 
-> A highly customizable Vue 3 calendar component built with TypeScript, Tailwind CSS, and the Atemporal library.
+> A Vue 3 weekly scheduling calendar component designed for worker/resource management with dark/light theme support and TypeScript integration.
 
 [![npm version](https://badge.fury.io/js/atempo-cal.svg)](https://badge.fury.io/js/atempo-cal)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -9,30 +9,41 @@
 
 ## ✨ Features
 
-- 📅 **Weekly Scheduling Focus**: Optimized weekly calendar view for resource scheduling
-- 👥 **Worker/Resource Management**: Advanced resource scheduling with intelligent event positioning
-- 🎨 **Highly Customizable**: Configurable fields, actions, and styling
-- 🌍 **Internationalization**: Built-in i18n support using Atemporal's localization
-- 🕐 **Timezone Support**: Global timezone configuration with Atemporal integration
-- 🌙 **Dark/Light Theme**: Automatic theme switching with smooth transitions
+- 📅 **Weekly Scheduling Focus**: Exclusively designed for weekly calendar view and resource scheduling
+- 👥 **Worker/Resource Management**: Advanced employee/resource scheduling with detailed metadata support
+- 🌙 **Dark/Light Theme**: Automatic theme detection with smooth transitions and prop-based configuration
+- 🎨 **Modern UI**: Clean, professional interface built with Tailwind CSS
+- 🕐 **Timezone Support**: Global timezone configuration with Atemporal library integration
+- 🌍 **Internationalization**: Built-in i18n support for multiple locales
+- 🔧 **TypeScript**: Full type safety with comprehensive type definitions
 - 📱 **Responsive Design**: Mobile-adaptive with touch-friendly interactions
-- ⚡ **Performance Optimized**: Efficient rendering and state management
-- 🔧 **TypeScript**: Full type safety and excellent developer experience
-- 🎯 **Framework Agnostic**: Easy integration with Vue 3, Nuxt, Quasar, and more
-- 🚫 **No Event Overlaps**: Intelligent vertical stacking prevents visual conflicts
-- 🏷️ **Multi-Day Event Support**: Seamless handling of events spanning multiple days
-- ⏰ **Time Range Display**: Clear time ranges for single-day events and date ranges for multi-day events
+- 🚫 **Smart Event Stacking**: Intelligent vertical stacking prevents visual overlaps
+- 🏷️ **Multi-Day Events**: Seamless handling of events spanning multiple days with date ranges
+- ⏰ **Time Display**: Time ranges for single-day events, title + date range for multi-day events
+- ⚡ **Performance Optimized**: Efficient rendering with Vue 3 Composition API
+- 🎯 **Easy Integration**: Works with Vue 3, Nuxt, Quasar, and other Vue-based frameworks
 
 ## 🚀 Quick Start
 
 ### Installation
 
 ```bash
+# npm
 npm install atempo-cal
-# or
+
+# yarn
 yarn add atempo-cal
-# or
+
+# pnpm
 pnpm add atempo-cal
+```
+
+### Peer Dependencies
+
+AtempoCal requires the following peer dependencies:
+
+```bash
+npm install vue@^3.4.0 atemporal@^0.1.0
 ```
 
 ### Basic Usage
@@ -57,24 +68,50 @@ import AtempoCal from 'atempo-cal'
 import type { CalendarEvent, CalendarResource, CalendarConfig } from 'atempo-cal'
 import 'atempo-cal/dist/style.css'
 
-// Sample events
+// Sample events for worker scheduling
 const events = ref<CalendarEvent[]>([
   {
     id: '1',
-    title: 'Team Meeting',
-    startTime: '2024-01-15T09:00:00Z',
-    endTime: '2024-01-15T10:00:00Z',
-    resourceId: 'room-a',
-    color: '#3B82F6'
+    title: 'Morning Shift',
+    startTime: '2024-01-15T06:00:00Z',
+    endTime: '2024-01-15T14:00:00Z',
+    resourceId: 'emp-001',
+    color: '#3B82F6',
+    metadata: { type: 'shift', shiftType: 'morning' }
+  },
+  {
+    id: '2',
+    title: 'Annual Leave',
+    startTime: '2024-01-16T00:00:00Z',
+    endTime: '2024-01-18T23:59:59Z',
+    resourceId: 'emp-002',
+    color: '#10B981',
+    isAllDay: true,
+    metadata: { type: 'time-off', category: 'vacation' }
   }
 ])
 
-// Sample resources
+// Sample workers/resources
 const resources = ref<CalendarResource[]>([
   {
-    id: 'room-a',
-    name: 'Conference Room A',
-    color: '#3B82F6'
+    id: 'emp-001',
+    name: 'John Smith',
+    color: '#3B82F6',
+    metadata: {
+      department: 'Operations',
+      role: 'Shift Supervisor',
+      email: 'john.smith@company.com'
+    }
+  },
+  {
+    id: 'emp-002',
+    name: 'Sarah Johnson',
+    color: '#10B981',
+    metadata: {
+      department: 'Customer Service',
+      role: 'Team Lead',
+      email: 'sarah.johnson@company.com'
+    }
   }
 ])
 
