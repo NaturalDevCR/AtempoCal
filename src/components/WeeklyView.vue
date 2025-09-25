@@ -479,95 +479,146 @@ const formatEventTime = (event: CalendarEvent): string => {
 }
 
 /**
- * Get all multi-day events across all resources for proper stacking calculation
+ * Get all multi-day events across all resources
  */
 const getAllMultiDayEvents = (): CalendarEvent[] => {
   return props.events.filter(event => isMultiDayEvent(event))
 }
 
 /**
- * Calculate global stack level for multi-day events to prevent overlaps across resources
+ * Interface for event layout information
  */
-const getMultiDayEventStackLevel = (targetEvent: CalendarEvent): number => {
-  const allMultiDayEvents = getAllMultiDayEvents()
-  
-  // Sort all multi-day events by start time for consistent stacking
-  const sortedEvents = allMultiDayEvents.sort((a, b) => {
-    const startA = atemporal(a.startTime)
-    const startB = atemporal(b.startTime)
-    return startA.isBefore(startB) ? -1 : 1
-  })
-  
-  // Build stack levels by checking time overlaps
-  const stackLevels: { [eventId: string]: number } = {}
-  const stacks: CalendarEvent[][] = []
-  
-  sortedEvents.forEach((event) => {
-    let stackLevel = 0
-    let placed = false
-    
-    // Find the first available stack level where this event doesn't overlap
-    while (stackLevel < stacks.length && !placed) {
-      const stackEvents = stacks[stackLevel]
-      let canPlace = true
-      
-      // Check if this event overlaps with any event in this stack level
-      for (const stackEvent of stackEvents) {
-        if (eventsTimeOverlap(event, stackEvent)) {
-          canPlace = false
-          break
-        }
-      }
-      
-      if (canPlace) {
-        stacks[stackLevel].push(event)
-        stackLevels[event.id] = stackLevel
-        placed = true
-      } else {
-        stackLevel++
-      }
-    }
-    
-    // If no existing stack works, create a new one
-    if (!placed) {
-      stacks.push([event])
-      stackLevels[event.id] = stacks.length - 1
-    }
-  })
-  
-  return stackLevels[targetEvent.id] || 0
+interface EventLayout {
+  event: CalendarEvent
+  lane: number
+  maxLanes: number
+  resourceIndex: number
 }
 
 /**
- * Calculate multi-day event position spanning multiple cells with proper stacking
- * Now positions events relative to their resource row
+ * Group events by resource for proper lane assignment
+ */
+const getMultiDayEventsByResource = (): Map<string, CalendarEvent[]> => {
+  const eventsByResource = new Map<string, CalendarEvent[]>()
+  
+  getAllMultiDayEvents().forEach(event => {
+    const resourceId = event.resourceId || 'default'
+    if (!eventsByResource.has(resourceId)) {
+      eventsByResource.set(resourceId, [])
+    }
+    eventsByResource.get(resourceId)!.push(event)
+  })
+  
+  return eventsByResource
+}
+
+/**
+ * Calculate lane assignments for events within a resource using column-based algorithm
+ * Based on research from Stack Overflow calendar layout algorithms
+ */
+const calculateEventLanes = (events: CalendarEvent[]): Map<string, EventLayout> => {
+  const layouts = new Map<string, EventLayout>()
+  
+  // Sort events by start time, then by end time
+  const sortedEvents = events.sort((a, b) => {
+    const startA = atemporal(a.startTime)
+    const startB = atemporal(b.startTime)
+    const comparison = startA.isBefore(startB) ? -1 : startA.isAfter(startB) ? 1 : 0
+    if (comparison !== 0) return comparison
+    
+    // If start times are equal, sort by end time
+    const endA = atemporal(a.endTime)
+    const endB = atemporal(b.endTime)
+    return endA.isBefore(endB) ? -1 : endA.isAfter(endB) ? 1 : 0
+  })
+  
+  // Track occupied lanes with their end times
+  const lanes: { endTime: Atemporal; eventId: string }[] = []
+  
+  sortedEvents.forEach(event => {
+    const eventStart = atemporal(event.startTime)
+    const eventEnd = atemporal(event.endTime)
+    
+    // Find the first available lane
+    let assignedLane = -1
+    
+    for (let i = 0; i < lanes.length; i++) {
+      // Check if this lane is free (previous event ended before this one starts)
+      if (lanes[i].endTime.isBefore(eventStart) || lanes[i].endTime.equals(eventStart)) {
+        assignedLane = i
+        lanes[i] = { endTime: eventEnd, eventId: event.id }
+        break
+      }
+    }
+    
+    // If no existing lane is available, create a new one
+    if (assignedLane === -1) {
+      assignedLane = lanes.length
+      lanes.push({ endTime: eventEnd, eventId: event.id })
+    }
+    
+    // Find resource index
+    const resourceIndex = displayResources.value.findIndex(r => r.id === event.resourceId)
+    
+    layouts.set(event.id, {
+      event,
+      lane: assignedLane,
+      maxLanes: lanes.length,
+      resourceIndex: resourceIndex >= 0 ? resourceIndex : 0
+    })
+  })
+  
+  // Update maxLanes for all events in this resource
+  const finalMaxLanes = lanes.length
+  layouts.forEach(layout => {
+    layout.maxLanes = finalMaxLanes
+  })
+  
+  return layouts
+}
+
+/**
+ * Get layout information for a specific event
+ */
+const getEventLayout = (event: CalendarEvent): EventLayout => {
+  const eventsByResource = getMultiDayEventsByResource()
+  const resourceId = event.resourceId || 'default'
+  const resourceEvents = eventsByResource.get(resourceId) || []
+  
+  const layouts = calculateEventLanes(resourceEvents)
+  return layouts.get(event.id) || {
+    event,
+    lane: 0,
+    maxLanes: 1,
+    resourceIndex: displayResources.value.findIndex(r => r.id === event.resourceId)
+  }
+}
+
+/**
+ * Calculate multi-day event position using proper column-based layout algorithm
  */
 const getMultiDayEventPosition = (event: CalendarEvent): EventPosition => {
   const span = getMultiDayEventSpan(event)
   const cellWidth = 100 / 7 // Each day cell is 1/7 of the total width
   
-  // Get the global stack level for this event to prevent overlaps across resources
-  const stackLevel = getMultiDayEventStackLevel(event)
+  // Get layout information using the new algorithm
+  const layout = getEventLayout(event)
   
-  // Find the resource row index for this event
-  const resourceIndex = displayResources.value.findIndex(r => r.id === event.resourceId)
-  const resourceRowIndex = resourceIndex >= 0 ? resourceIndex : 0
-  
-  // Calculate vertical position based on resource row and stack level
-  const multiDayEventHeight = 20
-  const multiDayEventSpacing = 3
+  // Calculate vertical position based on resource row and lane
+  const multiDayEventHeight = 18
+  const multiDayEventSpacing = 2
   const topOffset = 5 // Initial offset from top of each resource row
   
-  // Position relative to the resource row (120px per row) plus stack offset
-  const resourceRowTop = resourceRowIndex * resourceRowHeight
-  const stackOffset = topOffset + (stackLevel * (multiDayEventHeight + multiDayEventSpacing))
+  // Position relative to the resource row plus lane offset
+  const resourceRowTop = layout.resourceIndex * resourceRowHeight
+  const laneOffset = topOffset + (layout.lane * (multiDayEventHeight + multiDayEventSpacing))
   
   return {
-    top: resourceRowTop + stackOffset,
+    top: resourceRowTop + laneOffset,
     height: multiDayEventHeight,
     left: span.startIndex * cellWidth,
     width: span.span * cellWidth,
-    zIndex: 20 + stackLevel // Higher z-index based on stack level
+    zIndex: 20 + layout.lane // Higher z-index based on lane
   }
 }
 
