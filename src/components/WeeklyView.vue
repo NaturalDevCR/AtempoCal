@@ -62,7 +62,7 @@
                 :key="'multiday-' + event.id"
                 class="resource-multiday-event"
                 :style="getWorkerMultiDayEventStyle(event, worker.id)"
-                @click="$emit('event-click', event)"
+                @click="handleEventClick(event, 'multiday')"
               >
                 <div class="multiday-content" 
                   :class="{
@@ -98,7 +98,7 @@
                   :key="event.id"
                   class="stacked-event"
                   :style="getStackedEventStyle(eventIndex, worker.id)"
-                  @click.stop="$emit('event-click', event)"
+                  @click.stop="handleEventClick(event, 'single-day')"
                 >
                   <div 
                     class="event-bar group"
@@ -850,6 +850,61 @@ const handleWorkerSlotClick = (worker: CalendarResource, date: Atemporal): void 
   }
   
   emit('slot-click', slotInfo)
+}
+
+/**
+ * Handle event click with enhanced data
+ */
+const handleEventClick = (event: CalendarEvent, eventType: 'single-day' | 'multiday'): void => {
+  // Find the worker/resource information
+  const worker = displayWorkers.value.find(w => w.id === event.resourceId)
+  
+  // Create enhanced event data with resource information and date range
+  const enhancedEvent = {
+    ...event,
+    // Add resource information
+    resource: worker ? {
+      id: worker.id,
+      name: worker.name,
+      color: worker.color,
+      metadata: worker.metadata
+    } : {
+      id: event.resourceId || 'unknown',
+      name: 'Unknown Resource',
+      color: '#6B7280',
+      metadata: {}
+    },
+    // Add date range information for multi-day events
+    dateRange: eventType === 'multiday' ? {
+      startDate: atemporal(event.startTime).format('YYYY-MM-DD'),
+      endDate: atemporal(event.endTime).format('YYYY-MM-DD'),
+      startDateFormatted: atemporal(event.startTime).format('MMM DD, YYYY'),
+      endDateFormatted: atemporal(event.endTime).format('MMM DD, YYYY'),
+      duration: getEventDuration(event),
+      totalDays: atemporal(event.endTime).diff(atemporal(event.startTime), 'days') + 1
+    } : {
+      date: atemporal(event.startTime).format('YYYY-MM-DD'),
+      dateFormatted: atemporal(event.startTime).format('MMM DD, YYYY'),
+      timeRange: formatEventTime(event)
+    },
+    // Add event type classification
+    eventType,
+    // Add formatted time information
+    formattedTime: formatEventTime(event)
+  }
+  
+  // Console log for debugging
+  console.log('Event clicked:', {
+    eventType,
+    eventId: event.id,
+    title: event.title,
+    resourceId: event.resourceId,
+    resourceName: worker?.name || 'Unknown Resource',
+    dateRange: enhancedEvent.dateRange,
+    fullEventData: enhancedEvent
+  })
+  
+  emit('event-click', enhancedEvent)
 }
 
 // Removed getResourceName function - no longer needed
