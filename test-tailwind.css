@@ -1,6 +1,0 @@
-@import "tailwindcss";
-
-/* Test file to verify Tailwind v4 setup */
-.test {
-  @apply bg-white text-black;
-}
