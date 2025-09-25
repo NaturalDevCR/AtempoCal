@@ -324,6 +324,31 @@ The component uses CSS custom properties (CSS variables) for easy theme customiz
 }
 ```
 
+#### Self-Contained Styling
+
+AtempoCal comes with integrated border, shadow, and rounded corner styling built directly into the component. This means you can use the component without any wrapper divs and it will maintain its professional appearance:
+
+```vue
+<!-- ✅ Works perfectly - no wrapper needed -->
+<template>
+  <AtempoCal :events="events" :resources="resources" />
+</template>
+
+<!-- ❌ No longer necessary -->
+<template>
+  <div class="bg-white rounded-lg shadow border">
+    <AtempoCal :events="events" :resources="resources" />
+  </div>
+</template>
+```
+
+The component automatically includes:
+- **Border radius**: `0.5rem` rounded corners
+- **Box shadow**: Subtle `0 1px 2px 0 rgba(0, 0, 0, 0.05)` shadow
+- **Border**: Theme-aware border using `--atempo-border-primary`
+- **Overflow**: Hidden to maintain clean rounded appearance
+- **Background**: Theme-aware background using `--atempo-bg-primary`
+
 ### Available CSS Variables
 
 | Variable | Description | Light Default | Dark Default |
