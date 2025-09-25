@@ -35,7 +35,39 @@
     <!-- Scrollable content area -->
     <div class="atempo-cal-week-content atempo-cal-scroll" ref="scrollContainer">
       <!-- Resource calendar layout using flexbox -->
-      <div class="atempo-cal-resource-calendar">
+      <div class="atempo-cal-resource-calendar relative">
+        <!-- Global multi-day events layer (positioned absolutely above all resources) -->
+        <div class="absolute inset-0 pointer-events-none" :style="{ left: resourceColumnWidth + 'px', zIndex: 10 }">
+          <div
+             v-for="event in getAllMultiDayEvents()"
+             :key="event.id + '-multiday'"
+             class="absolute pointer-events-auto atempo-cal-multiday-event"
+             :style="{
+               top: getMultiDayEventPosition(event).top + 'px',
+               height: getMultiDayEventPosition(event).height + 'px',
+               left: getMultiDayEventPosition(event).left + '%',
+               width: getMultiDayEventPosition(event).width + '%',
+               zIndex: getMultiDayEventPosition(event).zIndex,
+               borderLeftColor: event.color || '#3b82f6'
+             }"
+           >
+            <EventCard
+              :event="event"
+              :position="{ top: 0, height: 100, left: 0, width: 100, zIndex: 1 }"
+              :actions="eventActions"
+              :readonly="readonly"
+              :show-time="true"
+              :show-description="false"
+              :show-resource="true"
+              :resource-name="getResourceName(event.resourceId)"
+              :resource-color="getResourceColor(event.resourceId)"
+              :max-title-length="50"
+              @click="$emit('event-click', event)"
+              @update="$emit('event-update', $event)"
+              @delete="$emit('event-delete', $event)"
+            />
+          </div>
+        </div>
         <!-- For each resource, create a complete row -->
         <div
           v-for="resource in displayResources"
@@ -43,38 +75,6 @@
           class="atempo-cal-resource-calendar-row relative"
           :style="{ height: resourceRowHeight + 'px' }"
         >
-          <!-- Multi-day events layer (positioned absolutely to span across day cells) -->
-          <div class="absolute inset-0 pointer-events-none" :style="{ left: resourceColumnWidth + 'px' }">
-            <div
-               v-for="event in getMultiDayEventsForResource(resource.id)"
-               :key="event.id + '-multiday'"
-               class="absolute pointer-events-auto atempo-cal-multiday-event"
-               :style="{
-                 top: getMultiDayEventPosition(event).top + 'px',
-                 height: getMultiDayEventPosition(event).height + 'px',
-                 left: getMultiDayEventPosition(event).left + '%',
-                 width: getMultiDayEventPosition(event).width + '%',
-                 zIndex: getMultiDayEventPosition(event).zIndex,
-                 borderLeftColor: event.color || '#3b82f6'
-               }"
-             >
-              <EventCard
-                :event="event"
-                :position="{ top: 0, height: 100, left: 0, width: 100, zIndex: 1 }"
-                :actions="eventActions"
-                :readonly="readonly"
-                :show-time="true"
-                :show-description="false"
-                :show-resource="true"
-                :resource-name="getResourceName(event.resourceId)"
-                :resource-color="getResourceColor(event.resourceId)"
-                :max-title-length="50"
-                @click="$emit('event-click', event)"
-                @update="$emit('event-update', $event)"
-                @delete="$emit('event-delete', $event)"
-              />
-            </div>
-          </div>
           <!-- Resource info column -->
           <div 
             class="atempo-cal-resource-info"
@@ -314,16 +314,6 @@ const getSingleDayEventsForResourceAndDay = (resourceId: string, date: Atemporal
     
     const matchesResource = event.resourceId === resourceId
     return isSameDay && matchesResource
-  })
-}
-
-/**
- * Get multi-day events for a specific resource
- */
-const getMultiDayEventsForResource = (resourceId: string): CalendarEvent[] => {
-  return props.events.filter(event => {
-    const matchesResource = event.resourceId === resourceId
-    return matchesResource && isMultiDayEvent(event)
   })
 }
 
