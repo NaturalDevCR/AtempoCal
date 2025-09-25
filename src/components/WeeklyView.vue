@@ -1,7 +1,28 @@
 <template>
   <div class="weekly-view">
-    <!-- Week header with days -->
+    <!-- Header with navigation -->
     <div class="week-header">
+      <div class="week-navigation">
+        <button 
+          class="nav-btn" 
+          @click="$emit('date-change', weekDates[0].subtract(7, 'days').format('YYYY-MM-DD'))"
+        >
+          ‹
+        </button>
+        <h2 class="week-title">
+          {{ weekDates[0].format('MMMM DD') }} - {{ weekDates[6].format('MMMM DD, YYYY') }}
+        </h2>
+        <button 
+          class="nav-btn" 
+          @click="$emit('date-change', weekDates[0].add(7, 'days').format('YYYY-MM-DD'))"
+        >
+          ›
+        </button>
+      </div>
+    </div>
+
+    <!-- Week header with days -->
+     <div class="day-headers">
       <!-- Resource column spacer -->
       <div class="resource-spacer">
         <span class="resource-label">Resources</span>
@@ -34,32 +55,6 @@
 
     <!-- Scrollable content area -->
     <div class="week-content" ref="scrollContainer">
-      <!-- Multi-day events section -->
-      <div class="multiday-section" v-if="multiDayEvents.length > 0">
-        <div class="multiday-header">
-          <div class="multiday-spacer">Multi-day Events</div>
-          <div class="multiday-grid"></div>
-        </div>
-        <div class="multiday-events-container" :style="{ height: multiDayEventsHeight + 'px' }">
-          <div
-            v-for="event in multiDayEventsWithLanes"
-            :key="'multiday-' + event.id"
-            class="multiday-event"
-            :style="getMultiDayEventStyle(event)"
-            @click="$emit('event-click', event)"
-          >
-            <div class="multiday-content" :style="{ 
-              backgroundColor: event.color ? event.color + '20' : '#3b82f620',
-              borderLeftColor: event.color || '#3b82f6' 
-            }">
-              <span class="multiday-title">{{ event.title }}</span>
-              <span class="multiday-resource">{{ getResourceName(event.resourceId) }}</span>
-              <span class="multiday-duration">{{ getEventDuration(event) }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Resource rows -->
       <div class="resource-container">
         <div
@@ -81,6 +76,25 @@
 
           <!-- Day cells for this resource -->
           <div class="resource-days">
+            <!-- Multi-day events container positioned relative to day cells only -->
+            <div class="multiday-events-overlay">
+              <div
+                v-for="event in getMultiDayEventsForResourceWithLanes(resource.id)"
+                :key="'multiday-' + event.id"
+                class="resource-multiday-event"
+                :style="getResourceMultiDayEventStyle(event, resource.id)"
+                @click="$emit('event-click', event)"
+              >
+                <div class="multiday-content" :style="{ 
+                  backgroundColor: event.color ? event.color + '20' : '#3b82f620',
+                  borderLeftColor: event.color || '#3b82f6' 
+                }">
+                  <span class="multiday-title">{{ event.title }}</span>
+                  <span class="multiday-duration">{{ getEventDuration(event) }}</span>
+                </div>
+              </div>
+            </div>
+
             <div
               v-for="date in weekDates"
               :key="'cell-' + resource.id + '-' + date.toString()"
@@ -97,7 +111,7 @@
                   v-for="(event, eventIndex) in getSingleDayEventsForResourceAndDay(resource.id, date)"
                   :key="event.id"
                   class="stacked-event"
-                  :style="getStackedEventStyle(eventIndex)"
+                  :style="getStackedEventStyle(eventIndex, resource.id)"
                   @click.stop="$emit('event-click', event)"
                 >
                   <div 
@@ -126,7 +140,7 @@
               
               <!-- Add event indicator for empty cells -->
               <div 
-                v-if="!readonly && getSingleDayEventsForResourceAndDay(resource.id, date).length === 0"
+                v-if="!readonly && getSingleDayEventsForResourceAndDay(resource.id, date).length === 0 && getMultiDayEventsForResource(resource.id).length === 0"
                 class="add-indicator"
               >
                 <div class="add-btn">
@@ -193,11 +207,9 @@ interface Emits {
 const emit = defineEmits<Emits>()
 
 // Configuration constants
-const RESOURCE_COLUMN_WIDTH = 160
 const EVENT_HEIGHT = 24
 const EVENT_GAP = 2
 const MIN_ROW_HEIGHT = 60
-const MULTIDAY_EVENT_HEIGHT = 20
 
 // Template refs
 const scrollContainer = ref<HTMLElement>()
@@ -366,8 +378,9 @@ const singleDayEvents = computed((): CalendarEvent[] => {
  * Get multi-day events
  */
 const multiDayEvents = computed((): CalendarEvent[] => {
-  // Add test multi-day events if no events provided
+  // Add test multi-day events with overlapping scenarios to test stacking
   const testMultiDayEvents: CalendarEvent[] = [
+    // John Smith - Multiple overlapping events to test stacking
     {
       id: 'vacation-john',
       title: 'Summer Vacation',
@@ -378,6 +391,16 @@ const multiDayEvents = computed((): CalendarEvent[] => {
       isAllDay: true
     },
     {
+      id: 'conference-john',
+      title: 'Multi-Day Conference',
+      startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T00:00:00',
+      endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T23:59:59',
+      resourceId: 'worker-john',
+      color: '#3B82F6',
+      isAllDay: true
+    },
+    // Sarah Johnson - Overlapping events
+    {
       id: 'conference-sarah',
       title: 'Design Conference',
       startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T00:00:00',
@@ -386,6 +409,16 @@ const multiDayEvents = computed((): CalendarEvent[] => {
       color: '#8B5CF6',
       isAllDay: true
     },
+    {
+      id: 'sprint-sarah',
+      title: 'Design Sprint',
+      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T00:00:00',
+      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T23:59:59',
+      resourceId: 'worker-sarah',
+      color: '#EF4444',
+      isAllDay: true
+    },
+    // Mike Davis - Overlapping events
     {
       id: 'sick-mike',
       title: 'Sick Leave',
@@ -396,12 +429,31 @@ const multiDayEvents = computed((): CalendarEvent[] => {
       isAllDay: true
     },
     {
+      id: 'roadshow-mike',
+      title: 'Marketing Roadshow',
+      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T00:00:00',
+      endTime: weekDates.value[6].format('YYYY-MM-DD') + 'T23:59:59',
+      resourceId: 'worker-mike',
+      color: '#8B5CF6',
+      isAllDay: true
+    },
+    // Lisa Chen - Overlapping events
+    {
       id: 'training-lisa',
       title: 'Technical Training',
       startTime: weekDates.value[3].format('YYYY-MM-DD') + 'T00:00:00',
       endTime: weekDates.value[5].format('YYYY-MM-DD') + 'T23:59:59',
       resourceId: 'worker-lisa',
       color: '#EF4444',
+      isAllDay: true
+    },
+    {
+      id: 'workshop-lisa',
+      title: 'Training Workshop',
+      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T00:00:00',
+      endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T23:59:59',
+      resourceId: 'worker-lisa',
+      color: '#10B981',
       isAllDay: true
     }
   ]
@@ -483,23 +535,111 @@ const getMaxEventsForResource = (resourceId: string): number => {
 }
 
 /**
- * Calculate resource row height based on maximum events
+ * Get multi-day events for a specific resource
+ */
+const getMultiDayEventsForResource = (resourceId: string): CalendarEvent[] => {
+  return multiDayEvents.value.filter(event => event.resourceId === resourceId)
+}
+
+/**
+ * Check if two multi-day events overlap in their date ranges
+ */
+const doMultiDayEventsOverlap = (event1: CalendarEvent, event2: CalendarEvent): boolean => {
+  const start1 = atemporal(event1.startTime).startOf('day')
+  const end1 = atemporal(event1.endTime).startOf('day') // Use startOf('day') for consistent comparison
+  const start2 = atemporal(event2.startTime).startOf('day')
+  const end2 = atemporal(event2.endTime).startOf('day') // Use startOf('day') for consistent comparison
+  
+  // Events overlap if start1 <= end2 && start2 <= end1
+  return start1.isSameOrBefore(end2) && start2.isSameOrBefore(end1)
+}
+
+/**
+ * Get multi-day events for a specific resource with proper lane assignments
+ */
+const getMultiDayEventsForResourceWithLanes = (resourceId: string): (CalendarEvent & { lane: number })[] => {
+  const resourceEvents = getMultiDayEventsForResource(resourceId)
+  if (resourceEvents.length === 0) return []
+  
+  // Sort events by start time for consistent processing
+  const sortedEvents = resourceEvents.sort((a, b) => {
+    const startA = atemporal(a.startTime)
+    const startB = atemporal(b.startTime)
+    return startA.isBefore(startB) ? -1 : 1
+  })
+  
+  // Assign lanes using proper overlap detection for multi-day events
+  const lanes: CalendarEvent[][] = []
+  const eventsWithLanes: (CalendarEvent & { lane: number })[] = []
+  
+  sortedEvents.forEach(event => {
+    // Find the first available lane where this event doesn't overlap with any existing event
+    let assignedLane = -1
+    
+    for (let i = 0; i < lanes.length; i++) {
+      let canPlaceInLane = true
+      
+      // Check if this event overlaps with any event in this lane
+      for (const laneEvent of lanes[i]) {
+        if (doMultiDayEventsOverlap(event, laneEvent)) {
+          canPlaceInLane = false
+          break
+        }
+      }
+      
+      if (canPlaceInLane) {
+        assignedLane = i
+        lanes[i].push(event)
+        break
+      }
+    }
+    
+    // If no existing lane is available, create a new one
+    if (assignedLane === -1) {
+      assignedLane = lanes.length
+      lanes.push([event])
+    }
+    
+    eventsWithLanes.push({ ...event, lane: assignedLane })
+  })
+  
+  return eventsWithLanes
+}
+
+/**
+ * Calculate the maximum number of multi-day events for a resource
+ */
+const getMaxMultiDayEventsForResource = (resourceId: string): number => {
+  const eventsWithLanes = getMultiDayEventsForResourceWithLanes(resourceId)
+  if (eventsWithLanes.length === 0) return 0
+  
+  // Return the maximum lane number + 1 (since lanes are 0-indexed)
+  return Math.max(...eventsWithLanes.map(event => event.lane)) + 1
+}
+
+/**
+ * Calculate resource row height based on maximum events (both single-day and multi-day)
  */
 const getResourceRowHeight = (resourceId: string): number => {
-  const maxEvents = getMaxEventsForResource(resourceId)
-  if (maxEvents === 0) return MIN_ROW_HEIGHT
+  const maxSingleDayEvents = getMaxEventsForResource(resourceId)
+  const maxMultiDayEvents = getMaxMultiDayEventsForResource(resourceId)
   
-  const eventsHeight = maxEvents * EVENT_HEIGHT + (maxEvents - 1) * EVENT_GAP
+  const totalMaxEvents = maxSingleDayEvents + maxMultiDayEvents
+  if (totalMaxEvents === 0) return MIN_ROW_HEIGHT
+  
+  const eventsHeight = totalMaxEvents * EVENT_HEIGHT + (totalMaxEvents - 1) * EVENT_GAP
   const padding = 16 // Top and bottom padding
   
   return Math.max(MIN_ROW_HEIGHT, eventsHeight + padding)
 }
 
 /**
- * Get style for stacked event (simple vertical positioning)
+ * Get style for stacked event (positioned below multi-day events)
  */
-const getStackedEventStyle = (eventIndex: number): Record<string, string | number> => {
-  const top = 8 + eventIndex * (EVENT_HEIGHT + EVENT_GAP) // 8px top padding
+const getStackedEventStyle = (eventIndex: number, resourceId: string): Record<string, string | number> => {
+  const multiDayEventsCount = getMaxMultiDayEventsForResource(resourceId)
+  const multiDayOffset = multiDayEventsCount * (EVENT_HEIGHT + EVENT_GAP)
+  const top = 8 + multiDayOffset + eventIndex * (EVENT_HEIGHT + EVENT_GAP) // 8px top padding + multi-day offset
   
   return {
     position: 'absolute',
@@ -512,60 +652,9 @@ const getStackedEventStyle = (eventIndex: number): Record<string, string | numbe
 }
 
 /**
- * Multi-day events with lane assignments
+ * Get style for resource-specific multi-day event with proper positioning
  */
-const multiDayEventsWithLanes = computed(() => {
-  const eventsWithLanes = multiDayEvents.value.map(event => ({ ...event, lane: 0 }))
-  
-  // Sort events by start time
-  eventsWithLanes.sort((a, b) => {
-    const startA = atemporal(a.startTime)
-    const startB = atemporal(b.startTime)
-    return startA.isBefore(startB) ? -1 : 1
-  })
-  
-  // Assign lanes using interval scheduling algorithm
-  const lanes: { endTime: Atemporal; eventId: string }[] = []
-  
-  eventsWithLanes.forEach(event => {
-    const eventStart = atemporal(event.startTime)
-    const eventEnd = atemporal(event.endTime)
-    
-    // Find the first available lane
-    let assignedLane = -1
-    
-    for (let i = 0; i < lanes.length; i++) {
-       if (lanes[i].endTime.isBefore(eventStart) || lanes[i].endTime.isSame(eventStart)) {
-         assignedLane = i
-         lanes[i] = { endTime: eventEnd, eventId: event.id }
-         break
-       }
-     }
-    
-    // If no existing lane is available, create a new one
-    if (assignedLane === -1) {
-      assignedLane = lanes.length
-      lanes.push({ endTime: eventEnd, eventId: event.id })
-    }
-    
-    event.lane = assignedLane
-  })
-  
-  return eventsWithLanes
-})
-
-/**
- * Calculate height needed for multi-day events section
- */
-const multiDayEventsHeight = computed(() => {
-  const maxLane = Math.max(...multiDayEventsWithLanes.value.map(e => e.lane), -1)
-  return (maxLane + 1) * (MULTIDAY_EVENT_HEIGHT + 4) + 8 // 4px gap, 8px padding
-})
-
-/**
- * Get style for multi-day event with proper lane positioning
- */
-const getMultiDayEventStyle = (event: CalendarEvent & { lane: number }): Record<string, string | number> => {
+const getResourceMultiDayEventStyle = (event: CalendarEvent & { lane: number }, _resourceId: string): Record<string, string | number> => {
   const eventStartDate = atemporal(event.startTime)
   const eventEndDate = atemporal(event.endTime)
   
@@ -593,15 +682,20 @@ const getMultiDayEventStyle = (event: CalendarEvent & { lane: number }): Record<
   const span = endIndex - startIndex + 1
   const cellWidth = 100 / 7 // Each day cell is 1/7 of the total width
   
+  // Position using the pre-calculated lane from the event object
+  const top = 8 + event.lane * (EVENT_HEIGHT + EVENT_GAP) // 8px top padding
+  
   return {
     position: 'absolute',
-    top: (event.lane * (MULTIDAY_EVENT_HEIGHT + 4) + 4) + 'px',
-    left: RESOURCE_COLUMN_WIDTH + (startIndex * cellWidth) + '%',
+    top: top + 'px',
+    left: (startIndex * cellWidth) + '%', // Now positioned relative to day cells container
     width: (span * cellWidth) + '%',
-    height: MULTIDAY_EVENT_HEIGHT + 'px',
+    height: EVENT_HEIGHT + 'px',
     zIndex: 10 + event.lane
   }
 }
+
+// Removed global multi-day events functions - now handled per resource
 
 /**
  * Get event duration text
@@ -657,14 +751,7 @@ const handleResourceSlotClick = (resource: CalendarResource, date: Atemporal): v
   emit('slot-click', slotInfo)
 }
 
-/**
- * Get resource name by ID
- */
-const getResourceName = (resourceId?: string): string => {
-  if (!resourceId) return ''
-  const resource = displayResources.value.find(r => r.id === resourceId)
-  return resource?.name || ''
-}
+// Removed getResourceName function - no longer needed
 </script>
 
 <style scoped>
@@ -730,31 +817,9 @@ const getResourceName = (resourceId?: string): string => {
   max-height: calc(100vh - 200px);
 }
 
-.multiday-section {
-  @apply border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50;
-}
+/* Removed global multi-day section styles */
 
-.multiday-header {
-  @apply flex border-b border-gray-200 dark:border-gray-700;
-}
-
-.multiday-spacer {
-  @apply border-r border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800;
-  @apply flex items-center justify-center text-sm font-medium text-gray-700 dark:text-gray-300;
-  width: 160px;
-  height: 30px;
-}
-
-.multiday-grid {
-  @apply flex-1;
-}
-
-.multiday-events-container {
-  @apply relative;
-  margin-left: 160px;
-}
-
-.multiday-event {
+.resource-multiday-event {
   @apply cursor-pointer transition-all duration-200 hover:shadow-md;
 }
 
@@ -767,11 +832,6 @@ const getResourceName = (resourceId?: string): string => {
 .multiday-title {
   @apply text-sm font-medium truncate flex-1;
   @apply text-gray-800 dark:text-gray-100;
-}
-
-.multiday-resource {
-  @apply text-xs opacity-75 ml-2 flex-shrink-0;
-  @apply text-gray-600 dark:text-gray-300;
 }
 
 .multiday-duration {
@@ -813,7 +873,15 @@ const getResourceName = (resourceId?: string): string => {
 }
 
 .resource-days {
-  @apply flex flex-1;
+  @apply flex flex-1 relative;
+}
+
+.multiday-events-overlay {
+  @apply absolute inset-0 pointer-events-none;
+}
+
+.multiday-events-overlay .resource-multiday-event {
+  @apply pointer-events-auto;
 }
 
 .day-cell {
