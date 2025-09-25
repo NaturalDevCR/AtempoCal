@@ -212,107 +212,198 @@ const demoResources = ref<CalendarResource[]>([
   }
 ])
 
-// Demo events (Worker Schedules) - Using specific dates that match the calendar view
+// Demo events (Worker Schedules) - Comprehensive test data to showcase vertical stacking
 const demoEvents = ref<CalendarEvent[]>([
+  // MONDAY - John Smith (3 events)
   {
     id: 'event-1',
-    title: 'Code Review Session',
-    description: 'Review pull requests and discuss architecture changes',
-    startTime: '2025-09-09T09:00:00Z', // Tuesday
-    endTime: '2025-09-09T10:30:00Z',
-    resourceId: 'worker-john',
-    color: '#3B82F6',
-    metadata: { type: 'development', priority: 'high' }
-  },
-  {
-    id: 'event-2',
-    title: 'User Research Interview',
-    description: 'Conduct user interviews for new feature validation',
-    startTime: '2025-09-09T11:00:00Z', // Tuesday
-    endTime: '2025-09-09T12:00:00Z',
-    resourceId: 'worker-sarah',
-    color: '#10B981',
-    metadata: { type: 'research', participants: 3 }
-  },
-  {
-    id: 'event-3',
-    title: 'Marketing Campaign Planning',
-    description: 'Plan Q4 marketing campaigns and budget allocation',
-    startTime: '2025-09-10T14:00:00Z', // Wednesday
-    endTime: '2025-09-10T16:00:00Z',
-    resourceId: 'worker-mike',
-    color: '#F59E0B',
-    metadata: { type: 'planning', budget: 50000 }
-  },
-  {
-    id: 'event-4',
-    title: 'Frontend Development',
-    description: 'Implement new dashboard components',
-    startTime: '2025-09-10T10:00:00Z', // Wednesday
-    endTime: '2025-09-10T12:00:00Z',
-    resourceId: 'worker-lisa',
-    color: '#8B5CF6',
-    metadata: { type: 'development', feature: 'dashboard' }
-  },
-  {
-    id: 'event-5',
-    title: 'Team Meeting',
-    description: 'Weekly engineering team sync',
-    startTime: '2025-09-10T15:00:00Z', // Wednesday
-    endTime: '2025-09-10T16:00:00Z',
+    title: 'Morning Standup',
+    description: 'Daily team standup meeting',
+    startTime: '2025-09-08T09:00:00Z',
+    endTime: '2025-09-08T09:30:00Z',
     resourceId: 'worker-john',
     color: '#3B82F6',
     metadata: { type: 'meeting', recurring: true }
   },
   {
+    id: 'event-2',
+    title: 'Code Review Session',
+    description: 'Review pull requests and discuss architecture changes',
+    startTime: '2025-09-08T10:00:00Z',
+    endTime: '2025-09-08T11:30:00Z',
+    resourceId: 'worker-john',
+    color: '#3B82F6',
+    metadata: { type: 'development', priority: 'high' }
+  },
+  {
+    id: 'event-3',
+    title: 'Sprint Planning',
+    description: 'Plan next sprint tasks and estimates',
+    startTime: '2025-09-08T14:00:00Z',
+    endTime: '2025-09-08T16:00:00Z',
+    resourceId: 'worker-john',
+    color: '#3B82F6',
+    metadata: { type: 'planning', sprint: 'Sprint 23' }
+  },
+
+  // TUESDAY - John Smith (2 events)
+  {
+    id: 'event-4',
+    title: 'Architecture Review',
+    description: 'Review system architecture proposals',
+    startTime: '2025-09-09T09:00:00Z',
+    endTime: '2025-09-09T10:30:00Z',
+    resourceId: 'worker-john',
+    color: '#3B82F6',
+    metadata: { type: 'review', priority: 'high' }
+  },
+  {
+    id: 'event-5',
+    title: 'Mentoring Session',
+    description: 'One-on-one mentoring with junior developer',
+    startTime: '2025-09-09T15:00:00Z',
+    endTime: '2025-09-09T16:00:00Z',
+    resourceId: 'worker-john',
+    color: '#3B82F6',
+    metadata: { type: 'mentoring', mentee: 'Alex Johnson' }
+  },
+
+  // WEDNESDAY - Sarah Johnson (4 events)
+  {
     id: 'event-6',
+    title: 'User Research Interview',
+    description: 'Conduct user interviews for new feature validation',
+    startTime: '2025-09-10T09:00:00Z',
+    endTime: '2025-09-10T10:00:00Z',
+    resourceId: 'worker-sarah',
+    color: '#10B981',
+    metadata: { type: 'research', participants: 3 }
+  },
+  {
+    id: 'event-7',
     title: 'Design Workshop',
     description: 'Collaborative design session for mobile app',
-    startTime: '2025-09-10T09:30:00Z', // Wednesday
-    endTime: '2025-09-10T11:30:00Z',
+    startTime: '2025-09-10T10:30:00Z',
+    endTime: '2025-09-10T12:00:00Z',
     resourceId: 'worker-sarah',
     color: '#10B981',
     metadata: { type: 'workshop', collaborative: true }
   },
   {
-    id: 'event-7',
+    id: 'event-8',
+    title: 'Prototype Review',
+    description: 'Review and iterate on design prototypes',
+    startTime: '2025-09-10T13:00:00Z',
+    endTime: '2025-09-10T14:30:00Z',
+    resourceId: 'worker-sarah',
+    color: '#10B981',
+    metadata: { type: 'review', prototype: 'v2.1' }
+  },
+  {
+    id: 'event-9',
+    title: 'Stakeholder Presentation',
+    description: 'Present design concepts to stakeholders',
+    startTime: '2025-09-10T15:00:00Z',
+    endTime: '2025-09-10T16:30:00Z',
+    resourceId: 'worker-sarah',
+    color: '#10B981',
+    metadata: { type: 'presentation', stakeholders: ['CEO', 'CTO', 'Product Manager'] }
+  },
+
+  // THURSDAY - Mike Davis (2 events)
+  {
+    id: 'event-10',
+    title: 'Marketing Campaign Planning',
+    description: 'Plan Q4 marketing campaigns and budget allocation',
+    startTime: '2025-09-11T10:00:00Z',
+    endTime: '2025-09-11T12:00:00Z',
+    resourceId: 'worker-mike',
+    color: '#F59E0B',
+    metadata: { type: 'planning', budget: 50000 }
+  },
+  {
+    id: 'event-11',
     title: 'Client Call',
     description: 'Weekly check-in with key client',
-    startTime: '2025-09-11T13:00:00Z', // Thursday
-    endTime: '2025-09-11T14:00:00Z',
+    startTime: '2025-09-11T14:00:00Z',
+    endTime: '2025-09-11T15:00:00Z',
     resourceId: 'worker-mike',
     color: '#F59E0B',
     metadata: { type: 'client-meeting', client: 'Acme Corp' }
   },
+
+  // FRIDAY - Lisa Chen (3 events)
   {
-    id: 'event-8',
+    id: 'event-12',
+    title: 'Frontend Development',
+    description: 'Implement new dashboard components',
+    startTime: '2025-09-12T09:00:00Z',
+    endTime: '2025-09-12T11:00:00Z',
+    resourceId: 'worker-lisa',
+    color: '#8B5CF6',
+    metadata: { type: 'development', feature: 'dashboard' }
+  },
+  {
+    id: 'event-13',
     title: 'Bug Fixing Session',
     description: 'Address critical bugs in production',
-    startTime: '2025-09-11T09:00:00Z', // Thursday
-    endTime: '2025-09-11T11:00:00Z',
+    startTime: '2025-09-12T11:30:00Z',
+    endTime: '2025-09-12T13:00:00Z',
     resourceId: 'worker-lisa',
     color: '#8B5CF6',
     metadata: { type: 'maintenance', priority: 'critical' }
   },
   {
-    id: 'event-9',
+    id: 'event-14',
+    title: 'Code Documentation',
+    description: 'Update technical documentation and API docs',
+    startTime: '2025-09-12T14:00:00Z',
+    endTime: '2025-09-12T16:00:00Z',
+    resourceId: 'worker-lisa',
+    color: '#8B5CF6',
+    metadata: { type: 'documentation', components: ['API', 'Components'] }
+  },
+
+  // MULTI-DAY EVENTS
+  {
+    id: 'event-15',
     title: 'Multi-Day Conference',
-    description: 'Annual tech conference spanning 3 days - attending sessions and networking',
-    startTime: '2025-09-10T09:00:00Z', // Wednesday
-    endTime: '2025-09-12T17:00:00Z',   // Friday
+    description: 'Annual tech conference - attending sessions and networking',
+    startTime: '2025-09-09T08:00:00Z', // Tuesday
+    endTime: '2025-09-11T18:00:00Z',   // Thursday
     resourceId: 'worker-john',
     color: '#F59E0B',
     metadata: { type: 'conference', duration: 'multi-day', location: 'Convention Center' }
   },
   {
-    id: 'event-10',
-    title: 'Training Workshop',
-    description: 'Two-day intensive training on new technologies',
-    startTime: '2025-09-11T08:00:00Z', // Thursday
-    endTime: '2025-09-12T16:00:00Z',   // Friday
+    id: 'event-16',
+    title: 'Design Sprint',
+    description: 'Intensive 3-day design sprint for new product feature',
+    startTime: '2025-09-08T09:00:00Z', // Monday
+    endTime: '2025-09-10T17:00:00Z',   // Wednesday
     resourceId: 'worker-sarah',
     color: '#EF4444',
-    metadata: { type: 'training', duration: 'multi-day', skills: ['React', 'TypeScript'] }
+    metadata: { type: 'sprint', duration: 'multi-day', feature: 'Mobile Checkout' }
+  },
+  {
+    id: 'event-17',
+    title: 'Marketing Roadshow',
+    description: 'Multi-city marketing events and client visits',
+    startTime: '2025-09-10T08:00:00Z', // Wednesday
+    endTime: '2025-09-12T19:00:00Z',   // Friday
+    resourceId: 'worker-mike',
+    color: '#EC4899',
+    metadata: { type: 'travel', cities: ['NYC', 'Boston', 'Philadelphia'] }
+  },
+  {
+    id: 'event-18',
+    title: 'Training Workshop',
+    description: 'Advanced React and TypeScript training program',
+    startTime: '2025-09-11T08:00:00Z', // Thursday
+    endTime: '2025-09-14T17:00:00Z',   // Sunday
+    resourceId: 'worker-lisa',
+    color: '#06B6D4',
+    metadata: { type: 'training', duration: 'multi-day', skills: ['React', 'TypeScript', 'Testing'] }
   }
 ])
 

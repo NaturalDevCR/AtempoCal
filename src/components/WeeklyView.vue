@@ -34,18 +34,28 @@
 
     <!-- Scrollable content area -->
     <div class="week-content" ref="scrollContainer">
-      <!-- Multi-day events overlay -->
-      <div class="multiday-overlay" v-if="multiDayEvents.length > 0">
-        <div
-          v-for="event in multiDayEvents"
-          :key="'multiday-' + event.id"
-          class="multiday-event"
-          :style="getMultiDayEventStyle(event)"
-          @click="$emit('event-click', event)"
-        >
-          <div class="event-content" :style="{ borderLeftColor: event.color || '#3b82f6' }">
-            <span class="event-title">{{ event.title }}</span>
-            <span class="event-resource">{{ getResourceName(event.resourceId) }}</span>
+      <!-- Multi-day events section -->
+      <div class="multiday-section" v-if="multiDayEvents.length > 0">
+        <div class="multiday-header">
+          <div class="multiday-spacer">Multi-day Events</div>
+          <div class="multiday-grid"></div>
+        </div>
+        <div class="multiday-events-container" :style="{ height: multiDayEventsHeight + 'px' }">
+          <div
+            v-for="event in multiDayEventsWithLanes"
+            :key="'multiday-' + event.id"
+            class="multiday-event"
+            :style="getMultiDayEventStyle(event)"
+            @click="$emit('event-click', event)"
+          >
+            <div class="multiday-content" :style="{ 
+              backgroundColor: event.color ? event.color + '20' : '#3b82f620',
+              borderLeftColor: event.color || '#3b82f6' 
+            }">
+              <span class="multiday-title">{{ event.title }}</span>
+              <span class="multiday-resource">{{ getResourceName(event.resourceId) }}</span>
+              <span class="multiday-duration">{{ getEventDuration(event) }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -93,8 +103,9 @@
                   <div 
                     class="event-bar group"
                     :style="{
-                      backgroundColor: event.color ? event.color + '20' : '#3b82f620',
-                      borderLeftColor: event.color || '#3b82f6'
+                      backgroundColor: event.color ? event.color + '30' : '#3b82f630',
+                      borderLeftColor: event.color || '#3b82f6',
+                      color: '#1f2937'
                     }"
                   >
                     <span class="event-title">{{ event.title }}</span>
@@ -219,22 +230,189 @@ const displayResources = computed((): CalendarResource[] => {
  * Get single-day events (non-multi-day events)
  */
 const singleDayEvents = computed((): CalendarEvent[] => {
-  return props.events.filter(event => {
+  // Add comprehensive test single-day events
+  const testSingleDayEvents: CalendarEvent[] = [
+    // John Smith events (Monday - 3 events, Tuesday - 2 events)
+    {
+      id: 'john-mon-1',
+      title: 'Team Meeting',
+      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T09:00:00',
+      endTime: weekDates.value[0].format('YYYY-MM-DD') + 'T10:00:00',
+      resourceId: 'worker-john',
+      color: '#3B82F6'
+    },
+    {
+      id: 'john-mon-2',
+      title: 'Code Review',
+      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T11:00:00',
+      endTime: weekDates.value[0].format('YYYY-MM-DD') + 'T12:00:00',
+      resourceId: 'worker-john',
+      color: '#3B82F6'
+    },
+    {
+      id: 'john-mon-3',
+      title: 'Sprint Planning',
+      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T14:00:00',
+      endTime: weekDates.value[0].format('YYYY-MM-DD') + 'T15:30:00',
+      resourceId: 'worker-john',
+      color: '#3B82F6'
+    },
+    {
+      id: 'john-tue-1',
+      title: 'Client Call',
+      startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T10:00:00',
+      endTime: weekDates.value[1].format('YYYY-MM-DD') + 'T11:00:00',
+      resourceId: 'worker-john',
+      color: '#3B82F6'
+    },
+    {
+      id: 'john-tue-2',
+      title: 'Development',
+      startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T13:00:00',
+      endTime: weekDates.value[1].format('YYYY-MM-DD') + 'T17:00:00',
+      resourceId: 'worker-john',
+      color: '#3B82F6'
+    },
+    
+    // Sarah Johnson events (Wednesday - 4 events)
+    {
+      id: 'sarah-wed-1',
+      title: 'Design Review',
+      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T09:00:00',
+      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T10:00:00',
+      resourceId: 'worker-sarah',
+      color: '#10B981'
+    },
+    {
+      id: 'sarah-wed-2',
+      title: 'User Research',
+      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T10:30:00',
+      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T12:00:00',
+      resourceId: 'worker-sarah',
+      color: '#10B981'
+    },
+    {
+      id: 'sarah-wed-3',
+      title: 'Wireframing',
+      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T13:00:00',
+      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T15:00:00',
+      resourceId: 'worker-sarah',
+      color: '#10B981'
+    },
+    {
+      id: 'sarah-wed-4',
+      title: 'Prototype Testing',
+      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T15:30:00',
+      endTime: weekDates.value[2].format('YYYY-MM-DD') + 'T17:00:00',
+      resourceId: 'worker-sarah',
+      color: '#10B981'
+    },
+    
+    // Mike Davis events (Thursday - 2 events)
+    {
+      id: 'mike-thu-1',
+      title: 'Campaign Planning',
+      startTime: weekDates.value[3].format('YYYY-MM-DD') + 'T09:00:00',
+      endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T11:00:00',
+      resourceId: 'worker-mike',
+      color: '#F59E0B'
+    },
+    {
+      id: 'mike-thu-2',
+      title: 'Analytics Review',
+      startTime: weekDates.value[3].format('YYYY-MM-DD') + 'T14:00:00',
+      endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T16:00:00',
+      resourceId: 'worker-mike',
+      color: '#F59E0B'
+    },
+    
+    // Lisa Chen events (Friday - 3 events)
+    {
+      id: 'lisa-fri-1',
+      title: 'Bug Fixes',
+      startTime: weekDates.value[4].format('YYYY-MM-DD') + 'T09:00:00',
+      endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T11:00:00',
+      resourceId: 'worker-lisa',
+      color: '#8B5CF6'
+    },
+    {
+      id: 'lisa-fri-2',
+      title: 'Feature Development',
+      startTime: weekDates.value[4].format('YYYY-MM-DD') + 'T11:30:00',
+      endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T14:00:00',
+      resourceId: 'worker-lisa',
+      color: '#8B5CF6'
+    },
+    {
+      id: 'lisa-fri-3',
+      title: 'Code Documentation',
+      startTime: weekDates.value[4].format('YYYY-MM-DD') + 'T15:00:00',
+      endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T17:00:00',
+      resourceId: 'worker-lisa',
+      color: '#8B5CF6'
+    }
+  ]
+  
+  const userEvents = props.events.filter(event => {
     const startDate = atemporal(event.startTime)
     const endDate = atemporal(event.endTime)
     return startDate.isSame(endDate, 'day')
   })
+  
+  return [...userEvents, ...testSingleDayEvents]
 })
 
 /**
  * Get multi-day events
  */
 const multiDayEvents = computed((): CalendarEvent[] => {
-  return props.events.filter(event => {
+  // Add test multi-day events if no events provided
+  const testMultiDayEvents: CalendarEvent[] = [
+    {
+      id: 'vacation-john',
+      title: 'Summer Vacation',
+      startTime: weekDates.value[0].format('YYYY-MM-DD') + 'T00:00:00',
+      endTime: weekDates.value[4].format('YYYY-MM-DD') + 'T23:59:59',
+      resourceId: 'worker-john',
+      color: '#10B981',
+      isAllDay: true
+    },
+    {
+      id: 'conference-sarah',
+      title: 'Design Conference',
+      startTime: weekDates.value[1].format('YYYY-MM-DD') + 'T00:00:00',
+      endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T23:59:59',
+      resourceId: 'worker-sarah',
+      color: '#8B5CF6',
+      isAllDay: true
+    },
+    {
+      id: 'sick-mike',
+      title: 'Sick Leave',
+      startTime: weekDates.value[2].format('YYYY-MM-DD') + 'T00:00:00',
+      endTime: weekDates.value[3].format('YYYY-MM-DD') + 'T23:59:59',
+      resourceId: 'worker-mike',
+      color: '#F59E0B',
+      isAllDay: true
+    },
+    {
+      id: 'training-lisa',
+      title: 'Technical Training',
+      startTime: weekDates.value[3].format('YYYY-MM-DD') + 'T00:00:00',
+      endTime: weekDates.value[5].format('YYYY-MM-DD') + 'T23:59:59',
+      resourceId: 'worker-lisa',
+      color: '#EF4444',
+      isAllDay: true
+    }
+  ]
+  
+  const userEvents = props.events.filter(event => {
     const startDate = atemporal(event.startTime)
     const endDate = atemporal(event.endTime)
     return !startDate.isSame(endDate, 'day')
   })
+  
+  return [...userEvents, ...testMultiDayEvents]
 })
 
 /**
@@ -334,9 +512,60 @@ const getStackedEventStyle = (eventIndex: number): Record<string, string | numbe
 }
 
 /**
- * Get style for multi-day event
+ * Multi-day events with lane assignments
  */
-const getMultiDayEventStyle = (event: CalendarEvent): Record<string, string | number> => {
+const multiDayEventsWithLanes = computed(() => {
+  const eventsWithLanes = multiDayEvents.value.map(event => ({ ...event, lane: 0 }))
+  
+  // Sort events by start time
+  eventsWithLanes.sort((a, b) => {
+    const startA = atemporal(a.startTime)
+    const startB = atemporal(b.startTime)
+    return startA.isBefore(startB) ? -1 : 1
+  })
+  
+  // Assign lanes using interval scheduling algorithm
+  const lanes: { endTime: Atemporal; eventId: string }[] = []
+  
+  eventsWithLanes.forEach(event => {
+    const eventStart = atemporal(event.startTime)
+    const eventEnd = atemporal(event.endTime)
+    
+    // Find the first available lane
+    let assignedLane = -1
+    
+    for (let i = 0; i < lanes.length; i++) {
+       if (lanes[i].endTime.isBefore(eventStart) || lanes[i].endTime.isSame(eventStart)) {
+         assignedLane = i
+         lanes[i] = { endTime: eventEnd, eventId: event.id }
+         break
+       }
+     }
+    
+    // If no existing lane is available, create a new one
+    if (assignedLane === -1) {
+      assignedLane = lanes.length
+      lanes.push({ endTime: eventEnd, eventId: event.id })
+    }
+    
+    event.lane = assignedLane
+  })
+  
+  return eventsWithLanes
+})
+
+/**
+ * Calculate height needed for multi-day events section
+ */
+const multiDayEventsHeight = computed(() => {
+  const maxLane = Math.max(...multiDayEventsWithLanes.value.map(e => e.lane), -1)
+  return (maxLane + 1) * (MULTIDAY_EVENT_HEIGHT + 4) + 8 // 4px gap, 8px padding
+})
+
+/**
+ * Get style for multi-day event with proper lane positioning
+ */
+const getMultiDayEventStyle = (event: CalendarEvent & { lane: number }): Record<string, string | number> => {
   const eventStartDate = atemporal(event.startTime)
   const eventEndDate = atemporal(event.endTime)
   
@@ -364,18 +593,24 @@ const getMultiDayEventStyle = (event: CalendarEvent): Record<string, string | nu
   const span = endIndex - startIndex + 1
   const cellWidth = 100 / 7 // Each day cell is 1/7 of the total width
   
-  // Find resource index for vertical positioning
-  const resourceIndex = displayResources.value.findIndex(r => r.id === event.resourceId)
-  const resourceRowTop = resourceIndex >= 0 ? resourceIndex * MIN_ROW_HEIGHT : 0
-  
   return {
     position: 'absolute',
-    top: resourceRowTop + 'px',
-    left: RESOURCE_COLUMN_WIDTH + (startIndex * (100 / 7)) + '%',
+    top: (event.lane * (MULTIDAY_EVENT_HEIGHT + 4) + 4) + 'px',
+    left: RESOURCE_COLUMN_WIDTH + (startIndex * cellWidth) + '%',
     width: (span * cellWidth) + '%',
     height: MULTIDAY_EVENT_HEIGHT + 'px',
-    zIndex: 10
+    zIndex: 10 + event.lane
   }
+}
+
+/**
+ * Get event duration text
+ */
+const getEventDuration = (event: CalendarEvent): string => {
+  const startDate = atemporal(event.startTime)
+  const endDate = atemporal(event.endTime)
+  const days = endDate.diff(startDate, 'days') + 1
+  return `${days} day${days > 1 ? 's' : ''}`
 }
 
 /**
@@ -495,13 +730,53 @@ const getResourceName = (resourceId?: string): string => {
   max-height: calc(100vh - 200px);
 }
 
-.multiday-overlay {
-  @apply absolute inset-0 pointer-events-none;
-  z-index: 10;
+.multiday-section {
+  @apply border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50;
+}
+
+.multiday-header {
+  @apply flex border-b border-gray-200 dark:border-gray-700;
+}
+
+.multiday-spacer {
+  @apply border-r border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800;
+  @apply flex items-center justify-center text-sm font-medium text-gray-700 dark:text-gray-300;
+  width: 160px;
+  height: 30px;
+}
+
+.multiday-grid {
+  @apply flex-1;
+}
+
+.multiday-events-container {
+  @apply relative;
+  margin-left: 160px;
 }
 
 .multiday-event {
-  @apply pointer-events-auto cursor-pointer;
+  @apply cursor-pointer transition-all duration-200 hover:shadow-md;
+}
+
+.multiday-content {
+  @apply w-full h-full rounded-md shadow-sm border-l-4 px-3 py-1;
+  @apply flex items-center justify-between;
+  @apply text-gray-800 dark:text-gray-100;
+}
+
+.multiday-title {
+  @apply text-sm font-medium truncate flex-1;
+  @apply text-gray-800 dark:text-gray-100;
+}
+
+.multiday-resource {
+  @apply text-xs opacity-75 ml-2 flex-shrink-0;
+  @apply text-gray-600 dark:text-gray-300;
+}
+
+.multiday-duration {
+  @apply text-xs opacity-75 ml-2 flex-shrink-0 font-medium;
+  @apply text-gray-600 dark:text-gray-300;
 }
 
 .resource-container {
@@ -566,14 +841,17 @@ const getResourceName = (resourceId?: string): string => {
   @apply w-full h-full rounded-md shadow-sm border-l-4 px-2 py-1 cursor-pointer;
   @apply transition-all duration-200 hover:shadow-md;
   @apply flex items-center justify-between;
+  @apply text-gray-800 dark:text-gray-100;
 }
 
 .event-title {
   @apply text-xs font-medium truncate flex-1;
+  @apply text-gray-800 dark:text-gray-100;
 }
 
 .event-time {
   @apply text-xs opacity-75 ml-2 flex-shrink-0;
+  @apply text-gray-600 dark:text-gray-300;
 }
 
 .event-resource {
@@ -602,10 +880,7 @@ const getResourceName = (resourceId?: string): string => {
   @apply w-4 h-4;
 }
 
-.event-content {
-  @apply w-full h-full rounded-md shadow-sm border-l-4 px-2 py-1;
-  @apply bg-blue-50 dark:bg-blue-900/20 flex items-center justify-between;
-}
+
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
