@@ -227,7 +227,7 @@ const emit = defineEmits<Emits>()
 
 // Component configuration
 const resourceColumnWidth = 160
-const resourceRowHeight = 120 // Increased height to accommodate multiple stacked events
+const resourceRowHeight = 140 // Increased height to accommodate vertically stacked events
 
 // Template refs
 const scrollContainer = ref<HTMLElement>()
@@ -363,103 +363,48 @@ const isInSameCell = (hoveredEventId: string, resourceId: string, date: Atempora
 }
 
 /**
- * Calculate event style with advanced overlap prevention
- * Uses column-based positioning to ensure no visual overlaps
+ * Calculate event style with vertical stacking (no overlaps)
+ * Events are positioned one below another in vertical order
  */
 const getEventStyle = (event: CalendarEvent, eventIndex: number, resourceId: string, date: Atemporal) => {
   const eventsInCell = getSingleDayEventsForResourceAndDay(resourceId, date)
   const totalEvents = eventsInCell.length
   
-  // Single event fills most of the cell width
-  if (totalEvents === 1) {
-    return {
-      top: '4px',
-      height: (resourceRowHeight - 12) + 'px',
-      left: '2px',
-      width: 'calc(100% - 8px)',
-      zIndex: 1
-    }
-  }
-
-  // Multiple events - use advanced column-based positioning
+  // Sort events by start time to maintain consistent order
   const sortedEvents = eventsInCell.sort((a, b) => {
     const startA = atemporal(a.startTime)
     const startB = atemporal(b.startTime)
     return startA.isBefore(startB) ? -1 : 1
   })
-
-  // Build column assignment for all events
-  const eventColumns: { [eventId: string]: number } = {}
-  const columns: CalendarEvent[][] = []
   
-  sortedEvents.forEach((evt) => {
-    // Find the first available column where this event doesn't overlap
-    let columnIndex = 0
-    let placed = false
-    
-    while (columnIndex < columns.length && !placed) {
-      const columnEvents = columns[columnIndex]
-      let canPlace = true
-      
-      // Check if this event overlaps with any event in this column
-      for (const columnEvent of columnEvents) {
-        if (eventsTimeOverlap(evt, columnEvent)) {
-          canPlace = false
-          break
-        }
-      }
-      
-      if (canPlace) {
-        columns[columnIndex].push(evt)
-        eventColumns[evt.id] = columnIndex
-        placed = true
-      } else {
-        columnIndex++
-      }
-    }
-    
-    // If no existing column works, create a new one
-    if (!placed) {
-      columns.push([evt])
-      eventColumns[evt.id] = columns.length - 1
-    }
-  })
-
-  // Get the column for this specific event
-  const eventColumn = eventColumns[event.id] || 0
-  const totalColumns = columns.length
+  // Find the index of current event in sorted array
+  const currentEventIndex = sortedEvents.findIndex(e => e.id === event.id)
   
-  // Calculate dimensions based on column assignment
-  const eventWidth = Math.max(Math.floor(95 / totalColumns), 15) // Minimum 15% width
-  const eventLeft = 2 + (eventColumn * Math.floor(95 / totalColumns))
+  // Calculate vertical stacking parameters
+  const eventSpacing = 2 // Space between events
+  const topPadding = 4 // Top padding in cell
+  const bottomPadding = 4 // Bottom padding in cell
+  const availableHeight = resourceRowHeight - topPadding - bottomPadding
   
-  // Calculate height based on available space and number of columns
-  const availableHeight = resourceRowHeight - 12
-  const eventHeight = Math.max(18, Math.min(32, availableHeight / Math.min(totalColumns, 4)))
-  const eventTop = 4 + (eventColumn * 1) // Small vertical offset for visual separation
-
+  // Calculate event height based on number of events
+  const eventHeight = Math.max(
+    16, // Minimum height
+    Math.floor((availableHeight - (totalEvents - 1) * eventSpacing) / totalEvents)
+  )
+  
+  // Calculate vertical position (stacked from top to bottom)
+  const eventTop = topPadding + (currentEventIndex * (eventHeight + eventSpacing))
+  
   return {
     top: eventTop + 'px',
     height: eventHeight + 'px',
-    left: eventLeft + '%',
-    width: eventWidth + '%',
-    zIndex: eventColumn + 1
+    left: '4px',
+    width: 'calc(100% - 8px)',
+    zIndex: currentEventIndex + 1
   }
 }
 
-/**
- * Check if two events overlap in time (helper for positioning)
- */
-const eventsTimeOverlap = (event1: CalendarEvent, event2: CalendarEvent): boolean => {
-  const start1 = atemporal(event1.startTime)
-  const end1 = atemporal(event1.endTime)
-  const start2 = atemporal(event2.startTime)
-  const end2 = atemporal(event2.endTime)
-  
-  return start1.isBefore(end2) && start2.isBefore(end1)
-}
-
-// Legacy function removed as it's no longer needed with the new column-based algorithm
+// Removed eventsTimeOverlap function as it's no longer needed with vertical stacking
 
 /**
  * Format event time for display
@@ -486,17 +431,17 @@ const getAllMultiDayEvents = (): CalendarEvent[] => {
 }
 
 /**
- * Interface for event layout information
+ * Interface for simplified event layout information
  */
 interface EventLayout {
   event: CalendarEvent
-  lane: number
-  maxLanes: number
+  stackIndex: number
+  totalInStack: number
   resourceIndex: number
 }
 
 /**
- * Group events by resource for proper lane assignment
+ * Group multi-day events by resource for vertical stacking
  */
 const getMultiDayEventsByResource = (): Map<string, CalendarEvent[]> => {
   const eventsByResource = new Map<string, CalendarEvent[]>()
@@ -513,112 +458,76 @@ const getMultiDayEventsByResource = (): Map<string, CalendarEvent[]> => {
 }
 
 /**
- * Calculate lane assignments for events within a resource using column-based algorithm
- * Based on research from Stack Overflow calendar layout algorithms
+ * Calculate vertical stack positions for multi-day events
+ * Events are simply stacked vertically by start time order
  */
-const calculateEventLanes = (events: CalendarEvent[]): Map<string, EventLayout> => {
+const calculateEventStacks = (events: CalendarEvent[]): Map<string, EventLayout> => {
   const layouts = new Map<string, EventLayout>()
   
-  // Sort events by start time, then by end time
+  // Sort events by start time for consistent stacking order
   const sortedEvents = events.sort((a, b) => {
     const startA = atemporal(a.startTime)
     const startB = atemporal(b.startTime)
-    const comparison = startA.isBefore(startB) ? -1 : startA.isAfter(startB) ? 1 : 0
-    if (comparison !== 0) return comparison
-    
-    // If start times are equal, sort by end time
-    const endA = atemporal(a.endTime)
-    const endB = atemporal(b.endTime)
-    return endA.isBefore(endB) ? -1 : endA.isAfter(endB) ? 1 : 0
+    return startA.isBefore(startB) ? -1 : startA.isAfter(startB) ? 1 : 0
   })
   
-  // Track occupied lanes with their end times
-  const lanes: { endTime: Atemporal; eventId: string }[] = []
-  
-  sortedEvents.forEach(event => {
-    const eventStart = atemporal(event.startTime)
-    const eventEnd = atemporal(event.endTime)
-    
-    // Find the first available lane
-    let assignedLane = -1
-    
-    for (let i = 0; i < lanes.length; i++) {
-      // Check if this lane is free (previous event ended before this one starts)
-      if (lanes[i].endTime.isBefore(eventStart) || lanes[i].endTime.equals(eventStart)) {
-        assignedLane = i
-        lanes[i] = { endTime: eventEnd, eventId: event.id }
-        break
-      }
-    }
-    
-    // If no existing lane is available, create a new one
-    if (assignedLane === -1) {
-      assignedLane = lanes.length
-      lanes.push({ endTime: eventEnd, eventId: event.id })
-    }
-    
-    // Find resource index
+  // Assign stack positions based on sorted order
+  sortedEvents.forEach((event, index) => {
     const resourceIndex = displayResources.value.findIndex(r => r.id === event.resourceId)
     
     layouts.set(event.id, {
       event,
-      lane: assignedLane,
-      maxLanes: lanes.length,
+      stackIndex: index,
+      totalInStack: sortedEvents.length,
       resourceIndex: resourceIndex >= 0 ? resourceIndex : 0
     })
-  })
-  
-  // Update maxLanes for all events in this resource
-  const finalMaxLanes = lanes.length
-  layouts.forEach(layout => {
-    layout.maxLanes = finalMaxLanes
   })
   
   return layouts
 }
 
 /**
- * Get layout information for a specific event
+ * Get layout information for a specific multi-day event
  */
 const getEventLayout = (event: CalendarEvent): EventLayout => {
   const eventsByResource = getMultiDayEventsByResource()
   const resourceId = event.resourceId || 'default'
   const resourceEvents = eventsByResource.get(resourceId) || []
   
-  const layouts = calculateEventLanes(resourceEvents)
+  const layouts = calculateEventStacks(resourceEvents)
   return layouts.get(event.id) || {
     event,
-    lane: 0,
-    maxLanes: 1,
+    stackIndex: 0,
+    totalInStack: 1,
     resourceIndex: displayResources.value.findIndex(r => r.id === event.resourceId)
   }
 }
 
 /**
- * Calculate multi-day event position using proper column-based layout algorithm
+ * Calculate multi-day event position using vertical stacking
  */
 const getMultiDayEventPosition = (event: CalendarEvent): EventPosition => {
   const span = getMultiDayEventSpan(event)
   const cellWidth = 100 / 7 // Each day cell is 1/7 of the total width
   
-  // Get layout information using the new algorithm
+  // Get layout information using vertical stacking
   const layout = getEventLayout(event)
   
-  // Calculate vertical position based on resource row and lane
-  const multiDayEventHeight = 18
+  // Calculate vertical position with stacking
+  const multiDayEventHeight = 20
   const multiDayEventSpacing = 2
-  const topOffset = 5 // Initial offset from top of each resource row
+  const topOffset = 8 // Initial offset from top of each resource row
   
-  // Position relative to the resource row plus lane offset
+  // Position relative to the resource row with vertical stacking
   const resourceRowTop = layout.resourceIndex * resourceRowHeight
-  const laneOffset = topOffset + (layout.lane * (multiDayEventHeight + multiDayEventSpacing))
+  const stackOffset = topOffset + (layout.stackIndex * (multiDayEventHeight + multiDayEventSpacing))
   
   return {
-    top: resourceRowTop + laneOffset,
+    top: resourceRowTop + stackOffset,
     height: multiDayEventHeight,
     left: span.startIndex * cellWidth,
     width: span.span * cellWidth,
-    zIndex: 20 + layout.lane // Higher z-index based on lane
+    zIndex: 20 + layout.stackIndex // Higher z-index based on stack position
   }
 }
 
@@ -667,7 +576,7 @@ const getResourceColor = (resourceId?: string): string => {
   return resource?.color || '#3b82f6'
 }
 
-// Removed unused grid styles - now using flexbox layout
+// Using flexbox layout with vertical event stacking
 
 // Lifecycle
 onMounted(() => {
@@ -758,11 +667,12 @@ onMounted(() => {
   @apply bg-gray-50/50 dark:bg-gray-800/50;
 }
 
-/* Multi-day event styles */
+/* Vertically stacked multi-day event styles */
 .atempo-cal-multiday-event {
-  @apply rounded-md shadow-sm border-l-4 px-2 py-1 cursor-pointer transition-all duration-200;
+  @apply rounded-sm shadow-sm border-l-4 px-2 py-1 cursor-pointer transition-all duration-200;
   @apply hover:shadow-md;
   min-height: 20px;
+  margin-bottom: 2px;
 }
 
 .atempo-cal-multiday-event .atempo-cal-event {
@@ -771,7 +681,7 @@ onMounted(() => {
 }
 
 .atempo-cal-multiday-event .atempo-cal-event-content {
-  @apply flex items-center;
+  @apply flex items-center h-full;
 }
 
 .atempo-cal-multiday-event .atempo-cal-event-title {
@@ -782,14 +692,20 @@ onMounted(() => {
   @apply text-xs opacity-75 ml-2 flex-shrink-0;
 }
 
-/* Single-day event stacking styles */
+.atempo-cal-multiday-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Vertical stacking styles for single-day events */
 .atempo-cal-resource-day-cell .atempo-cal-event {
-  @apply static w-full h-full;
-  min-height: 18px;
+  @apply static w-full;
+  min-height: 16px;
+  margin-bottom: 2px;
 }
 
 .atempo-cal-resource-day-cell .atempo-cal-event-content {
-  @apply flex items-center;
+  @apply flex items-center h-full;
 }
 
 .atempo-cal-resource-day-cell .atempo-cal-event-title {
@@ -798,6 +714,19 @@ onMounted(() => {
 
 .atempo-cal-resource-day-cell .atempo-cal-event-time {
   @apply text-xs opacity-75 ml-1 flex-shrink-0;
+}
+
+/* Improved event card styling for stacked layout */
+.atempo-cal-resource-day-cell .atempo-cal-event > div {
+  @apply rounded-sm border-l-4 transition-all duration-200;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  height: 100%;
+}
+
+.atempo-cal-resource-day-cell .atempo-cal-event > div:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
 }
 
 .atempo-cal-current-time-line {
