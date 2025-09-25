@@ -1,14 +1,17 @@
 <template>
-  <div class="atempo-cal" :class="{ 'dark': isDark }">
+  <div class="atempo-cal">
     <!-- Navigation Bar -->
     <NavigationBar
       :current-date="currentDate"
       :current-view="currentView"
+      :config="mergedConfig"
       :loading="loading"
+      :is-dark="isDark"
       @navigate-previous="navigatePrevious"
       @navigate-next="navigateNext"
       @navigate-today="navigateToday"
       @date-change="handleDateChange"
+      @toggle-theme="toggleTheme"
     />
 
     <!-- Main Calendar Content -->
@@ -188,7 +191,7 @@ const handleSlotClick = (slotInfo: SlotClickInfo): void => {
 }
 
 const handleDateChange = (date: string): void => {
-  navigateToDate(date)
+  navigateToDate(atemporal(date))
 }
 
 // Watch for theme prop changes
@@ -230,8 +233,12 @@ defineExpose({
 <style scoped>
 @reference "tailwindcss";
 
+.atempo-cal {
+  @apply bg-white dark:bg-gray-900 min-h-full;
+}
+
 .atempo-cal-content {
-  @apply min-h-96;
+  @apply min-h-96 bg-white dark:bg-gray-900;
 }
 
 /* Transition animations */

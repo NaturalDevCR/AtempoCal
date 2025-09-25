@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @reference;
 
+/* Import AtempoCal component styles */
+@import "../../src/style.css";
+
 /* Demo-specific styles */
 body {
   margin: 0;

@@ -198,6 +198,7 @@
 }
 
 /* Dark mode overrides */
+.dark,
 [data-theme="dark"] {
   --color-primary-50: #172554;
   --color-primary-100: #1e3a8a;
@@ -210,6 +211,10 @@
   --color-primary-800: #bfdbfe;
   --color-primary-900: #dbeafe;
   --color-primary-950: #eff6ff;
+  
+  /* Dark mode specific overrides */
+  --color-white: #111827;
+  --color-black: #f9fafb;
 }
 
 /* AtempoCal Custom Styles */
@@ -380,6 +385,7 @@
   padding: 1rem;
   border-bottom: 1px solid var(--atempo-border-primary);
   background-color: var(--atempo-bg-primary);
+  color: var(--atempo-text-primary);
 }
 
 .atempo-cal-nav-button {
@@ -394,6 +400,11 @@
   background-color: var(--atempo-bg-primary);
   transition: all 0.2s ease;
   cursor: pointer;
+}
+
+.atempo-cal-nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .atempo-cal-nav-button:hover {

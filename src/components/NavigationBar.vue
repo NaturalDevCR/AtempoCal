@@ -52,27 +52,36 @@
 
     <!-- Right section: Additional controls -->
     <div class="flex items-center space-x-2">
-      <!-- Reserved for future controls -->
+      <!-- Theme Toggle Button -->
+      <button
+        class="atempo-cal-nav-button"
+        @click="$emit('toggle-theme')"
+        title="Toggle theme"
+      >
+        <SunIcon v-if="isDark" class="w-4 h-4" />
+        <MoonIcon v-else class="w-4 h-4" />
+      </button>
     </div>
 
     <!-- Date picker modal (if enabled) -->
     <Teleport to="body">
       <div
         v-if="showDatePickerModal"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         @click="closeDatePicker"
       >
         <div
-          class="bg-white dark:bg-gray-800 rounded-lg p-4 max-w-sm w-full mx-4"
+          class="atempo-cal-modal"
           @click.stop
         >
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+            <h3 class="text-lg font-medium">
               Select Date
             </h3>
             <button
-              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              class="atempo-cal-modal-close"
               @click="closeDatePicker"
+              title="Close"
             >
               <XMarkIcon class="w-5 h-5" />
             </button>
@@ -81,13 +90,13 @@
           <input
             type="date"
             :value="currentDate.format('YYYY-MM-DD')"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            class="atempo-cal-date-input"
             @change="handleDatePickerChange"
           />
           
           <div class="flex justify-end space-x-2 mt-4">
             <button
-              class="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+              class="atempo-cal-modal-button"
               @click="closeDatePicker"
             >
               Cancel
@@ -101,15 +110,17 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { Atemporal, CalendarView } from '../types'
-import { formatDateForDisplay } from '../utils/dateHelpers'
+import type { Atemporal, CalendarView, CalendarConfig } from '../types'
+import { formatDateForDisplay, getWeekStart, getWeekEnd } from '../utils/dateHelpers'
 
 // Icons (using simple SVG icons for now - can be replaced with icon library)
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   CalendarIcon,
-  XMarkIcon
+  XMarkIcon,
+  SunIcon,
+  MoonIcon
 } from '@heroicons/vue/24/outline'
 
 /**
@@ -120,13 +131,17 @@ import {
 interface Props {
   currentDate: Atemporal
   currentView: CalendarView
+  config?: CalendarConfig
   loading?: boolean
   showDatePicker?: boolean
+  isDark?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  config: () => ({}),
   loading: false,
-  showDatePicker: true
+  showDatePicker: true,
+  isDark: false
 })
 
 interface Emits {
@@ -134,6 +149,7 @@ interface Emits {
   'navigate-next': []
   'navigate-today': []
   'date-change': [date: string]
+  'toggle-theme': []
 }
 
 const emit = defineEmits<Emits>()
@@ -146,10 +162,11 @@ const showDatePickerModal = ref(false)
  */
 const getDisplayTitle = (): string => {
   const date = props.currentDate
+  const firstDayOfWeek = props.config?.firstDayOfWeek ?? 1 // Default to Monday
   
-  // For week view, show the week range
-  const weekStart = date.startOf('week')
-  const weekEnd = date.endOf('week')
+  // For week view, show the week range using the same calculation as WeeklyView
+  const weekStart = getWeekStart(date, firstDayOfWeek)
+  const weekEnd = getWeekEnd(date, firstDayOfWeek)
   
   if (weekStart.month === weekEnd.month) {
     // Same month
@@ -208,6 +225,40 @@ const handleDatePickerChange = (event: Event): void => {
 <style scoped>
 @reference "tailwindcss";
 
+/* Navigation bar specific styles */
+.atempo-cal-nav {
+  @apply flex items-center justify-between p-4 border-b;
+  background-color: var(--atempo-bg-primary);
+  border-color: var(--atempo-border-primary);
+  color: var(--atempo-text-primary);
+}
+
+.atempo-cal-nav-button {
+  @apply inline-flex items-center px-3 py-2 border rounded-md text-sm font-medium transition-all duration-200 cursor-pointer;
+  color: var(--atempo-text-primary);
+  background-color: var(--atempo-bg-primary);
+  border-color: var(--atempo-border-secondary);
+}
+
+.atempo-cal-nav-button:hover {
+  background-color: var(--atempo-bg-secondary);
+}
+
+.atempo-cal-nav-button:focus {
+  @apply outline-none;
+  box-shadow: 0 0 0 2px var(--atempo-accent-primary);
+  border-color: var(--atempo-accent-primary);
+}
+
+.atempo-cal-nav-button:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.atempo-cal-nav-title {
+  @apply text-lg font-semibold;
+  color: var(--atempo-text-primary);
+}
+
 /* Additional component-specific styles */
 .atempo-cal-view-toggle {
   @apply inline-flex rounded-md shadow-sm;
@@ -229,6 +280,47 @@ const handleDatePickerChange = (event: Event): void => {
   @apply bg-blue-600 text-white border-blue-600 z-10;
 }
 
+/* Modal styles */
+.atempo-cal-modal {
+  @apply rounded-lg p-6 max-w-sm w-full shadow-xl;
+  background-color: var(--atempo-bg-primary);
+  border: 1px solid var(--atempo-border-primary);
+  color: var(--atempo-text-primary);
+}
+
+.atempo-cal-modal-close {
+  @apply p-1 rounded-md transition-colors duration-200;
+  color: var(--atempo-text-secondary);
+}
+
+.atempo-cal-modal-close:hover {
+  background-color: var(--atempo-bg-secondary);
+  color: var(--atempo-text-primary);
+}
+
+.atempo-cal-date-input {
+  @apply w-full px-3 py-2 border rounded-md transition-colors duration-200;
+  background-color: var(--atempo-bg-primary);
+  border-color: var(--atempo-border-secondary);
+  color: var(--atempo-text-primary);
+}
+
+.atempo-cal-date-input:focus {
+  @apply outline-none;
+  border-color: var(--atempo-accent-primary);
+  box-shadow: 0 0 0 1px var(--atempo-accent-primary);
+}
+
+.atempo-cal-modal-button {
+  @apply px-4 py-2 text-sm rounded-md transition-colors duration-200;
+  color: var(--atempo-text-secondary);
+}
+
+.atempo-cal-modal-button:hover {
+  background-color: var(--atempo-bg-secondary);
+  color: var(--atempo-text-primary);
+}
+
 /* Responsive adjustments */
 @media (max-width: 640px) {
   .atempo-cal-nav {
@@ -241,6 +333,10 @@ const handleDatePickerChange = (event: Event): void => {
   
   .atempo-cal-nav-title {
     @apply text-base text-center;
+  }
+  
+  .atempo-cal-modal {
+    @apply mx-4 p-4;
   }
 }
 </style>

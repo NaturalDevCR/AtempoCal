@@ -1,7 +1,7 @@
 <template>
-  <div class="weekly-view">
+  <div class="weekly-view bg-white dark:bg-gray-900">
     <!-- Week header with days -->
-    <div class="week-header">
+    <div class="week-header bg-white dark:bg-gray-900">
       <!-- Worker column spacer -->
       <div class="resource-spacer">
         <span class="resource-label">Workers</span>
@@ -33,7 +33,7 @@
     </div>
 
     <!-- Scrollable content area -->
-    <div class="week-content" ref="scrollContainer">
+    <div class="week-content bg-white dark:bg-gray-900" ref="scrollContainer">
       <!-- Worker rows -->
       <div class="resource-container">
         <div

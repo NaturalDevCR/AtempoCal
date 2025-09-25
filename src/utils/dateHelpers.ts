@@ -248,15 +248,16 @@ export function formatDateForDisplay(date: Atemporal, format: string = 'YYYY-MM-
  * Get localized day names
  * @param locale - Locale string
  * @param format - Format ('long', 'short', 'narrow')
- * @returns Array of day names
+ * @returns Array of day names starting from Sunday (index 0) to Saturday (index 6)
  */
 export function getLocalizedDayNames(locale: string = 'en', format: 'long' | 'short' | 'narrow' = 'short'): string[] {
   const formatter = new Intl.DateTimeFormat(locale, { weekday: format })
   const days: string[] = []
   
   // Generate days starting from Sunday (0) to Saturday (6)
+  // Use January 7, 2024 (Sunday) as base date to ensure correct day order
   for (let i = 0; i < 7; i++) {
-    const date = new Date(2024, 0, i) // January 2024 starts on Monday
+    const date = new Date(2024, 0, 7 + i) // January 7, 2024 is Sunday
     days.push(formatter.format(date))
   }
   
