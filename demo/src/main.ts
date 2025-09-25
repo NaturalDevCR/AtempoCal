@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import '../../src/style.css'
+import './style.css'
 
 /**
  * Demo application entry point
