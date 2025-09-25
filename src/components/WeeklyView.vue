@@ -119,7 +119,7 @@
                 <div
                   v-for="(event, eventIndex) in getSingleDayEventsForResourceAndDay(resource.id, date)"
                   :key="event.id + '-single'"
-                  class="absolute w-full transition-all duration-300 ease-in-out"
+                  class="absolute transition-all duration-300 ease-in-out"
                   :class="{
                     'atempo-cal-event-expanded': hoveredEventId === event.id,
                     'atempo-cal-event-compact': hoveredEventId && hoveredEventId !== event.id && isInSameCell(hoveredEventId, resource.id, date)
