@@ -20,6 +20,7 @@ const SPANISH_MONTHS: Record<number, string> = {
 
 /**
  * Spanish day abbreviations mapping
+ * Handles both 0-based (0=Sunday) and 1-based (7=Sunday) day indexing
  */
 const SPANISH_DAYS: Record<number, string> = {
   1: 'LUN', // Monday
@@ -28,7 +29,8 @@ const SPANISH_DAYS: Record<number, string> = {
   4: 'JUE', // Thursday
   5: 'VIE', // Friday
   6: 'SÁB', // Saturday
-  0: 'DOM'  // Sunday
+  0: 'DOM', // Sunday (0-based)
+  7: 'DOM'  // Sunday (1-based)
 }
 
 /**
@@ -68,8 +70,20 @@ export const getSpanishDay = (date: Atemporal): string => {
     return spanishDayCache.get(cacheKey)!
   }
   
-  const dayOfWeek = typeof date.dayOfWeek === 'function' ? date.dayOfWeek() : date.dayOfWeek
+  // Get day of week, handling both function and property access
+  let dayOfWeek: number
+  try {
+    dayOfWeek = typeof date.dayOfWeek === 'function' ? date.dayOfWeek() : date.dayOfWeek
+  } catch {
+    // Fallback: use JavaScript Date to get day of week
+    const jsDate = new Date(date.format('YYYY-MM-DD') + 'T12:00:00')
+    dayOfWeek = jsDate.getDay() // 0=Sunday, 1=Monday, etc.
+  }
+  
+  // Ensure we have a valid number
   const dayIndex = typeof dayOfWeek === 'number' ? dayOfWeek : 1
+  
+  // Get Spanish day name, with fallback to Monday if invalid
   const result = SPANISH_DAYS[dayIndex] || 'LUN'
   spanishDayCache.set(cacheKey, result)
   return result

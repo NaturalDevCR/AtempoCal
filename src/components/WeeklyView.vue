@@ -3,7 +3,7 @@
     <!-- Week header with days -->
     <div class="week-header">
       <!-- Worker column spacer -->
-      <div class="resource-spacer">
+      <div class="resource-spacer" :style="{ width: dynamicWorkerColumnWidth, minWidth: dynamicWorkerColumnWidth }">
         <span class="resource-label">Colaboradores</span>
       </div>
       
@@ -51,7 +51,7 @@
           :style="{ height: getWorkerRowHeight(worker.id) + 'px' }"
         >
           <!-- Worker info column -->
-          <div class="resource-info">
+          <div class="resource-info" :style="{ width: dynamicWorkerColumnWidth, minWidth: dynamicWorkerColumnWidth }">
             <div class="resource-content">
               <div class="resource-indicator" :style="{ backgroundColor: worker.color || '#6B7280' }"></div>
               <div class="resource-details">
@@ -301,6 +301,64 @@ const shouldEnableScroll = computed((): boolean => {
   
   // Default auto scroll behavior
   return props.enableAutoScroll ?? true
+})
+
+/**
+ * Calculate dynamic width for the workers column based on the longest text content
+ * Measures all worker names, roles, and header text to determine optimal width
+ */
+const dynamicWorkerColumnWidth = computed((): string => {
+  // Handle edge case: no workers
+  if (!displayWorkers.value.length) {
+    return '190px' // Default width when no workers
+  }
+  
+  // Create a temporary canvas element for text measurement
+  const canvas = document.createElement('canvas')
+  const context = canvas.getContext('2d')
+  if (!context) return '190px' // Fallback to current width
+  
+  let maxWidth = 0
+  
+  // Measure header text "COLABORADORES" with proper font metrics
+  context.font = '600 14px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+  const headerWidth = context.measureText('COLABORADORES').width
+  maxWidth = Math.max(maxWidth, headerWidth)
+  
+  // Measure all worker names and roles
+  displayWorkers.value.forEach(worker => {
+    // Skip empty or invalid worker names
+    if (!worker.name || typeof worker.name !== 'string') return
+    
+    // Measure worker name with proper font metrics
+    context.font = '500 14px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+    const nameWidth = context.measureText(worker.name.trim()).width
+    maxWidth = Math.max(maxWidth, nameWidth)
+    
+    // Measure worker role if it exists
+    if (worker.metadata?.role && typeof worker.metadata.role === 'string') {
+      context.font = '400 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+      const roleWidth = context.measureText(worker.metadata.role.trim()).width
+      maxWidth = Math.max(maxWidth, roleWidth)
+    }
+  })
+  
+  // Add comprehensive padding calculation:
+  // - Left padding: 0.75rem (12px)
+  // - Right padding: 0.75rem (12px) 
+  // - Indicator width: 0.75rem (12px)
+  // - Indicator margin: 0.5rem (8px)
+  // - Extra spacing for visual comfort: 1rem (16px)
+  const paddingInPixels = 12 + 12 + 12 + 8 + 16 // Total: 60px
+  const totalWidth = maxWidth + paddingInPixels
+  
+  // Ensure minimum width of 190px and maximum reasonable width of 320px
+  // Add responsive behavior for smaller screens
+  const minWidth = window.innerWidth < 768 ? 160 : 190
+  const maxWidthLimit = window.innerWidth < 768 ? 250 : 320
+  const finalWidth = Math.max(minWidth, Math.min(maxWidthLimit, totalWidth))
+  
+  return `${Math.ceil(finalWidth)}px`
 })
 
 
@@ -843,8 +901,7 @@ onMounted(() => {
 }
 
 .resource-spacer {
-  width: 190px;
-  min-width: 190px;
+  /* Width is now controlled dynamically via inline styles */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -852,6 +909,7 @@ onMounted(() => {
   border-right: 1px solid var(--atempo-border-primary);
   background-color: var(--atempo-colaboradores-bg);
   height: 90px;
+  flex-shrink: 0;
 }
 
 .resource-label {
@@ -1143,13 +1201,8 @@ onMounted(() => {
 .resource-info {
   flex-shrink: 0;
   border-right: 1px solid var(--atempo-border-primary) !important;
-  /* Dynamic width based on content */
-  min-width: 190px;
-  max-width: 250px;
+  /* Width is now controlled dynamically via inline styles */
   height: 100% !important;
-  width: auto;
-  /* Ensure full height inheritance */
-  height: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -1363,12 +1416,13 @@ onMounted(() => {
 
 .delete-btn {
   opacity: 0;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
   border: none;
   border-radius: 0.375rem;
-  background-color: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+  background-color: var(--atempo-bg-primary);
+  border: 1px solid var(--atempo-border-secondary);
+  box-shadow: 0 2px 4px 0 var(--atempo-shadow);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1386,9 +1440,16 @@ onMounted(() => {
 
 .delete-btn:hover {
   background-color: #fee2e2;
+  border-color: #dc2626;
   color: #b91c1c;
   transform: scale(1.1);
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 8px 0 var(--atempo-shadow-lg);
+}
+
+.dark .delete-btn:hover {
+  background-color: rgba(220, 38, 38, 0.2);
+  border-color: #dc2626;
+  color: #fca5a5;
 }
 
 .delete-btn:active {
@@ -1401,30 +1462,43 @@ onMounted(() => {
 }
 
 .delete-icon {
-  width: 0.75rem;
-  height: 0.75rem;
-  stroke-width: 2.5;
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 2;
 }
 
 /* Multi-day event delete button specific styling */
 .multiday-delete-btn {
   position: absolute;
-  top: 0.25rem;
-  right: 0.25rem;
-  width: 1.125rem;
-  height: 1.125rem;
-  background-color: rgba(255, 255, 255, 0.9);
+  top: 0.375rem;
+  right: 0.375rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: var(--atempo-bg-primary);
+  border: 1px solid var(--atempo-border-secondary);
   backdrop-filter: blur(4px);
+  box-shadow: 0 2px 4px 0 var(--atempo-shadow);
 }
 
 .multiday-delete-btn:hover {
   background-color: #fee2e2;
+  border-color: #dc2626;
+  color: #b91c1c;
+  transform: scale(1.1);
   backdrop-filter: blur(8px);
+  box-shadow: 0 4px 8px 0 var(--atempo-shadow-lg);
+}
+
+.dark .multiday-delete-btn:hover {
+  background-color: rgba(220, 38, 38, 0.2);
+  border-color: #dc2626;
+  color: #fca5a5;
 }
 
 .multiday-delete-btn .delete-icon {
-  width: 0.625rem;
-  height: 0.625rem;
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 2;
 }
 
 .add-indicator {
@@ -1481,6 +1555,19 @@ onMounted(() => {
   
   .resource-spacer {
     min-height: 60px;
+    padding: 0.75rem 0.25rem; /* Reduce horizontal padding on mobile */
+  }
+  
+  .resource-content {
+    padding: 0.5rem 0.5rem; /* Reduce horizontal padding on mobile */
+  }
+  
+  .resource-name {
+    font-size: 0.8125rem; /* Slightly smaller on mobile */
+  }
+  
+  .resource-role {
+    font-size: 0.6875rem; /* Slightly smaller on mobile */
   }
 }
 </style>
