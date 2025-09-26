@@ -9,6 +9,7 @@
       @navigate-next="navigateNext"
       @navigate-today="navigateToday"
       @date-change="handleDateChange"
+      @export-pdf="handleExportPdf"
     />
 
     <!-- Main Calendar Content -->
@@ -197,6 +198,16 @@ const handleDateChange = (date: string): void => {
   navigateToDate(atemporal(date))
 }
 
+/**
+ * Handle PDF export by triggering browser print dialog
+ */
+const handleExportPdf = (): void => {
+  // Use setTimeout to ensure the UI is ready before printing
+  setTimeout(() => {
+    window.print()
+  }, 100)
+}
+
 // Watch for theme prop changes
 watch(() => props.theme, (newTheme) => {
   if (newTheme) {
@@ -297,5 +308,46 @@ defineExpose({
 
 .atempo-cal-slide-leave-to {
   transform: translateX(100%);
+}
+
+/* Print styles for PDF export */
+@media print {
+  @page {
+    size: landscape;
+    margin: 0.5in;
+  }
+  
+  .atempo-cal {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: white !important;
+    color: black !important;
+    page-break-inside: avoid;
+  }
+  
+  .atempo-cal-content {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+  
+  /* Hide loading overlay in print */
+  .atempo-cal-loading-overlay {
+    display: none !important;
+  }
+  
+  /* Ensure proper text colors for print */
+  * {
+    color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
 </style>

@@ -1399,6 +1399,129 @@ watch([() => props.events, weekDates], () => {
 
 
 
+/* Print styles for PDF export */
+@media print {
+  .weekly-view {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    page-break-inside: avoid;
+  }
+  
+  .week-content {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  
+  .resource-container {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  
+  .resource-row {
+    height: auto !important;
+    min-height: 60px !important;
+    page-break-inside: avoid;
+    overflow: visible !important;
+  }
+  
+  .resource-info {
+    background: white !important;
+    color: black !important;
+    border-color: #ccc !important;
+  }
+  
+  .resource-name {
+    color: black !important;
+  }
+  
+  .resource-role {
+    color: #666 !important;
+  }
+  
+  .day-cell {
+    border-color: #ccc !important;
+    background: white !important;
+  }
+  
+  .day-cell.is-today {
+    background: #f0f0f0 !important;
+  }
+  
+  .day-cell.is-weekend {
+    background: #f8f8f8 !important;
+  }
+  
+  .week-header {
+    background: white !important;
+    color: black !important;
+    border-color: #ccc !important;
+  }
+  
+  .day-header {
+    background: white !important;
+    color: black !important;
+    border-color: #ccc !important;
+  }
+  
+  .resource-spacer {
+    background: white !important;
+    color: black !important;
+    border-color: #ccc !important;
+  }
+  
+  .resource-label {
+    color: black !important;
+  }
+  
+  .day-name {
+    color: black !important;
+  }
+  
+  .day-date {
+    color: #666 !important;
+  }
+  
+  .event-bar {
+    background: white !important;
+    color: black !important;
+    border-color: #666 !important;
+    box-shadow: none !important;
+  }
+  
+  .multiday-content {
+    background: white !important;
+    color: black !important;
+    border-color: #666 !important;
+  }
+  
+  .multiday-title {
+    color: black !important;
+  }
+  
+  .event-time {
+    color: black !important;
+  }
+  
+  /* Hide interactive elements in print */
+  .delete-btn,
+  .add-indicator {
+    display: none !important;
+  }
+  
+  /* Ensure proper text colors for print */
+  * {
+    color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .day-header {
