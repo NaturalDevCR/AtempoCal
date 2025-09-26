@@ -164,6 +164,200 @@
         </div>
       </div>
 
+      <!-- Real-time Event Testing Controls -->
+      <div class="mb-8">
+        <div class="demo-card p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            🚀 Real-time Event Testing
+          </h3>
+          <p class="text-gray-600 mb-4">
+            Test AtempoCal's reactivity by adding events in real-time. Watch how the calendar updates immediately when new events are added to the data.
+          </p>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <!-- Quick Action Buttons -->
+            <button
+              @click="addRandomEvent"
+              class="demo-button bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Add Random Event
+            </button>
+            
+            <button
+              @click="addMultiDayEvent"
+              class="demo-button bg-purple-500 hover:bg-purple-600 text-white"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Add Multi-day Event
+            </button>
+            
+            <button
+              @click="addMeetingEvent"
+              class="demo-button bg-green-500 hover:bg-green-600 text-white"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Add Meeting
+            </button>
+            
+            <button
+              @click="clearAllEvents"
+              class="demo-button bg-red-500 hover:bg-red-600 text-white"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Clear All Events
+            </button>
+          </div>
+          
+          <!-- Event Statistics -->
+          <div class="bg-gray-50 rounded-lg p-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div>
+                <div class="text-2xl font-bold text-blue-600">{{ demoEvents.length }}</div>
+                <div class="text-sm text-gray-600">Total Events</div>
+              </div>
+              <div>
+                <div class="text-2xl font-bold text-green-600">{{ singleDayEventsCount }}</div>
+                <div class="text-sm text-gray-600">Single-day Events</div>
+              </div>
+              <div>
+                <div class="text-2xl font-bold text-purple-600">{{ multiDayEventsCount }}</div>
+                <div class="text-sm text-gray-600">Multi-day Events</div>
+              </div>
+              <div>
+                <div class="text-2xl font-bold text-orange-600">{{ demoResources.length }}</div>
+                <div class="text-sm text-gray-600">Workers</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Custom Event Form Toggle -->
+          <div class="mt-4">
+            <button
+              @click="showCustomEventForm = !showCustomEventForm"
+              class="demo-button bg-gray-500 hover:bg-gray-600 text-white"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+              </svg>
+              {{ showCustomEventForm ? 'Hide' : 'Show' }} Custom Event Form
+            </button>
+          </div>
+          
+          <!-- Custom Event Form -->
+          <div v-if="showCustomEventForm" class="mt-6 bg-white border rounded-lg p-6">
+            <h4 class="text-md font-semibold text-gray-900 mb-4">Create Custom Event</h4>
+            <form @submit.prevent="addCustomEvent" class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Event Title</label>
+                  <input
+                    v-model="customEvent.title"
+                    type="text"
+                    required
+                    class="demo-input"
+                    placeholder="Enter event title"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Worker</label>
+                  <select v-model="customEvent.resourceId" required class="demo-select">
+                    <option value="">Select a worker</option>
+                    <option v-for="resource in demoResources" :key="resource.id" :value="resource.id">
+                      {{ resource.name }} - {{ resource.metadata?.role }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  v-model="customEvent.description"
+                  class="demo-input"
+                  rows="2"
+                  placeholder="Event description (optional)"
+                ></textarea>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                  <input
+                    v-model="customEvent.date"
+                    type="date"
+                    required
+                    class="demo-input"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                  <input
+                    v-model="customEvent.startTime"
+                    type="time"
+                    required
+                    class="demo-input"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                  <input
+                    v-model="customEvent.endTime"
+                    type="time"
+                    required
+                    class="demo-input"
+                  />
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Event Color</label>
+                  <input
+                    v-model="customEvent.color"
+                    type="color"
+                    class="demo-input h-10"
+                  />
+                </div>
+                <div class="flex items-center">
+                  <input
+                    v-model="customEvent.isAllDay"
+                    type="checkbox"
+                    id="allDay"
+                    class="mr-2"
+                  />
+                  <label for="allDay" class="text-sm font-medium text-gray-700">All Day Event</label>
+                </div>
+              </div>
+              
+              <div class="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  @click="resetCustomEventForm"
+                  class="demo-button bg-gray-300 hover:bg-gray-400 text-gray-700"
+                >
+                  Reset
+                </button>
+                <button
+                  type="submit"
+                  class="demo-button bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  Add Event
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
       <!-- Calendar Component -->
       <AtempoCal
           :current-date="selectedDate"
@@ -291,7 +485,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import atemporal from 'atemporal'
 import AtempoCal from '../../src/AtempoCal.vue'
 import { useTheme } from '../../src/composables/useTheme'
@@ -310,6 +504,19 @@ const { currentTheme, toggleTheme } = useTheme()
 // Set to the week where our demo events are located (September 8-14, 2025)
 const selectedDate = ref(atemporal('2025-09-08').toString())
 const selectedEvent = ref<CalendarEvent | null>(null)
+
+// Real-time event testing state
+const showCustomEventForm = ref(false)
+const customEvent = ref({
+  title: '',
+  description: '',
+  resourceId: '',
+  date: atemporal().format('YYYY-MM-DD'),
+  startTime: '09:00',
+  endTime: '10:00',
+  color: '#3B82F6',
+  isAllDay: false
+})
 
 // Scroll configuration options for demo
 const scrollMode = ref<'auto' | 'fixed' | 'workers' | 'disabled'>('auto')
@@ -857,6 +1064,202 @@ const demoEvents = ref<CalendarEvent[]>([
 
 // Event actions - using default actions from EventCard (only delete)
 const eventActions = ref<EventAction[]>([])
+
+// Computed properties for event statistics
+const singleDayEventsCount = computed(() => {
+  return demoEvents.value.filter(event => !event.isAllDay).length
+})
+
+const multiDayEventsCount = computed(() => {
+  return demoEvents.value.filter(event => event.isAllDay).length
+})
+
+// Real-time event generation methods
+
+/**
+ * Generate a random event with realistic data
+ */
+const addRandomEvent = () => {
+  const eventTypes = [
+    { title: 'Team Meeting', color: '#3B82F6', description: 'Weekly team sync meeting' },
+    { title: 'Code Review', color: '#10B981', description: 'Review pull requests and discuss changes' },
+    { title: 'Client Call', color: '#F59E0B', description: 'Client check-in and project updates' },
+    { title: 'Development Work', color: '#8B5CF6', description: 'Feature development and bug fixes' },
+    { title: 'Planning Session', color: '#EF4444', description: 'Sprint planning and task estimation' },
+    { title: 'Training', color: '#06B6D4', description: 'Skills training and knowledge sharing' },
+    { title: 'Documentation', color: '#84CC16', description: 'Update project documentation' },
+    { title: 'Testing', color: '#F97316', description: 'Quality assurance and testing' }
+  ]
+  
+  const randomType = eventTypes[Math.floor(Math.random() * eventTypes.length)]
+  const randomResource = demoResources.value[Math.floor(Math.random() * demoResources.value.length)]
+  
+  // Generate random time within current week
+  const currentWeekStart = atemporal(selectedDate.value).startOf('week')
+  const randomDay = Math.floor(Math.random() * 5) // Monday to Friday
+  const randomHour = Math.floor(Math.random() * 8) + 9 // 9 AM to 5 PM
+  const duration = Math.floor(Math.random() * 3) + 1 // 1-3 hours
+  
+  const startTime = currentWeekStart.add(randomDay, 'day').add(randomHour, 'hour')
+  const endTime = startTime.add(duration, 'hour')
+  
+  const newEvent: CalendarEvent = {
+    id: `random-event-${Date.now()}`,
+    title: randomType.title,
+    description: randomType.description,
+    startTime: startTime.toString(),
+    endTime: endTime.toString(),
+    resourceId: randomResource.id,
+    color: randomType.color,
+    metadata: {
+      type: 'random-generated',
+      generatedAt: new Date().toISOString(),
+      worker: randomResource.name
+    }
+  }
+  
+  demoEvents.value.push(newEvent)
+}
+
+/**
+ * Add a multi-day event
+ */
+const addMultiDayEvent = () => {
+  const multiDayTypes = [
+    { title: 'Conference', color: '#8B5CF6', description: 'Industry conference attendance' },
+    { title: 'Training Program', color: '#06B6D4', description: 'Multi-day skills training' },
+    { title: 'Vacation', color: '#10B981', description: 'Personal time off' },
+    { title: 'Business Trip', color: '#F59E0B', description: 'Client visits and meetings' },
+    { title: 'Workshop', color: '#EF4444', description: 'Intensive workshop program' },
+    { title: 'Retreat', color: '#84CC16', description: 'Team building retreat' }
+  ]
+  
+  const randomType = multiDayTypes[Math.floor(Math.random() * multiDayTypes.length)]
+  const randomResource = demoResources.value[Math.floor(Math.random() * demoResources.value.length)]
+  
+  // Generate random multi-day period within current week
+  const currentWeekStart = atemporal(selectedDate.value).startOf('week')
+  const startDay = Math.floor(Math.random() * 3) // Monday to Wednesday
+  const duration = Math.floor(Math.random() * 3) + 2 // 2-4 days
+  
+  const startTime = currentWeekStart.add(startDay, 'day').startOf('day')
+  const endTime = startTime.add(duration, 'day').endOf('day')
+  
+  const newEvent: CalendarEvent = {
+    id: `multiday-event-${Date.now()}`,
+    title: randomType.title,
+    description: randomType.description,
+    startTime: startTime.toString(),
+    endTime: endTime.toString(),
+    resourceId: randomResource.id,
+    color: randomType.color,
+    isAllDay: true,
+    metadata: {
+      type: 'multi-day-generated',
+      generatedAt: new Date().toISOString(),
+      worker: randomResource.name,
+      duration: `${duration} days`
+    }
+  }
+  
+  demoEvents.value.push(newEvent)
+}
+
+/**
+ * Add a meeting event
+ */
+const addMeetingEvent = () => {
+  const meetingTypes = [
+    { title: 'Daily Standup', color: '#3B82F6', description: 'Daily team standup meeting', duration: 0.5 },
+    { title: 'Sprint Review', color: '#10B981', description: 'Sprint review and retrospective', duration: 2 },
+    { title: 'All Hands', color: '#F59E0B', description: 'Company-wide all hands meeting', duration: 1 },
+    { title: '1:1 Meeting', color: '#8B5CF6', description: 'One-on-one with manager', duration: 1 },
+    { title: 'Design Review', color: '#EF4444', description: 'Design review and feedback session', duration: 1.5 },
+    { title: 'Architecture Discussion', color: '#06B6D4', description: 'Technical architecture planning', duration: 2 }
+  ]
+  
+  const randomMeeting = meetingTypes[Math.floor(Math.random() * meetingTypes.length)]
+  const randomResource = demoResources.value[Math.floor(Math.random() * demoResources.value.length)]
+  
+  // Generate meeting time (prefer morning hours)
+  const currentWeekStart = atemporal(selectedDate.value).startOf('week')
+  const randomDay = Math.floor(Math.random() * 5) // Monday to Friday
+  const randomHour = Math.floor(Math.random() * 4) + 9 // 9 AM to 1 PM
+  
+  const startTime = currentWeekStart.add(randomDay, 'day').add(randomHour, 'hour')
+  const endTime = startTime.add(randomMeeting.duration, 'hour')
+  
+  const newEvent: CalendarEvent = {
+    id: `meeting-event-${Date.now()}`,
+    title: randomMeeting.title,
+    description: randomMeeting.description,
+    startTime: startTime.toString(),
+    endTime: endTime.toString(),
+    resourceId: randomResource.id,
+    color: randomMeeting.color,
+    metadata: {
+      type: 'meeting-generated',
+      generatedAt: new Date().toISOString(),
+      worker: randomResource.name,
+      duration: `${randomMeeting.duration} hours`
+    }
+  }
+  
+  demoEvents.value.push(newEvent)
+}
+
+/**
+ * Add custom event from form
+ */
+const addCustomEvent = () => {
+  const startDateTime = atemporal(`${customEvent.value.date}T${customEvent.value.startTime}:00`)
+  const endDateTime = atemporal(`${customEvent.value.date}T${customEvent.value.endTime}:00`)
+  
+  const newEvent: CalendarEvent = {
+    id: `custom-event-${Date.now()}`,
+    title: customEvent.value.title,
+    description: customEvent.value.description,
+    startTime: customEvent.value.isAllDay ? startDateTime.startOf('day').toString() : startDateTime.toString(),
+    endTime: customEvent.value.isAllDay ? endDateTime.endOf('day').toString() : endDateTime.toString(),
+    resourceId: customEvent.value.resourceId,
+    color: customEvent.value.color,
+    isAllDay: customEvent.value.isAllDay,
+    metadata: {
+      type: 'custom-generated',
+      generatedAt: new Date().toISOString(),
+      worker: getResourceName(customEvent.value.resourceId)
+    }
+  }
+  
+  demoEvents.value.push(newEvent)
+  resetCustomEventForm()
+  showCustomEventForm.value = false
+}
+
+/**
+ * Reset custom event form
+ */
+const resetCustomEventForm = () => {
+  customEvent.value = {
+    title: '',
+    description: '',
+    resourceId: '',
+    date: atemporal().format('YYYY-MM-DD'),
+    startTime: '09:00',
+    endTime: '10:00',
+    color: '#3B82F6',
+    isAllDay: false
+  }
+}
+
+/**
+ * Clear all events
+ */
+const clearAllEvents = () => {
+  if (confirm('Are you sure you want to clear all events? This will remove all demo events from the calendar.')) {
+    demoEvents.value = []
+  }
+}
 
 /**
  * Handle event click

@@ -23,7 +23,7 @@
       <!-- Calendar Views -->
       <WeeklyView
         :key="'week-' + currentDate.toString()"
-        :events="filteredEvents"
+        :events="props.events"
         :resources="resources"
         :week-start="visibleRange.start"
         :on-prev-week="navigatePrevious"
