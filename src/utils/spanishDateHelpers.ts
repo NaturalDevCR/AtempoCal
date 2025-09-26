@@ -73,7 +73,8 @@ export const getSpanishDay = (date: Atemporal): string => {
   // Get day of week, handling both function and property access
   let dayOfWeek: number
   try {
-    dayOfWeek = typeof date.dayOfWeek === 'function' ? date.dayOfWeek() : date.dayOfWeek
+    const dayOfWeekValue = typeof date.dayOfWeek === 'function' ? date.dayOfWeek() : date.dayOfWeek
+    dayOfWeek = typeof dayOfWeekValue === 'number' ? dayOfWeekValue : 1
   } catch {
     // Fallback: use JavaScript Date to get day of week
     const jsDate = new Date(date.format('YYYY-MM-DD') + 'T12:00:00')
@@ -81,7 +82,7 @@ export const getSpanishDay = (date: Atemporal): string => {
   }
   
   // Ensure we have a valid number
-  const dayIndex = typeof dayOfWeek === 'number' ? dayOfWeek : 1
+  const dayIndex = dayOfWeek
   
   // Get Spanish day name, with fallback to Monday if invalid
   const result = SPANISH_DAYS[dayIndex] || 'LUN'
