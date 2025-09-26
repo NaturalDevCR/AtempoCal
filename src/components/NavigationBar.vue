@@ -18,7 +18,7 @@
           @click="debouncedNavigatePrevious"
           :title="getPreviousTitle()"
         >
-          <ChevronLeftIcon class="w-5 h-5" />
+          <ChevronLeftIcon class="nav-icon" />
         </button>
         
         <button
@@ -27,7 +27,7 @@
           @click="debouncedNavigateNext"
           :title="getNextTitle()"
         >
-          <ChevronRightIcon class="w-5 h-5" />
+          <ChevronRightIcon class="nav-icon" />
         </button>
         
         <button
@@ -71,7 +71,7 @@
           @click="toggleDatePicker"
           title="Select date"
         >
-          <CalendarIcon class="w-4 h-4" />
+          <CalendarIcon class="nav-icon-sm" />
         </button>
       </slot>
     </div>
@@ -96,7 +96,7 @@
               @click="closeDatePicker"
               title="Close"
             >
-              <XMarkIcon class="w-5 h-5" />
+              <XMarkIcon class="nav-icon" />
             </button>
           </div>
           
@@ -262,192 +262,15 @@ const handleDateChange = (date: string): void => {
 </script>
 
 <style scoped>
-/* Navigation bar specific styles */
-.atempo-cal-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.5rem;
-  background-color: var(--atempo-nav-bg);
-  color: var(--atempo-text-primary);
-  border-bottom: 1px solid var(--atempo-border-primary);
-  min-height: 70px;
+/* NavigationBar styles are now handled by the main SCSS file */
+/* Component-specific styles only */
+.nav-icon {
+  width: 20px;
+  height: 20px;
 }
 
-.nav-left {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.nav-center {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  justify-content: center;
-}
-
-.nav-right {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.nav-arrow-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background-color: transparent;
-  border: 1px solid var(--atempo-border-secondary);
-  border-radius: 6px;
-  color: var(--atempo-text-primary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.nav-arrow-btn:hover {
-  background-color: var(--atempo-bg-secondary);
-  border-color: var(--atempo-border-primary);
-}
-
-.nav-arrow-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.nav-today-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem 1rem;
-  background-color: transparent;
-  border: 1px solid var(--atempo-border-secondary);
-  border-radius: 6px;
-  color: var(--atempo-text-primary);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-left: 0.5rem;
-}
-
-.nav-today-btn:hover {
-  background-color: var(--atempo-bg-secondary);
-  border-color: var(--atempo-border-primary);
-}
-
-.nav-today-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.nav-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--atempo-text-primary);
-  margin: 0;
-  text-align: center;
-}
-
-.nav-date-picker-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background-color: transparent;
-  border: 1px solid var(--atempo-border-secondary);
-  border-radius: 6px;
-  color: var(--atempo-text-primary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.nav-date-picker-btn:hover {
-  background-color: var(--atempo-bg-secondary);
-  border-color: var(--atempo-border-primary);
-}
-
-/* Modal styles */
-.atempo-cal-modal {
-  background-color: var(--atempo-bg-primary);
-  border-radius: 8px;
-  padding: 1.5rem;
-  max-width: 400px;
-  width: 100%;
-  box-shadow: var(--shadow-xl);
-  color: var(--atempo-text-primary);
-}
-
-.atempo-cal-modal-close {
-  padding: 0.25rem;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
-  color: var(--atempo-text-secondary);
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.atempo-cal-modal-close:hover {
-  background-color: var(--atempo-bg-secondary);
-  color: var(--atempo-text-primary);
-}
-
-.atempo-cal-date-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--atempo-border-primary);
-  border-radius: 6px;
-  transition: border-color 0.2s ease;
-  background-color: var(--atempo-bg-primary);
-  color: var(--atempo-text-primary);
-  font-size: 0.875rem;
-}
-
-.atempo-cal-date-input:focus {
-  outline: none;
-  border-color: var(--atempo-accent-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--atempo-accent-primary) 10%, transparent);
-}
-
-.atempo-cal-modal-button {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
-  color: var(--atempo-text-secondary);
-  background: none;
-  border: 1px solid var(--atempo-border-primary);
-  cursor: pointer;
-}
-
-.atempo-cal-modal-button:hover {
-  background-color: var(--atempo-bg-secondary);
-  color: var(--atempo-text-primary);
-}
-
-/* Responsive adjustments */
-@media (max-width: 640px) {
-  .atempo-cal-nav {
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-  }
-  
-  .nav-center {
-    order: -1;
-  }
-  
-  .nav-title {
-    font-size: 1.125rem;
-  }
-  
-  .atempo-cal-modal {
-    margin: 1rem;
-    padding: 1rem;
-  }
+.nav-icon-sm {
+  width: 16px;
+  height: 16px;
 }
 </style>

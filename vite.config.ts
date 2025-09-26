@@ -2,7 +2,6 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
 import dts from 'vite-plugin-dts'
-import tailwindcss from '@tailwindcss/vite'
 
 /**
  * Vite configuration for AtempoCal library build
@@ -11,7 +10,6 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [
     vue(),
-    tailwindcss(),
     dts({
       insertTypesEntry: true,
       include: ['src/**/*'],
@@ -55,6 +53,15 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src')
+    }
+  },
+
+  // CSS preprocessing
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern-compiler'
+      }
     }
   }
 })

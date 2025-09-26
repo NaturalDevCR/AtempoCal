@@ -9,7 +9,7 @@
         :class="{ 'current-time': slot.isCurrentTime }"
         :style="{ height: slotHeight + 'px' }"
       >
-        <span class="text-xs text-gray-600 dark:text-gray-400">
+        <span class="time-slot-label">
           {{ formatTimeSlot(slot) }}
         </span>
       </div>
@@ -26,7 +26,7 @@
         <div
           v-for="(slot, index) in timeSlots"
           :key="'line-' + slot.time"
-          class="absolute left-0 right-0 border-t border-gray-100 dark:border-gray-700"
+          class="grid-line-horizontal"
           :style="{ top: (index * slotHeight) + 'px' }"
         />
         
@@ -34,7 +34,7 @@
         <div
           v-for="(resource, index) in resources"
           :key="'resource-line-' + resource.id"
-          class="absolute top-0 bottom-0 border-l border-gray-200 dark:border-gray-600"
+          class="grid-line-vertical"
           :style="{ left: (index * resourceColumnWidth) + 'px' }"
         />
       </div>
@@ -51,31 +51,31 @@
       >
         <!-- Resource header -->
         <div class="atempo-cal-resource-header sticky top-0 z-10">
-          <div class="flex items-center space-x-2">
+          <div class="resource-header-content">
             <div
               v-if="resource.avatar"
-              class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center"
+              class="resource-avatar"
             >
               <img
                 v-if="resource.avatar.startsWith('http')"
                 :src="resource.avatar"
                 :alt="resource.name"
-                class="w-full h-full rounded-full object-cover"
+                class="avatar-image"
               />
-              <span v-else class="text-xs font-medium text-gray-600 dark:text-gray-300">
+              <span v-else class="avatar-text">
                 {{ resource.avatar }}
               </span>
             </div>
             <div
               v-else
-              class="w-6 h-6 rounded-full flex items-center justify-center"
+              class="resource-avatar"
               :style="{ backgroundColor: resource.color || '#3b82f6' }"
             >
-              <span class="text-xs font-medium text-white">
+              <span class="avatar-initial">
                 {{ resource.name.charAt(0).toUpperCase() }}
               </span>
             </div>
-            <span class="font-medium text-gray-900 dark:text-gray-100 truncate">
+            <span class="resource-name">
               {{ resource.name }}
             </span>
           </div>
@@ -87,7 +87,7 @@
           <div
             v-for="(slot, slotIndex) in timeSlots"
             :key="'slot-' + resource.id + '-' + slot.time"
-            class="absolute left-0 right-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+            class="time-slot-clickable"
             :style="{
               top: (slotIndex * slotHeight) + 'px',
               height: slotHeight + 'px'
@@ -312,33 +312,172 @@ const handleSlotClick = (slot: TimeSlot, resource: CalendarResource): void => {
 </script>
 
 <style scoped>
-@reference "tailwindcss";
 
 .atempo-cal-time-grid {
-  @apply bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden;
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+  border: 1px solid;
+  
+  @include theme-aware('background-color', (
+    light: white,
+    dark: $gray-900
+  ));
+  
+  @include theme-aware('border-color', (
+    light: $gray-200,
+    dark: $gray-700
+  ));
 }
 
 .atempo-cal-time-column {
-  @apply bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700;
+  border-right: 1px solid;
+  
+  @include theme-aware('background-color', (
+    light: $gray-50,
+    dark: $gray-800
+  ));
+  
+  @include theme-aware('border-color', (
+    light: $gray-200,
+    dark: $gray-700
+  ));
+}
+
+.time-slot-label {
+  font-size: $font-size-xs;
+  
+  @include theme-aware('color', (
+    light: $gray-600,
+    dark: $gray-400
+  ));
+}
+
+.grid-line-horizontal {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid;
+  
+  @include theme-aware('border-color', (
+    light: $gray-100,
+    dark: $gray-700
+  ));
+}
+
+.grid-line-vertical {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid;
+  
+  @include theme-aware('border-color', (
+    light: $gray-200,
+    dark: $gray-600
+  ));
 }
 
 .atempo-cal-resource-header {
-  @apply bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-3 py-2;
+  border-bottom: 1px solid;
+  padding: $spacing-xs $spacing-sm;
   height: 60px;
+  
+  @include theme-aware('background-color', (
+    light: white,
+    dark: $gray-800
+  ));
+  
+  @include theme-aware('border-color', (
+    light: $gray-200,
+    dark: $gray-700
+  ));
+}
+
+.resource-header-content {
+  @include flex-center;
+  gap: $spacing-sm;
+}
+
+.resource-avatar {
+  width: $spacing-lg * 1.5;
+  height: $spacing-lg * 1.5;
+  border-radius: 50%;
+  @include flex-center;
+  
+  @include theme-aware('background-color', (
+    light: $gray-200,
+    dark: $gray-600
+  ));
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-text {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  
+  @include theme-aware('color', (
+    light: $gray-600,
+    dark: $gray-300
+  ));
+}
+
+.avatar-initial {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: white;
+}
+
+.resource-name {
+  font-weight: $font-weight-medium;
+  @include truncate;
+  
+  @include theme-aware('color', (
+    light: $gray-900,
+    dark: $gray-100
+  ));
+}
+
+.time-slot-clickable {
+  position: absolute;
+  left: 0;
+  right: 0;
+  cursor: pointer;
+  transition: $transition-colors;
+  
+  &:hover {
+    @include theme-aware('background-color', (
+      light: $gray-50,
+      dark: rgba($gray-800, 0.5)
+    ));
+  }
 }
 
 .atempo-cal-current-time-line {
-  @apply bg-red-500 h-0.5 z-20;
+  background-color: $red-500;
+  height: 2px;
+  z-index: 20;
 }
 
 .atempo-cal-current-time-dot {
-  @apply absolute -left-1 -top-1 w-2 h-2 bg-red-500 rounded-full;
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: $spacing-sm;
+  height: $spacing-sm;
+  background-color: $red-500;
+  border-radius: 50%;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+// Responsive adjustments
+@include mobile {
   .atempo-cal-resource-header {
-    @apply px-2 py-1 text-sm;
+    padding: $spacing-sm $spacing-xs;
+    font-size: $font-size-sm;
     height: 50px;
   }
 }

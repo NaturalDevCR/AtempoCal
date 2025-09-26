@@ -1,0 +1,16 @@
+/* AtempoCal - SCSS-based styling system */
+
+/* 
+ * All styling is now handled by the SCSS system in src/styles/
+ * This file serves as the main entry point for the component styles
+ * 
+ * The SCSS system provides:
+ * - Comprehensive design system variables
+ * - Modern SCSS mixins and utilities
+ * - Light/dark theme support
+ * - Component-specific styling
+ * - Framework-agnostic approach for universal compatibility
+ */
+
+/* Import the complete SCSS system including theme variables */
+@import './styles/main.scss';

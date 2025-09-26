@@ -1,0 +1,214 @@
+// AtempoCal SCSS Variables
+// Design system variables for colors, spacing, typography, and breakpoints
+
+// ===== COLOR PALETTE =====
+
+// Primary colors
+$primary-50: #eff6ff;
+$primary-100: #dbeafe;
+$primary-200: #bfdbfe;
+$primary-300: #93c5fd;
+$primary-400: #60a5fa;
+$primary-500: #3b82f6;
+$primary-600: #2563eb;
+$primary-700: #1d4ed8;
+$primary-800: #1e40af;
+$primary-900: #1e3a8a;
+$primary-950: #172554;
+
+// Gray colors
+$gray-50: #f9fafb;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+$gray-300: #d1d5db;
+$gray-400: #9ca3af;
+$gray-500: #6b7280;
+$gray-600: #4b5563;
+$gray-700: #374151;
+$gray-800: #1f2937;
+$gray-900: #111827;
+$gray-950: #030712;
+
+// Semantic colors
+$white: #ffffff;
+$black: #000000;
+$success: #10b981;
+$warning: #f59e0b;
+$error: #ef4444;
+$info: #3b82f6;
+
+// Additional colors for events
+$red-100: #fee2e2;
+$red-600: #dc2626;
+$red-900: #7f1d1d;
+$green-100: #dcfce7;
+$green-600: #16a34a;
+$green-900: #14532d;
+$blue-100: #dbeafe;
+$blue-600: #2563eb;
+$blue-900: #1e3a8a;
+$yellow-100: #fef3c7;
+$yellow-600: #ca8a04;
+$yellow-900: #713f12;
+$purple-100: #f3e8ff;
+$purple-600: #9333ea;
+$purple-900: #581c87;
+$orange-100: #fed7aa;
+$orange-600: #ea580c;
+$orange-700: #c2410c;
+$orange-900: #7c2d12;
+$indigo-100: #e0e7ff;
+$indigo-600: #4f46e5;
+$indigo-900: #312e81;
+$emerald-100: #d1fae5;
+$emerald-600: #059669;
+$emerald-900: #064e3b;
+$amber-100: #fef3c7;
+$amber-600: #d97706;
+$amber-900: #78350f;
+
+// ===== SPACING SCALE =====
+
+$spacing-0: 0;
+$spacing-px: 1px;
+$spacing-0-5: 0.125rem;  // 2px
+$spacing-1: 0.25rem;     // 4px
+$spacing-1-5: 0.375rem;  // 6px
+$spacing-2: 0.5rem;      // 8px
+$spacing-2-5: 0.625rem;  // 10px
+$spacing-3: 0.75rem;     // 12px
+$spacing-3-5: 0.875rem;  // 14px
+$spacing-4: 1rem;        // 16px
+$spacing-5: 1.25rem;     // 20px
+$spacing-6: 1.5rem;      // 24px
+$spacing-7: 1.75rem;     // 28px
+$spacing-8: 2rem;        // 32px
+$spacing-9: 2.25rem;     // 36px
+$spacing-10: 2.5rem;     // 40px
+$spacing-11: 2.75rem;    // 44px
+$spacing-12: 3rem;       // 48px
+$spacing-14: 3.5rem;     // 56px
+$spacing-16: 4rem;       // 64px
+$spacing-20: 5rem;       // 80px
+$spacing-24: 6rem;       // 96px
+$spacing-28: 7rem;       // 112px
+$spacing-32: 8rem;       // 128px
+$spacing-36: 9rem;       // 144px
+$spacing-40: 10rem;      // 160px
+$spacing-44: 11rem;      // 176px
+$spacing-48: 12rem;      // 192px
+$spacing-52: 13rem;      // 208px
+$spacing-56: 14rem;      // 224px
+$spacing-60: 15rem;      // 240px
+$spacing-64: 16rem;      // 256px
+$spacing-72: 18rem;      // 288px
+$spacing-80: 20rem;      // 320px
+$spacing-96: 24rem;      // 384px
+
+// ===== TYPOGRAPHY =====
+
+// Font families
+$font-family-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+$font-family-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+
+// Font sizes
+$font-size-xs: 0.75rem;      // 12px
+$font-size-sm: 0.875rem;     // 14px
+$font-size-base: 1rem;       // 16px
+$font-size-lg: 1.125rem;     // 18px
+$font-size-xl: 1.25rem;      // 20px
+$font-size-2xl: 1.5rem;      // 24px
+$font-size-3xl: 1.875rem;    // 30px
+$font-size-4xl: 2.25rem;     // 36px
+$font-size-5xl: 3rem;        // 48px
+$font-size-6xl: 3.75rem;     // 60px
+
+// Line heights
+$line-height-none: 1;
+$line-height-tight: 1.25;
+$line-height-snug: 1.375;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.625;
+$line-height-loose: 2;
+
+// Font weights
+$font-weight-thin: 100;
+$font-weight-extralight: 200;
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$font-weight-extrabold: 800;
+$font-weight-black: 900;
+
+// ===== BORDER RADIUS =====
+
+$border-radius-none: 0;
+$border-radius-sm: 0.125rem;   // 2px
+$border-radius: 0.25rem;       // 4px
+$border-radius-md: 0.375rem;   // 6px
+$border-radius-lg: 0.5rem;     // 8px
+$border-radius-xl: 0.75rem;    // 12px
+$border-radius-2xl: 1rem;      // 16px
+$border-radius-3xl: 1.5rem;    // 24px
+$border-radius-full: 9999px;
+
+// ===== SHADOWS =====
+
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+$shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+$shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+$shadow-none: 0 0 transparent;
+
+// ===== Z-INDEX SCALE =====
+
+$z-index-0: 0;
+$z-index-10: 10;
+$z-index-20: 20;
+$z-index-30: 30;
+$z-index-40: 40;
+$z-index-50: 50;
+$z-index-auto: auto;
+
+// ===== OPACITY SCALE =====
+
+$opacity-0: 0;
+$opacity-25: 0.25;
+$opacity-50: 0.5;
+$opacity-75: 0.75;
+$opacity-100: 1;
+
+// ===== BREAKPOINTS =====
+
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+$breakpoint-2xl: 1536px;
+
+// ===== COMPONENT SPECIFIC VARIABLES =====
+
+// Calendar dimensions
+$calendar-min-height: 400px;
+$calendar-time-column-width: 80px;
+$calendar-resource-column-min-width: 200px;
+$calendar-day-header-height: 80px;
+$calendar-resource-header-height: 90px;
+$calendar-time-slot-height: 60px;
+$calendar-event-min-height: 20px;
+$calendar-event-border-width: 4px;
+
+// Animation durations
+$transition-fast: 0.15s;
+$transition-normal: 0.2s;
+$transition-slow: 0.3s;
+
+// Animation easings
+$ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+$ease-out: cubic-bezier(0, 0, 0.2, 1);
+$ease-in: cubic-bezier(0.4, 0, 1, 1);

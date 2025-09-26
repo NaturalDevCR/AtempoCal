@@ -972,7 +972,6 @@ watch([() => props.events, weekDates], () => {
 </script>
 
 <style scoped>
-@reference "tailwindcss";
 
 .weekly-view {
   display: flex;
@@ -980,11 +979,9 @@ watch([() => props.events, weekDates], () => {
   height: 100%;
   background-color: var(--atempo-bg-primary);
   color: var(--atempo-text-primary);
-  /* Framework compatibility - strengthen borders */
   border: 1px solid var(--atempo-border-primary) !important;
-  /* Optimize rendering performance */
   will-change: scroll-position;
-  transform: translateZ(0); /* Force hardware acceleration */
+  transform: translateZ(0);
 }
 
 .week-header {
@@ -1099,15 +1096,24 @@ watch([() => props.events, weekDates], () => {
 /* Removed global multi-day section styles */
 
 .worker-multiday-event {
-  @apply cursor-pointer transition-all duration-200 hover:shadow-md;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.worker-multiday-event:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
 }
 
 /* Keep resource-multiday-event for backward compatibility */
 .resource-multiday-event {
-  @apply cursor-pointer hover:shadow-md;
+  cursor: pointer;
   transition: transform 0.2s ease, opacity 0.2s ease;
   will-change: transform;
   transform: translateZ(0); /* Force hardware acceleration */
+}
+
+.resource-multiday-event:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
 }
 
 .multiday-content {
@@ -1125,19 +1131,39 @@ watch([() => props.events, weekDates], () => {
 
 /* Multi-day event type styles */
 .multiday-content.time-off {
-  @apply bg-green-100 dark:bg-green-900/30 border-l-green-600;
+  background-color: #dcfce7;
+  border-left-color: #16a34a;
+}
+
+.dark .multiday-content.time-off {
+  background-color: rgba(20, 83, 45, 0.3);
 }
 
 .multiday-content.training {
-  @apply bg-orange-100 dark:bg-orange-900/30 border-l-orange-700;
+  background-color: #fed7aa;
+  border-left-color: #b45309;
+}
+
+.dark .multiday-content.training {
+  background-color: rgba(154, 52, 18, 0.3);
 }
 
 .multiday-content.project {
-  @apply bg-yellow-100 dark:bg-yellow-900/30 border-l-yellow-700;
+  background-color: #fef3c7;
+  border-left-color: #b45309;
+}
+
+.dark .multiday-content.project {
+  background-color: rgba(161, 98, 7, 0.3);
 }
 
 .multiday-content.certification {
-  @apply bg-orange-100 dark:bg-orange-900/30 border-l-orange-700;
+  background-color: #fed7aa;
+  border-left-color: #b45309;
+}
+
+.dark .multiday-content.certification {
+  background-color: rgba(154, 52, 18, 0.3);
 }
 
 .multiday-title {
@@ -1160,40 +1186,84 @@ watch([() => props.events, weekDates], () => {
 }
 
 .worker-container {
-  @apply flex flex-col;
+  display: flex;
+  flex-direction: column;
 }
 
 .worker-row {
-  @apply flex border-b border-gray-200 dark:border-gray-600 relative;
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+  position: relative;
+}
+
+.dark .worker-row {
+  border-bottom-color: #4b5563;
 }
 
 .worker-info {
-  @apply flex-shrink-0 border-r border-gray-200 dark:border-gray-700;
+  flex-shrink: 0;
+  border-right: 1px solid #e5e7eb;
   width: 160px;
 }
 
+.dark .worker-info {
+  border-right-color: #374151;
+}
+
 .worker-content {
-  @apply flex items-center h-full px-3 py-2 bg-gray-50 dark:bg-gray-800;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0.5rem 0.75rem;
+  background-color: #f9fafb;
+}
+
+.dark .worker-content {
+  background-color: #1f2937;
 }
 
 .worker-indicator {
-  @apply w-3 h-3 rounded-full flex-shrink-0;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .worker-details {
-  @apply flex flex-col ml-2;
+  display: flex;
+  flex-direction: column;
+  margin-left: 0.5rem;
 }
 
 .worker-name {
-  @apply text-sm font-medium text-gray-900 dark:text-gray-100 truncate;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dark .worker-name {
+  color: #f9fafb;
 }
 
 .worker-role {
-  @apply text-xs text-gray-500 dark:text-gray-400 truncate;
+  font-size: 0.75rem;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dark .worker-role {
+  color: #9ca3af;
 }
 
 .worker-days {
-  @apply flex flex-1 relative;
+  display: flex;
+  flex: 1;
+  position: relative;
 }
 
 /* Keep resource classes for backward compatibility */
@@ -1267,12 +1337,17 @@ watch([() => props.events, weekDates], () => {
 }
 
 .multiday-events-overlay {
-  @apply absolute inset-0 pointer-events-none;
-}
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
 
-.multiday-events-overlay .worker-multiday-event,
-.multiday-events-overlay .resource-multiday-event {
-  @apply pointer-events-auto;
+  .worker-multiday-event,
+  .resource-multiday-event {
+    pointer-events: auto;
+  }
 }
 
 .day-cell {
@@ -1298,13 +1373,15 @@ watch([() => props.events, weekDates], () => {
 }
 
 .events-stack {
-  @apply relative w-full h-full;
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .stacked-event {
-  @apply absolute;
+  position: absolute;
   will-change: transform;
-  transform: translateZ(0); /* Force hardware acceleration */
+  transform: translateZ(0);
 }
 
 .event-bar {
@@ -1332,39 +1409,48 @@ watch([() => props.events, weekDates], () => {
 
 /* Worker scheduling event type styles */
 .event-bar.shift-morning {
-  @apply bg-blue-100 dark:bg-blue-900/30 border-l-blue-600;
+  background-color: #dbeafe;
+  border-left-color: #2563eb;
 }
 
 .event-bar.shift-day {
-  @apply bg-emerald-100 dark:bg-emerald-900/30 border-l-emerald-600;
+  background-color: #d1fae5;
+  border-left-color: #059669;
 }
 
 .event-bar.shift-evening {
-  @apply bg-amber-100 dark:bg-amber-900/30 border-l-amber-600;
+  background-color: #fef3c7;
+  border-left-color: #d97706;
 }
 
 .event-bar.shift-night {
-  @apply bg-purple-100 dark:bg-purple-900/30 border-l-purple-600;
+  background-color: #e9d5ff;
+  border-left-color: #7c3aed;
 }
 
 .event-bar.meeting {
-  @apply bg-red-100 dark:bg-red-900/30 border-l-red-600;
+  background-color: #fee2e2;
+  border-left-color: #dc2626;
 }
 
 .event-bar.training {
-  @apply bg-orange-100 dark:bg-orange-900/30 border-l-orange-700;
+  background-color: #fed7aa;
+  border-left-color: #ea580c;
 }
 
 .event-bar.time-off {
-  @apply bg-green-100 dark:bg-green-900/30 border-l-green-600;
+  background-color: #dcfce7;
+  border-left-color: #16a34a;
 }
 
 .event-bar.maintenance {
-  @apply bg-yellow-100 dark:bg-yellow-900/30 border-l-yellow-700;
+  background-color: #fef3c7;
+  border-left-color: #ca8a04;
 }
 
 .event-bar.administrative {
-  @apply bg-indigo-100 dark:bg-indigo-900/30 border-l-indigo-600;
+  background-color: #e0e7ff;
+  border-left-color: #4f46e5;
 }
 
 .event-title {
@@ -1387,46 +1473,88 @@ watch([() => props.events, weekDates], () => {
 }
 
 .event-resource {
-  @apply text-xs opacity-75 ml-2 flex-shrink-0;
+  font-size: 0.75rem;
+  opacity: 0.75;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
 }
 
 .delete-btn {
-  @apply opacity-0 group-hover:opacity-100 w-4 h-4 rounded bg-white/80 shadow-sm;
-  @apply flex items-center justify-center text-gray-600 hover:bg-white transition-all ml-1;
+  opacity: 0;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4b5563;
+  transition: all 0.2s ease;
+  margin-left: 0.25rem;
+}
+
+.group:hover .delete-btn {
+  opacity: 1;
+}
+
+.delete-btn:hover {
+  background-color: white;
 }
 
 .delete-icon {
-  @apply w-3 h-3;
+  width: 0.375rem;
+  height: 0.375rem;
 }
 
 .add-indicator {
-  @apply opacity-0 hover:opacity-100 transition-opacity absolute inset-0;
-  @apply flex items-center justify-center pointer-events-none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.add-indicator:hover {
+  opacity: 1;
 }
 
 .add-btn {
-  @apply bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg;
+  background-color: #3b82f6;
+  color: white;
+  border-radius: 50%;
+  width: 2.125rem;
+  height: 2.125rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 }
 
 .add-icon {
-  @apply w-4 h-4;
+  width: 1rem;
+  height: 1rem;
 }
-
-
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .day-header {
-    @apply p-1;
+    padding: 0.25rem;
     height: 60px;
   }
   
   .day-name {
-    @apply text-xs;
+    font-size: 0.75rem;
   }
   
   .day-number {
-    @apply text-sm;
+    font-size: 0.875rem;
   }
   
   .resource-spacer {

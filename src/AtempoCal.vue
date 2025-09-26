@@ -12,7 +12,7 @@
     />
 
     <!-- Main Calendar Content -->
-    <div class="atempo-cal-content relative">
+    <div class="atempo-cal-content">
       <!-- Loading Overlay -->
       <div v-if="loading" class="atempo-cal-loading-overlay">
         <div class="atempo-cal-loading">
@@ -232,70 +232,9 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-@reference "tailwindcss";
-
+<style scoped lang="scss">
 .atempo-cal {
-  background-color: var(--atempo-bg-primary);
-  color: var(--atempo-text-primary);
-  min-height: 100%;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  border: 1px solid var(--atempo-border-primary);
-  overflow: hidden;
-}
-
-.atempo-cal-content {
-  background-color: var(--atempo-bg-primary);
-  min-height: 24rem;
-}
-
-.atempo-cal-loading-overlay {
-  position: absolute;
-  inset: 0;
-  background-color: color-mix(in srgb, var(--atempo-bg-primary) 50%, transparent);
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.atempo-cal-spinner {
-  width: 2rem;
-  height: 2rem;
-  border: 4px solid color-mix(in srgb, var(--atempo-accent-primary) 20%, transparent);
-  border-top-color: var(--atempo-accent-primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Transition animations */
-.atempo-cal-fade-enter-active,
-.atempo-cal-fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.atempo-cal-fade-enter-from,
-.atempo-cal-fade-leave-to {
-  opacity: 0;
-}
-
-.atempo-cal-slide-enter-active,
-.atempo-cal-slide-leave-active {
-  transition: transform 0.3s ease;
-}
-
-.atempo-cal-slide-enter-from {
-  transform: translateX(100%);
-}
-
-.atempo-cal-slide-leave-to {
-  transform: translateX(100%);
+  // AtempoCal styles are now handled by the main SCSS file imported globally
+  // This ensures consistency and framework compatibility
 }
 </style>

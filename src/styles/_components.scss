@@ -1,0 +1,795 @@
+// AtempoCal SCSS Components
+// Component-specific styles using modern SCSS features
+
+@use 'variables' as *;
+@use 'mixins' as *;
+@use 'themes' as *;
+
+// ===== BASE CALENDAR CONTAINER =====
+
+.atempo-cal {
+  @include theme-bg('primary');
+  @include theme-text('primary');
+  @include theme-border('primary');
+  @include card-base;
+  @include theme-transition();
+  
+  font-family: $font-family-sans;
+  font-size: $font-size-sm;
+  overflow: hidden;
+  
+  // Framework isolation
+  box-sizing: border-box !important;
+  
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box !important;
+  }
+}
+
+// ===== NAVIGATION BAR =====
+
+.atempo-cal-nav {
+  @include flex-between;
+  @include theme-bg('nav-bg');
+  @include theme-border('primary', 1px, solid);
+  
+  padding: $spacing-4 $spacing-6;
+  border-bottom-width: 1px;
+  
+  .nav-left,
+  .nav-right {
+    @include flex-center;
+    gap: $spacing-2;
+  }
+  
+  .nav-center {
+    @include flex-center;
+    flex: 1;
+  }
+  
+  .nav-title {
+    @include text-style($font-size-lg, $font-weight-semibold);
+    @include theme-text('primary');
+    margin: 0;
+  }
+  
+  .nav-arrow-btn,
+  .nav-today-btn,
+  .nav-date-picker-btn {
+    @include button-base;
+    @include button-size($spacing-3, $spacing-2, $font-size-sm);
+    @include theme-bg('secondary');
+    @include theme-text('primary');
+    @include theme-border('secondary');
+    @include focus-ring();
+    
+    &:hover:not(:disabled) {
+      @include theme-bg('tertiary');
+    }
+  }
+  
+  .nav-today-btn {
+    @include button-variant(theme-var('accent-primary'), theme-var('text-inverse'));
+  }
+}
+
+// ===== MODAL STYLES =====
+
+.atempo-cal-modal {
+  @include card-base;
+  @include theme-bg('primary');
+  
+  max-width: 400px;
+  width: 100%;
+  padding: $spacing-6;
+  
+  .atempo-cal-modal-close {
+    @include button-base;
+    @include size($spacing-8);
+    @include theme-text('secondary');
+    
+    padding: 0;
+    background: transparent;
+    
+    &:hover {
+      @include theme-text('primary');
+      @include theme-bg('secondary');
+    }
+  }
+  
+  .atempo-cal-date-input {
+    @include input-base;
+  }
+  
+  .atempo-cal-modal-button {
+    @include button-base;
+    @include button-size($spacing-4, $spacing-2);
+    @include button-variant(theme-var('accent-primary'), theme-var('text-inverse'));
+  }
+}
+
+// ===== WEEKLY VIEW =====
+
+.weekly-view {
+  @include flex-column;
+  height: 100%;
+  
+  .week-header {
+    @include flex-center;
+    @include theme-border('primary', 1px, solid);
+    border-bottom-width: 1px;
+    position: relative;
+    
+    .resource-spacer {
+      @include flex-center;
+      @include theme-bg('colaboradores-bg');
+      @include theme-border('primary', 1px, solid);
+      
+      width: 160px;
+      min-width: 160px;
+      height: $calendar-resource-header-height;
+      border-right-width: 1px;
+      
+      .resource-label {
+        @include text-style($font-size-sm, $font-weight-semibold);
+        @include theme-text('primary');
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+    }
+    
+    .day-headers {
+      flex: 1;
+      
+      .day-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        height: 100%;
+        
+        .day-header {
+          @include flex-column-center;
+          @include theme-bg('header-bg');
+          @include theme-border('primary', 1px, solid);
+          
+          padding: $spacing-3;
+          border-right-width: 1px;
+          height: $calendar-day-header-height;
+          
+          &:last-child {
+            border-right: none;
+          }
+          
+          &.is-today {
+            @include theme-bg('today-bg');
+            
+            .day-name,
+            .day-date {
+              @include theme-text('accent-primary');
+              font-weight: $font-weight-semibold;
+            }
+          }
+          
+          &.is-weekend {
+            @include theme-bg('weekend-bg');
+          }
+          
+          .day-name {
+            @include text-style($font-size-xs, $font-weight-medium);
+            @include theme-text('secondary');
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: $spacing-1;
+          }
+          
+          .day-date {
+            @include text-style($font-size-lg, $font-weight-semibold);
+            @include theme-text('primary');
+          }
+        }
+      }
+    }
+  }
+  
+  .week-content {
+    flex: 1;
+    overflow-y: auto;
+    @include custom-scrollbar();
+    
+    .resource-container {
+      .resource-row {
+        @include flex-center;
+        @include theme-border('primary', 1px, solid);
+        border-top-width: 1px;
+        position: relative;
+        
+        &:first-child {
+          border-top: none;
+        }
+        
+        .resource-info {
+          @include flex-center;
+          @include theme-bg('secondary');
+          @include theme-border('primary', 1px, solid);
+          
+          width: 160px;
+          min-width: 160px;
+          height: $calendar-time-slot-height;
+          border-right-width: 1px;
+          padding: $spacing-3;
+          
+          .resource-content {
+            @include flex-center;
+            width: 100%;
+            gap: $spacing-2;
+            
+            .resource-indicator {
+              @include size($spacing-3);
+              border-radius: $border-radius-full;
+              flex-shrink: 0;
+            }
+            
+            .resource-details {
+              @include flex-column;
+              flex: 1;
+              min-width: 0;
+              
+              .resource-name {
+                @include text-style($font-size-sm, $font-weight-medium);
+                @include theme-text('primary');
+                @include text-truncate;
+              }
+              
+              .resource-role {
+                @include text-style($font-size-xs);
+                @include theme-text('secondary');
+                @include text-truncate;
+              }
+            }
+          }
+        }
+        
+        .resource-days {
+          @include flex-center;
+          flex: 1;
+          position: relative;
+          
+          .day-cell {
+            flex: 1;
+            position: relative;
+            cursor: pointer;
+            @include theme-transition(background-color);
+            @include theme-border('primary', 1px, solid);
+            @include theme-border('secondary', 1px, solid);
+            
+            border-right-width: 1px;
+            border-top-width: 1px;
+            min-height: $calendar-time-slot-height;
+            
+            &:hover {
+              @include theme-bg('hover-bg');
+            }
+            
+            &.is-today {
+              background-color: color-mix(in srgb, theme-var('accent-primary') 5%, theme-var('bg-primary'));
+            }
+            
+            &.is-weekend {
+              background-color: color-mix(in srgb, theme-var('text-tertiary') 3%, theme-var('bg-primary'));
+            }
+            
+            &:last-child {
+              border-right: none;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// ===== EVENT STYLES =====
+
+.event-bar {
+  @include flex-between;
+  @include card-base;
+  @include theme-transition(transform, box-shadow);
+  @include hardware-acceleration;
+  
+  width: 100%;
+  height: 100%;
+  padding: $spacing-2 $spacing-3;
+  cursor: pointer;
+  border-left: $calendar-event-border-width solid theme-var('accent-primary');
+  background-color: theme-var('event-bg');
+  
+  &:hover {
+    @include theme-shadow('shadow-lg');
+    transform: translateY(-1px);
+  }
+  
+  .event-title {
+    @include text-style($font-size-xs, $font-weight-medium);
+    @include theme-text('primary');
+    @include text-truncate;
+    flex: 1;
+  }
+  
+  .event-time {
+    @include text-style($font-size-xs, $font-weight-medium);
+    @include theme-text('primary');
+    opacity: $opacity-75;
+    margin-left: $spacing-2;
+    flex-shrink: 0;
+  }
+  
+  .delete-btn {
+    @include flex-center;
+    @include size($spacing-4);
+    @include theme-transition(opacity);
+    
+    opacity: 0;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: $border-radius;
+    box-shadow: $shadow-sm;
+    margin-left: $spacing-1;
+    
+    .group:hover & {
+      opacity: 1;
+    }
+    
+    &:hover {
+      background: $white;
+    }
+    
+    .delete-icon {
+      @include size($spacing-3);
+      @include theme-text('secondary');
+    }
+  }
+}
+
+// ===== EVENT COLOR VARIANTS =====
+
+@each $color in (blue, green, red, yellow, purple, orange, indigo, emerald, amber) {
+  .event-bar.color-#{$color} {
+    background-color: var(--atempo-event-#{$color}-bg);
+    border-left-color: var(--atempo-event-#{$color}-border);
+    color: var(--atempo-event-#{$color}-text);
+  }
+}
+
+// ===== MULTIDAY EVENTS =====
+
+.multiday-events-overlay {
+  @include absolute-fill;
+  pointer-events: none;
+  
+  .resource-multiday-event {
+    @include theme-transition(all);
+    @include hardware-acceleration;
+    
+    position: absolute;
+    pointer-events: auto;
+    cursor: pointer;
+    
+    .multiday-content {
+      @include flex-center;
+      @include card-base;
+      
+      height: 100%;
+      padding: $spacing-2 $spacing-3;
+      background-color: theme-var('event-bg');
+      border-left: $calendar-event-border-width solid theme-var('event-border');
+      
+      &:hover {
+        @include theme-shadow('shadow-md');
+      }
+      
+      .multiday-title {
+        @include text-style($font-size-xs, $font-weight-medium);
+        @include theme-text('primary');
+        @include text-truncate;
+      }
+    }
+  }
+}
+
+// ===== TIME GRID =====
+
+.atempo-cal-time-grid {
+  position: relative;
+  overflow: hidden;
+  
+  .atempo-cal-time-column {
+    @include theme-bg('secondary');
+    @include theme-border('primary', 1px, solid);
+    
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    border-right-width: 1px;
+    
+    .atempo-cal-time-slot {
+      @include theme-border('secondary', 1px, solid);
+      
+      border-bottom-width: 1px;
+      padding: $spacing-1 $spacing-2;
+      min-height: $calendar-time-slot-height;
+      
+      &.current-time {
+        background-color: color-mix(in srgb, theme-var('accent-primary') 10%, transparent);
+      }
+      
+      span {
+        @include text-style($font-size-xs);
+        @include theme-text('secondary');
+      }
+    }
+  }
+  
+  .atempo-cal-content-area {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    
+    .atempo-cal-resource-column {
+      @include theme-border('primary', 1px, solid);
+      
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      border-right-width: 1px;
+      min-width: $calendar-resource-column-min-width;
+      
+      .atempo-cal-resource-header {
+        @include sticky-top;
+        @include theme-bg('primary');
+        @include theme-border('primary', 1px, solid);
+        
+        border-bottom-width: 1px;
+        padding: $spacing-3 $spacing-4;
+        
+        .resource-indicator {
+          @include size($spacing-6);
+          @include flex-center;
+          @include theme-bg('tertiary');
+          
+          border-radius: $border-radius-full;
+          
+          img {
+            @include size($spacing-6);
+            border-radius: $border-radius-full;
+            object-fit: cover;
+          }
+          
+          span {
+            @include text-style($font-size-xs, $font-weight-medium);
+            @include theme-text('secondary');
+          }
+        }
+        
+        .resource-name {
+          @include text-style($font-size-sm, $font-weight-medium);
+          @include theme-text('primary');
+          @include text-truncate;
+        }
+      }
+    }
+  }
+  
+  .atempo-cal-current-time-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: theme-var('current-time');
+    z-index: $z-index-20;
+    
+    .atempo-cal-current-time-dot {
+      @include size($spacing-2);
+      position: absolute;
+      left: -4px;
+      top: -3px;
+      background-color: theme-var('current-time');
+      border-radius: $border-radius-full;
+    }
+    
+    .atempo-cal-current-time-label {
+      @include text-style($font-size-xs, $font-weight-medium);
+      
+      margin-left: $spacing-2;
+      padding: $spacing-1 $spacing-2;
+      background-color: theme-var('bg-primary');
+      color: theme-var('current-time');
+      border: 1px solid color-mix(in srgb, theme-var('current-time') 20%, transparent);
+      border-radius: $border-radius;
+      box-shadow: $shadow-sm;
+    }
+  }
+}
+
+// ===== DAILY VIEW =====
+
+.atempo-cal-daily-view {
+  @include flex-column;
+  height: 100%;
+  
+  .atempo-cal-day-header-section {
+    @include flex-between;
+    @include theme-bg('primary');
+    @include theme-border('primary', 1px, solid);
+    
+    padding: $spacing-4;
+    border-bottom-width: 1px;
+    
+    .atempo-cal-day-info {
+      flex: 1;
+      
+      .atempo-cal-day-title {
+        @include text-style($font-size-xl, $font-weight-semibold);
+        @include theme-text('primary');
+        margin: 0 0 $spacing-1 0;
+      }
+      
+      .atempo-cal-day-subtitle {
+        @include text-style($font-size-sm);
+        @include theme-text('secondary');
+        margin: 0;
+      }
+    }
+    
+    .atempo-cal-day-stats {
+      @include flex-center;
+      gap: $spacing-6;
+      
+      .atempo-cal-stat {
+        text-align: center;
+        
+        .atempo-cal-stat-value {
+          @include text-style($font-size-2xl, $font-weight-bold);
+          @include theme-text('primary');
+          display: block;
+        }
+        
+        .atempo-cal-stat-label {
+          @include text-style($font-size-xs);
+          @include theme-text('secondary');
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          display: block;
+        }
+      }
+    }
+  }
+  
+  .atempo-cal-day-content {
+    flex: 1;
+    overflow: auto;
+    @include custom-scrollbar();
+  }
+}
+
+// ===== EVENT CARD =====
+
+.atempo-cal-event {
+  @include card-base;
+  @include theme-transition(all);
+  @include hardware-acceleration;
+  
+  position: absolute;
+  cursor: pointer;
+  border-left: $calendar-event-border-width solid theme-var('accent-primary');
+  padding: $spacing-2;
+  
+  &:hover {
+    @include theme-shadow('shadow-md');
+    z-index: $z-index-10;
+  }
+  
+  &.selected {
+    box-shadow: 0 0 0 2px theme-var('accent-primary'), 0 0 0 4px color-mix(in srgb, theme-var('accent-primary') 20%, transparent);
+  }
+  
+  &.dragging {
+    opacity: $opacity-50;
+    transform: rotate(1deg);
+    z-index: $z-index-50;
+  }
+  
+  &.readonly {
+    cursor: default;
+  }
+  
+  .atempo-cal-event-content {
+    @include flex-column;
+    justify-content: flex-start;
+    flex: 1;
+    min-width: 0;
+    
+    .atempo-cal-event-title {
+      @include text-style($font-size-xs, $font-weight-medium);
+      @include theme-text('primary');
+      line-height: $line-height-tight;
+    }
+    
+    .atempo-cal-event-time {
+      @include text-style($font-size-xs);
+      @include theme-text('secondary');
+      opacity: $opacity-75;
+      margin-top: $spacing-0-5;
+    }
+    
+    .atempo-cal-event-resource {
+      @include text-style($font-size-xs);
+      @include theme-text('secondary');
+      margin-top: $spacing-1;
+      
+      .resource-indicator {
+        @include size($spacing-2);
+        border-radius: $border-radius-full;
+        flex-shrink: 0;
+      }
+    }
+    
+    .atempo-cal-event-description {
+      @include text-style($font-size-xs);
+      @include theme-text('tertiary');
+      opacity: $opacity-50;
+      margin-top: $spacing-1;
+      line-height: $line-height-tight;
+    }
+  }
+  
+  .atempo-cal-event-actions {
+    @include flex-center;
+    @include theme-transition(opacity);
+    
+    position: absolute;
+    top: $spacing-1;
+    right: $spacing-1;
+    gap: $spacing-1;
+    opacity: 0;
+    
+    .group:hover & {
+      opacity: 1;
+    }
+    
+    .atempo-cal-event-action-btn {
+      @include flex-center;
+      @include size($spacing-5);
+      @include theme-transition(all);
+      
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: $border-radius;
+      box-shadow: $shadow-sm;
+      
+      &:hover {
+        background: $white;
+      }
+    }
+  }
+  
+  .atempo-cal-event-resize-handle {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 4px;
+    cursor: ns-resize;
+    background: theme-var('accent-primary');
+    opacity: $opacity-50;
+    
+    &.atempo-cal-event-resize-top {
+      top: 0;
+    }
+    
+    &.atempo-cal-event-resize-bottom {
+      bottom: 0;
+    }
+  }
+}
+
+// ===== LOADING STATES =====
+
+.atempo-cal-loading-overlay {
+  @include absolute-fill;
+  @include flex-center;
+  
+  background: rgba(255, 255, 255, 0.8);
+  z-index: $z-index-50;
+  
+  .atempo-cal-loading {
+    @include flex-center;
+    @include flex-column;
+    gap: $spacing-4;
+    
+    .atempo-cal-spinner {
+      @include size($spacing-8);
+      border: 2px solid theme-var('border-primary');
+      border-top: 2px solid theme-var('accent-primary');
+      border-radius: $border-radius-full;
+      animation: spin 1s linear infinite;
+    }
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// ===== RESPONSIVE DESIGN =====
+
+@include mobile {
+  .atempo-cal-nav {
+    padding: $spacing-3 $spacing-4;
+    
+    .nav-title {
+      font-size: $font-size-base;
+    }
+  }
+  
+  .weekly-view {
+    .week-header {
+      .resource-spacer {
+        width: 120px;
+        min-width: 120px;
+        height: 60px;
+        
+        .resource-label {
+          font-size: $font-size-xs;
+        }
+      }
+      
+      .day-header {
+        padding: $spacing-1;
+        height: 60px;
+        
+        .day-name {
+          font-size: $font-size-xs;
+        }
+        
+        .day-date {
+          font-size: $font-size-sm;
+        }
+      }
+    }
+    
+    .week-content {
+      .resource-row {
+        .resource-info {
+          width: 120px;
+          min-width: 120px;
+          padding: $spacing-2;
+        }
+      }
+    }
+  }
+}
+
+// ===== PRINT STYLES =====
+
+@media print {
+  .atempo-cal {
+    box-shadow: none;
+    border: 1px solid $gray-300;
+    
+    .atempo-cal-nav {
+      display: none;
+    }
+    
+    .weekly-view,
+    .atempo-cal-daily-view {
+      height: auto;
+      overflow: visible;
+    }
+    
+    .week-content,
+    .atempo-cal-day-content {
+      overflow: visible;
+      height: auto;
+    }
+  }
+}

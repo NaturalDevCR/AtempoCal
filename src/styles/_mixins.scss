@@ -1,0 +1,434 @@
+// AtempoCal SCSS Mixins
+// Comprehensive collection of modern SCSS mixins for AtempoCal components
+// Utilizes latest SCSS features and best practices
+
+// SCSS modules must be imported first
+@use 'sass:math';
+@use 'sass:color';
+@use 'sass:map';
+@use 'sass:list';
+
+// Import variables for use in mixins
+@use 'variables' as *;
+
+// ===== RESPONSIVE BREAKPOINT MIXINS =====
+
+@mixin mobile {
+  @media (max-width: #{$breakpoint-sm - 1px}) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (min-width: #{$breakpoint-sm}) and (max-width: #{$breakpoint-lg - 1px}) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: #{$breakpoint-lg}) {
+    @content;
+  }
+}
+
+@mixin min-width($width) {
+  @media (min-width: #{$width}) {
+    @content;
+  }
+}
+
+@mixin max-width($width) {
+  @media (max-width: #{$width}) {
+    @content;
+  }
+}
+
+@mixin between($min-width, $max-width) {
+  @media (min-width: #{$min-width}) and (max-width: #{$max-width}) {
+    @content;
+  }
+}
+
+// ===== MODERN FLEXBOX MIXINS =====
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin flex-column-center {
+  @include flex-column;
+  align-items: center;
+  justify-content: center;
+}
+
+// ===== MODERN GRID MIXINS =====
+
+@mixin grid-auto-fit($min-width: 250px, $gap: $spacing-4) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax($min-width, 1fr));
+  gap: $gap;
+}
+
+@mixin grid-auto-fill($min-width: 250px, $gap: $spacing-4) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax($min-width, 1fr));
+  gap: $gap;
+}
+
+@mixin grid-columns($columns, $gap: $spacing-4) {
+  display: grid;
+  grid-template-columns: repeat($columns, 1fr);
+  gap: $gap;
+}
+
+// ===== CONTAINER QUERIES (CSS Container Queries) =====
+
+@mixin container($name: null) {
+  @if $name {
+    container-name: $name;
+  }
+  container-type: inline-size;
+}
+
+@mixin container-query($condition) {
+  @container #{$condition} {
+    @content;
+  }
+}
+
+// ===== MODERN TYPOGRAPHY MIXINS =====
+
+@mixin text-style($size, $weight: $font-weight-normal, $line-height: $line-height-normal) {
+  font-size: $size;
+  font-weight: $weight;
+  line-height: $line-height;
+}
+
+@mixin text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin text-clamp($lines: 2) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lines;
+  overflow: hidden;
+}
+
+// ===== MODERN ANIMATION MIXINS =====
+
+@mixin transition($properties: all, $duration: $transition-normal, $easing: $ease-in-out) {
+  transition: $properties $duration $easing;
+}
+
+@mixin hover-lift($scale: 1.02, $shadow: $shadow-lg) {
+  transition: transform $transition-normal $ease-out, box-shadow $transition-normal $ease-out;
+  
+  &:hover {
+    transform: scale($scale);
+    box-shadow: $shadow;
+  }
+}
+
+@mixin fade-in($duration: $transition-normal) {
+  animation: fade-in $duration $ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY($spacing-2);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ===== MODERN POSITIONING MIXINS =====
+
+@mixin absolute-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@mixin absolute-fill {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+@mixin sticky-top($offset: 0) {
+  position: sticky;
+  top: $offset;
+  z-index: $z-index-10;
+}
+
+// ===== MODERN VISUAL EFFECTS MIXINS =====
+
+@mixin glass-effect($opacity: 0.1) {
+  background: rgba(255, 255, 255, $opacity);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@mixin dark-glass-effect($opacity: 0.1) {
+  background: rgba(0, 0, 0, $opacity);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@mixin gradient-border($width: 2px, $radius: $border-radius-lg) {
+  position: relative;
+  border-radius: $radius;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: $width;
+    background: linear-gradient(45deg, $primary-500, $primary-700);
+    border-radius: inherit;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: xor;
+    -webkit-mask-composite: xor;
+  }
+}
+
+// ===== MODERN FOCUS MIXINS =====
+
+@mixin focus-ring($color: $primary-500, $width: 2px, $offset: 2px) {
+  &:focus-visible {
+    outline: $width solid $color;
+    outline-offset: $offset;
+  }
+}
+
+@mixin focus-within-ring($color: $primary-500, $width: 2px) {
+  &:focus-within {
+    box-shadow: 0 0 0 $width $color;
+  }
+}
+
+// ===== MODERN BUTTON MIXINS =====
+
+@mixin button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: $border-radius-md;
+  font-weight: $font-weight-medium;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all $transition-normal $ease-in-out;
+  
+  &:disabled {
+    opacity: $opacity-50;
+    cursor: not-allowed;
+  }
+}
+
+@mixin button-size($padding-x: $spacing-4, $padding-y: $spacing-2, $font-size: $font-size-sm) {
+  padding: $padding-y $padding-x;
+  font-size: $font-size;
+}
+
+@mixin button-variant($bg-color, $text-color: $white, $hover-bg: null) {
+  background-color: $bg-color;
+  color: $text-color;
+  
+  @if $hover-bg {
+    &:hover:not(:disabled) {
+      background-color: $hover-bg;
+    }
+  } @else {
+    &:hover:not(:disabled) {
+      background-color: color.scale($bg-color, $lightness: -10%);
+    }
+  }
+}
+
+// ===== MODERN CARD MIXINS =====
+
+@mixin card-base {
+  background: var(--atempo-bg-primary);
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-sm;
+  border: 1px solid var(--atempo-border-primary);
+}
+
+@mixin card-hover {
+  transition: all $transition-normal $ease-out;
+  
+  &:hover {
+    box-shadow: $shadow-md;
+    transform: translateY(-1px);
+  }
+}
+
+// ===== MODERN FORM MIXINS =====
+
+@mixin input-base {
+  width: 100%;
+  padding: $spacing-3 $spacing-4;
+  border: 1px solid var(--atempo-border-primary);
+  border-radius: $border-radius-md;
+  background-color: var(--atempo-bg-primary);
+  color: var(--atempo-text-primary);
+  font-size: $font-size-sm;
+  transition: border-color $transition-normal $ease-in-out, box-shadow $transition-normal $ease-in-out;
+  
+  &:focus {
+    outline: none;
+    border-color: var(--atempo-accent-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  
+  &::placeholder {
+    color: var(--atempo-text-tertiary);
+  }
+}
+
+// ===== MODERN SCROLL MIXINS =====
+
+@mixin custom-scrollbar($width: 8px, $track-color: transparent, $thumb-color: var(--atempo-border-secondary)) {
+  &::-webkit-scrollbar {
+    width: $width;
+    height: $width;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: $track-color;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: $thumb-color;
+    border-radius: $border-radius-full;
+    
+    &:hover {
+      background: color.scale($thumb-color, $lightness: -10%);
+    }
+  }
+  
+  // Firefox
+  scrollbar-width: thin;
+  scrollbar-color: $thumb-color $track-color;
+}
+
+@mixin hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+// ===== MODERN UTILITY MIXINS =====
+
+@mixin visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@mixin aspect-ratio($ratio: 1) {
+  aspect-ratio: $ratio;
+}
+
+@mixin size($width, $height: $width) {
+  width: $width;
+  height: $height;
+}
+
+// ===== MODERN THEME MIXINS =====
+
+@mixin theme-aware($light-value, $dark-value, $property: color) {
+  #{$property}: $light-value;
+  
+  :global(.dark) & {
+    #{$property}: $dark-value;
+  }
+}
+
+@mixin supports-hover {
+  @media (hover: hover) and (pointer: fine) {
+    @content;
+  }
+}
+
+// ===== MODERN PERFORMANCE MIXINS =====
+
+@mixin hardware-acceleration {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+@mixin optimize-animation {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+// Event type styling mixin
+@mixin event-type-style($color) {
+  background-color: color.mix($color, white, 10%);
+  border-left-color: $color;
+  
+  @include theme-aware('background-color', (
+    light: color.mix($color, white, 10%),
+    dark: color.mix($color, black, 30%)
+  ));
+}
+
+// Event color theme mixin for EventCard
+@mixin event-color-theme($color) {
+  @include theme-aware('background-color', (
+    light: color.mix($color, white, 90%),
+    dark: color.mix($color, black, 70%)
+  ));
+  
+  @include theme-aware('color', (
+    light: color.mix($color, black, 90%),
+    dark: color.mix($color, white, 90%)
+  ));
+}
+
+// Export key variables for potential JavaScript access
+:export {
+  primary-color: #{$primary-500};
+  secondary-color: #{$gray-500};
+  success-color: #{$green-500};
+  warning-color: #{$yellow-500};
+  error-color: #{$red-500};
+  border-radius: #{$border-radius-md};
+  spacing-unit: #{$spacing-md};
+}

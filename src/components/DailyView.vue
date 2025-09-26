@@ -36,7 +36,7 @@
             :class="{ 'current-time': slot.isCurrentTime }"
             :style="{ height: slotHeight + 'px' }"
           >
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <span class="time-slot-label">
               {{ formatTimeSlot(slot) }}
             </span>
           </div>
@@ -53,7 +53,7 @@
             <div
               v-for="(slot, index) in timeSlots"
               :key="'hline-' + slot.time"
-              class="absolute left-0 right-0 border-t border-gray-100 dark:border-gray-700"
+              class="grid-line-horizontal"
               :style="{ top: (index * slotHeight) + 'px' }"
             />
           </div>
@@ -67,7 +67,7 @@
             <div
               v-for="(slot, slotIndex) in timeSlots"
               :key="'slot-' + slot.time"
-              class="absolute left-0 right-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+              class="time-slot-clickable"
               :style="{
                 top: (slotIndex * slotHeight) + 'px',
                 height: slotHeight + 'px'
@@ -407,64 +407,163 @@ onMounted(() => {
 </script>
 
 <style scoped>
-@reference "tailwindcss";
 
 .atempo-cal-daily-view {
-  @apply flex flex-col h-full;
+  @include flex-column;
+  height: 100%;
 }
 
 .atempo-cal-day-header-section {
-  @apply flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700;
-  @apply bg-white dark:bg-gray-800;
+  @include flex-between;
+  padding: $spacing-md;
+  border-bottom: 1px solid;
+  
+  @include theme-aware('background-color', (
+    light: white,
+    dark: $gray-800
+  ));
+  
+  @include theme-aware('border-color', (
+    light: $gray-200,
+    dark: $gray-700
+  ));
 }
 
 .atempo-cal-day-info {
-  @apply flex-1;
+  flex: 1;
 }
 
 .atempo-cal-day-title {
-  @apply text-xl font-semibold text-gray-900 dark:text-gray-100;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  
+  @include theme-aware('color', (
+    light: $gray-900,
+    dark: $gray-100
+  ));
 }
 
 .atempo-cal-day-subtitle {
-  @apply text-sm text-gray-600 dark:text-gray-400 mt-1;
+  font-size: $font-size-sm;
+  margin-top: $spacing-xs;
+  
+  @include theme-aware('color', (
+    light: $gray-600,
+    dark: $gray-400
+  ));
 }
 
 .atempo-cal-day-stats {
-  @apply flex space-x-6;
+  display: flex;
+  gap: $spacing-lg * 1.5;
 }
 
 .atempo-cal-stat {
-  @apply text-center;
+  text-align: center;
 }
 
 .atempo-cal-stat-value {
-  @apply block text-2xl font-bold text-gray-900 dark:text-gray-100;
+  display: block;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  
+  @include theme-aware('color', (
+    light: $gray-900,
+    dark: $gray-100
+  ));
 }
 
 .atempo-cal-stat-label {
-  @apply block text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide;
+  display: block;
+  font-size: $font-size-xs;
+  text-transform: uppercase;
+  letter-spacing: $letter-spacing-wide;
+  
+  @include theme-aware('color', (
+    light: $gray-600,
+    dark: $gray-400
+  ));
 }
 
 .atempo-cal-day-content {
-  @apply flex-1 overflow-auto;
+  flex: 1;
+  overflow: auto;
   max-height: calc(100vh - 200px);
 }
 
 .atempo-cal-time-column {
-  @apply bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700;
+  border-right: 1px solid;
+  
+  @include theme-aware('background-color', (
+    light: $gray-50,
+    dark: $gray-800
+  ));
+  
+  @include theme-aware('border-color', (
+    light: $gray-200,
+    dark: $gray-700
+  ));
 }
 
 .atempo-cal-time-slot {
-  @apply border-b border-gray-100 dark:border-gray-700 px-3 py-2 text-right flex items-center justify-end;
+  border-bottom: 1px solid;
+  padding: $spacing-sm $spacing-sm;
+  text-align: right;
+  @include flex-center;
+  justify-content: flex-end;
+  
+  @include theme-aware('border-color', (
+    light: $gray-100,
+    dark: $gray-700
+  ));
+  
+  &.current-time {
+    @include theme-aware('background-color', (
+      light: $blue-50,
+      dark: rgba($blue-900, 0.2)
+    ));
+  }
 }
 
-.atempo-cal-time-slot.current-time {
-  @apply bg-blue-50 dark:bg-blue-900/20;
+.time-slot-label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  
+  @include theme-aware('color', (
+    light: $gray-700,
+    dark: $gray-300
+  ));
+}
+
+.grid-line-horizontal {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid;
+  
+  @include theme-aware('border-color', (
+    light: $gray-100,
+    dark: $gray-700
+  ));
+}
+
+.time-slot-clickable {
+  position: absolute;
+  left: 0;
+  right: 0;
+  cursor: pointer;
+  transition: $transition-colors;
+  
+  &:hover {
+    @include theme-aware('background-color', (
+      light: $gray-50,
+      dark: rgba($gray-800, 0.5)
+    ));
+  }
 }
 
 .atempo-cal-main-content {
-  @apply relative;
+  position: relative;
 }
 
 .atempo-cal-resource-headers {
@@ -472,46 +571,92 @@ onMounted(() => {
 }
 
 .atempo-cal-resource-header {
-  @apply border-r border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800;
+  border-right: 1px solid;
+  
+  @include theme-aware('background-color', (
+    light: white,
+    dark: $gray-800
+  ));
+  
+  @include theme-aware('border-color', (
+    light: $gray-200,
+    dark: $gray-600
+  ));
 }
 
 .atempo-cal-resource-column {
-  @apply border-r border-gray-200 dark:border-gray-600;
+  border-right: 1px solid;
+  
+  @include theme-aware('border-color', (
+    light: $gray-200,
+    dark: $gray-600
+  ));
 }
 
 .atempo-cal-single-column {
-  @apply w-full;
+  width: 100%;
 }
 
 .atempo-cal-current-time-line {
-  @apply absolute bg-red-500 h-0.5 z-20 flex items-center;
+  position: absolute;
+  background-color: $red-500;
+  height: 2px;
+  z-index: 20;
+  @include flex-center;
 }
 
 .atempo-cal-current-time-dot {
-  @apply w-2 h-2 bg-red-500 rounded-full -ml-1;
+  width: $spacing-sm;
+  height: $spacing-sm;
+  background-color: $red-500;
+  border-radius: 50%;
+  margin-left: -4px;
 }
 
 .atempo-cal-current-time-label {
-  @apply ml-2 text-xs font-medium text-red-600 dark:text-red-400 bg-white dark:bg-gray-800;
-  @apply px-2 py-1 rounded shadow-sm border border-red-200 dark:border-red-700;
+  margin-left: $spacing-sm;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-sm;
+  box-shadow: $shadow-sm;
+  border: 1px solid;
+  
+  @include theme-aware('color', (
+    light: $red-600,
+    dark: $red-400
+  ));
+  
+  @include theme-aware('background-color', (
+    light: white,
+    dark: $gray-800
+  ));
+  
+  @include theme-aware('border-color', (
+    light: $red-200,
+    dark: $red-700
+  ));
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+// Responsive adjustments
+@include mobile {
   .atempo-cal-day-header-section {
-    @apply flex-col items-start space-y-2 p-3;
+    @include flex-column;
+    align-items: flex-start;
+    gap: $spacing-sm;
+    padding: $spacing-sm;
   }
   
   .atempo-cal-day-stats {
-    @apply space-x-4;
+    gap: $spacing-md;
   }
   
   .atempo-cal-stat-value {
-    @apply text-lg;
+    font-size: $font-size-lg;
   }
   
   .atempo-cal-resource-header {
-    @apply p-2;
+    padding: $spacing-sm;
   }
 }
 </style>

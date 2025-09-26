@@ -28,12 +28,12 @@
       
       <!-- Resource information -->
       <div v-if="showResource && (resourceName || event.resourceId)" class="atempo-cal-event-resource">
-        <div class="flex items-center space-x-1">
+        <div class="resource-info-container">
           <div
-            class="w-2 h-2 rounded-full flex-shrink-0"
+            class="resource-indicator"
             :style="{ backgroundColor: resourceColor }"
           />
-          <span class="text-xs font-medium truncate">
+          <span class="resource-name">
             {{ resourceName || event.resourceId }}
           </span>
         </div>
@@ -57,7 +57,7 @@
         :title="action.label"
         @click.stop="handleActionClick(action)"
       >
-        <component :is="getActionIcon(action.icon)" class="w-3 h-3" />
+        <component :is="getActionIcon(action.icon)" class="action-icon" />
       </button>
     </div>
 
@@ -316,154 +316,185 @@ const handleResizeStart = (direction: 'top' | 'bottom', event: MouseEvent): void
 </script>
 
 <style scoped>
-@reference "tailwindcss";
 
 .atempo-cal-event {
-  @apply absolute rounded-md shadow-sm border-l-4 px-2 py-1 cursor-pointer transition-all duration-200;
-  @apply hover:shadow-md hover:z-10;
+  position: absolute;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+  border-left: 4px solid;
+  padding: $spacing-xs $spacing-sm;
+  cursor: pointer;
+  transition: $transition-all;
   min-height: 20px;
-}
 
-.atempo-cal-event.selected {
-  @apply ring-2 ring-blue-500 ring-opacity-50;
-}
+  &:hover {
+    box-shadow: $shadow-md;
+    z-index: 10;
+  }
 
-.atempo-cal-event.readonly {
-  @apply cursor-default;
-}
+  &.selected {
+    box-shadow: 0 0 0 2px rgba($primary-500, 0.5);
+  }
 
-.atempo-cal-event.dragging {
-  @apply opacity-50 transform rotate-1 z-50;
+  &.readonly {
+    cursor: default;
+  }
+
+  &.dragging {
+    opacity: 0.5;
+    transform: rotate(1deg);
+    z-index: 50;
+  }
 }
 
 .atempo-cal-event-content {
-  @apply flex flex-col justify-start;
+  @include flex-column;
+  justify-content: flex-start;
+  flex: 1;
+  min-width: 0;
 }
 
 .atempo-cal-event-title {
-  @apply font-medium text-xs leading-tight;
+  font-weight: $font-weight-medium;
+  font-size: $font-size-xs;
+  line-height: $line-height-tight;
 }
 
 .atempo-cal-event-time {
-  @apply text-xs opacity-75 mt-0.5;
+  font-size: $font-size-xs;
+  opacity: 0.75;
+  margin-top: $spacing-xs * 0.5;
 }
 
 .atempo-cal-event-resource {
-  @apply text-xs text-gray-700 dark:text-gray-300 mt-1;
+  font-size: $font-size-xs;
+  margin-top: $spacing-xs;
+  
+  @include theme-aware('color', (
+    light: $gray-700,
+    dark: $gray-300
+  ));
 }
 
 .atempo-cal-event-description {
-  @apply text-xs opacity-60 mt-1 leading-tight;
+  font-size: $font-size-xs;
+  opacity: 0.6;
+  margin-top: $spacing-xs;
+  line-height: $line-height-tight;
+}
+
+.resource-info-container {
+  @include flex-center;
+  gap: $spacing-xs;
+}
+
+.resource-indicator {
+  width: $spacing-sm;
+  height: $spacing-sm;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.resource-name {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  @include truncate;
 }
 
 .atempo-cal-event-actions {
-  @apply absolute top-1 right-1 flex space-x-1;
+  position: absolute;
+  top: $spacing-xs;
+  right: $spacing-xs;
+  display: flex;
+  gap: $spacing-xs;
 }
 
 .atempo-cal-event-action-btn {
-  @apply w-5 h-5 rounded bg-white/80 dark:bg-gray-800/80 shadow-sm;
-  @apply flex items-center justify-center text-gray-600 dark:text-gray-300;
-  @apply hover:bg-white dark:hover:bg-gray-700 transition-colors;
+  width: $spacing-lg * 0.83;
+  height: $spacing-lg * 0.83;
+  border-radius: $border-radius-sm;
+  box-shadow: $shadow-sm;
+  @include flex-center;
+  transition: $transition-colors;
+  
+  @include theme-aware('background-color', (
+    light: rgba(255, 255, 255, 0.8),
+    dark: rgba($gray-800, 0.8)
+  ));
+  
+  @include theme-aware('color', (
+    light: $gray-600,
+    dark: $gray-300
+  ));
+  
+  &:hover {
+    @include theme-aware('background-color', (
+      light: white,
+      dark: $gray-700
+    ));
+  }
+}
+
+.action-icon {
+  width: $spacing-xs * 1.5;
+  height: $spacing-xs * 1.5;
 }
 
 .atempo-cal-event-resize-handle {
-  @apply absolute left-0 right-0 cursor-ns-resize;
+  position: absolute;
+  left: 0;
+  right: 0;
+  cursor: ns-resize;
   height: 4px;
+  
+  &:hover {
+    background-color: $primary-500;
+    opacity: 0.5;
+  }
 }
 
 .atempo-cal-event-resize-top {
-  @apply top-0;
+  top: 0;
 }
 
 .atempo-cal-event-resize-bottom {
-  @apply bottom-0;
+  bottom: 0;
 }
 
-.atempo-cal-event-resize-handle:hover {
-  @apply bg-blue-500 opacity-50;
+// Event color classes - using SCSS mixins for efficiency
+.atempo-cal-event {
+  &.color-blue { @include event-color-theme($event-blue); }
+  &.color-emerald { @include event-color-theme($event-emerald); }
+  &.color-red { @include event-color-theme($event-red); }
+  &.color-amber { @include event-color-theme($event-amber); }
+  &.color-violet { @include event-color-theme($event-violet); }
+  &.color-indigo { @include event-color-theme($event-indigo); }
+  &.color-pink { @include event-color-theme($event-pink); }
+  &.color-gray { @include event-color-theme($event-gray); }
+  &.color-cyan { @include event-color-theme($event-cyan); }
+  &.color-lime { @include event-color-theme($event-lime); }
+  &.color-orange { @include event-color-theme($event-orange); }
+  &.color-teal { @include event-color-theme($event-teal); }
+  &.color-rose { @include event-color-theme($event-rose); }
+  &.color-purple { @include event-color-theme($event-purple); }
+  &.color-green { @include event-color-theme($event-green); }
+  &.color-yellow { @include event-color-theme($event-yellow); }
+  &.color-sky { @include event-color-theme($event-sky); }
 }
 
-/* Event color classes - expanded palette */
-.atempo-cal-event.color-blue {
-  @apply bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100;
-}
-
-.atempo-cal-event.color-emerald {
-  @apply bg-emerald-100 dark:bg-emerald-900/30 text-emerald-900 dark:text-emerald-100;
-}
-
-.atempo-cal-event.color-red {
-  @apply bg-red-100 dark:bg-red-900/30 text-red-900 dark:text-red-100;
-}
-
-.atempo-cal-event.color-amber {
-  @apply bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-100;
-}
-
-.atempo-cal-event.color-violet {
-  @apply bg-violet-100 dark:bg-violet-900/30 text-violet-900 dark:text-violet-100;
-}
-
-.atempo-cal-event.color-indigo {
-  @apply bg-indigo-100 dark:bg-indigo-900/30 text-indigo-900 dark:text-indigo-100;
-}
-
-.atempo-cal-event.color-pink {
-  @apply bg-pink-100 dark:bg-pink-900/30 text-pink-900 dark:text-pink-100;
-}
-
-.atempo-cal-event.color-gray {
-  @apply bg-gray-100 dark:bg-gray-900/30 text-gray-900 dark:text-gray-100;
-}
-
-.atempo-cal-event.color-cyan {
-  @apply bg-cyan-100 dark:bg-cyan-900/30 text-cyan-900 dark:text-cyan-100;
-}
-
-.atempo-cal-event.color-lime {
-  @apply bg-lime-100 dark:bg-lime-900/30 text-lime-900 dark:text-lime-100;
-}
-
-.atempo-cal-event.color-orange {
-  @apply bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100;
-}
-
-.atempo-cal-event.color-teal {
-  @apply bg-teal-100 dark:bg-teal-900/30 text-teal-900 dark:text-teal-100;
-}
-
-.atempo-cal-event.color-rose {
-  @apply bg-rose-100 dark:bg-rose-900/30 text-rose-900 dark:text-rose-100;
-}
-
-.atempo-cal-event.color-purple {
-  @apply bg-purple-100 dark:bg-purple-900/30 text-purple-900 dark:text-purple-100;
-}
-
-.atempo-cal-event.color-green {
-  @apply bg-green-100 dark:bg-green-900/30 text-green-900 dark:text-green-100;
-}
-
-.atempo-cal-event.color-yellow {
-  @apply bg-yellow-100 dark:bg-yellow-900/30 text-yellow-900 dark:text-yellow-100;
-}
-
-.atempo-cal-event.color-sky {
-  @apply bg-sky-100 dark:bg-sky-900/30 text-sky-900 dark:text-sky-100;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
+// Responsive adjustments
+@include mobile {
   .atempo-cal-event {
-    @apply px-1 text-xs;
+    padding: $spacing-xs;
+    font-size: $font-size-xs;
   }
   
   .atempo-cal-event-actions {
-    @apply hidden;
+    display: none;
   }
   
   .atempo-cal-event-resize-handle {
-    @apply hidden;
+    display: none;
   }
 }
 </style>

@@ -1,14 +1,13 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
-import tailwindcss from '@tailwindcss/vite'
 
 /**
  * Vite configuration for AtempoCal demo application
  * Separate from the library build configuration
  */
 export default defineConfig({
-  plugins: [vue(), tailwindcss()],
+  plugins: [vue()],
   
   // Development server configuration
   server: {
@@ -36,7 +35,15 @@ export default defineConfig({
     }
   },
   
-  // CSS configuration removed - handled by @tailwindcss/vite plugin
+  // CSS preprocessing
+  css: {
+    preprocessorOptions: {
+      scss: {
+        additionalData: `@use "${resolve(__dirname, '../src/styles/main.scss')}";`,
+        api: 'modern-compiler'
+      }
+    }
+  },
   
   // Define global constants
   define: {

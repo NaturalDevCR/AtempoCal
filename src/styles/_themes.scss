@@ -1,0 +1,346 @@
+// AtempoCal SCSS Themes
+// Modern theme system using CSS custom properties and SCSS maps
+
+@use 'sass:map';
+@use 'variables' as *;
+
+// ===== THEME MAPS =====
+
+$light-theme: (
+  // Background colors
+  'bg-primary': $white,
+  'bg-secondary': $gray-50,
+  'bg-tertiary': $gray-100,
+  'bg-quaternary': $gray-200,
+  
+  // Text colors
+  'text-primary': $gray-900,
+  'text-secondary': $gray-600,
+  'text-tertiary': $gray-400,
+  'text-inverse': $white,
+  
+  // Border colors
+  'border-primary': $gray-200,
+  'border-secondary': $gray-300,
+  'border-tertiary': $gray-400,
+  
+  // Accent colors
+  'accent-primary': $primary-500,
+  'accent-secondary': $primary-600,
+  'accent-tertiary': $primary-700,
+  
+  // State colors
+  'success': $success,
+  'warning': $warning,
+  'error': $error,
+  'info': $info,
+  
+  // Shadow colors
+  'shadow': rgba(0, 0, 0, 0.1),
+  'shadow-lg': rgba(0, 0, 0, 0.15),
+  'shadow-xl': rgba(0, 0, 0, 0.2),
+  
+  // Component specific colors
+  'nav-bg': #f8fafc,
+  'header-bg': $white,
+  'colaboradores-bg': #f1f5f9,
+  'hover-bg': $gray-50,
+  'active-bg': $gray-100,
+  
+  // Event colors
+  'event-bg': rgba(59, 130, 246, 0.1),
+  'event-border': $primary-500,
+  'event-hover': rgba(59, 130, 246, 0.15),
+  
+  // Calendar specific
+  'today-bg': rgba(59, 130, 246, 0.05),
+  'weekend-bg': rgba(156, 163, 175, 0.03),
+  'current-time': #ef4444,
+  
+  // Interactive states
+  'focus-ring': rgba(59, 130, 246, 0.3),
+  'selection-bg': rgba(59, 130, 246, 0.1)
+);
+
+$dark-theme: (
+  // Background colors
+  'bg-primary': $gray-900,
+  'bg-secondary': $gray-800,
+  'bg-tertiary': $gray-700,
+  'bg-quaternary': $gray-600,
+  
+  // Text colors
+  'text-primary': $gray-50,
+  'text-secondary': $gray-300,
+  'text-tertiary': $gray-500,
+  'text-inverse': $gray-900,
+  
+  // Border colors
+  'border-primary': $gray-700,
+  'border-secondary': $gray-600,
+  'border-tertiary': $gray-500,
+  
+  // Accent colors
+  'accent-primary': $primary-400,
+  'accent-secondary': $primary-500,
+  'accent-tertiary': $primary-600,
+  
+  // State colors
+  'success': #34d399,
+  'warning': #fbbf24,
+  'error': #f87171,
+  'info': $primary-400,
+  
+  // Shadow colors
+  'shadow': rgba(0, 0, 0, 0.3),
+  'shadow-lg': rgba(0, 0, 0, 0.4),
+  'shadow-xl': rgba(0, 0, 0, 0.5),
+  
+  // Component specific colors
+  'nav-bg': #0f172a,
+  'header-bg': $gray-900,
+  'colaboradores-bg': #1e293b,
+  'hover-bg': $gray-800,
+  'active-bg': $gray-700,
+  
+  // Event colors
+  'event-bg': rgba(96, 165, 250, 0.1),
+  'event-border': $primary-400,
+  'event-hover': rgba(96, 165, 250, 0.15),
+  
+  // Calendar specific
+  'today-bg': rgba(96, 165, 250, 0.05),
+  'weekend-bg': rgba(156, 163, 175, 0.03),
+  'current-time': #f87171,
+  
+  // Interactive states
+  'focus-ring': rgba(96, 165, 250, 0.3),
+  'selection-bg': rgba(96, 165, 250, 0.1)
+);
+
+// ===== THEME GENERATION MIXIN =====
+
+@mixin generate-theme-vars($theme-map, $prefix: 'atempo') {
+  @each $key, $value in $theme-map {
+    --#{$prefix}-#{$key}: #{$value};
+  }
+}
+
+// ===== ROOT THEME VARIABLES =====
+
+:root {
+  @include generate-theme-vars($light-theme);
+  
+  // Color scheme preference
+  color-scheme: light;
+}
+
+// ===== DARK THEME =====
+
+.dark,
+[data-theme="dark"] {
+  @include generate-theme-vars($dark-theme);
+  
+  // Color scheme preference
+  color-scheme: dark;
+}
+
+// ===== SYSTEM PREFERENCE SUPPORT =====
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not([data-theme="light"]) {
+    @include generate-theme-vars($dark-theme);
+    color-scheme: dark;
+  }
+}
+
+// ===== THEME UTILITY FUNCTIONS =====
+
+@function theme-var($key, $prefix: 'atempo') {
+  @return var(--#{$prefix}-#{$key});
+}
+
+// ===== THEME-AWARE MIXINS =====
+
+@mixin theme-transition($properties: all, $duration: 0.2s) {
+  transition: $properties $duration ease-in-out;
+}
+
+@mixin theme-bg($variant: 'primary') {
+  background-color: theme-var('bg-#{$variant}');
+}
+
+@mixin theme-text($variant: 'primary') {
+  color: theme-var('text-#{$variant}');
+}
+
+@mixin theme-border($variant: 'primary', $width: 1px, $style: solid) {
+  border: $width $style theme-var('border-#{$variant}');
+}
+
+@mixin theme-shadow($variant: 'shadow') {
+  box-shadow: 0 1px 3px 0 theme-var($variant), 0 1px 2px -1px theme-var($variant);
+}
+
+// ===== EVENT COLOR VARIANTS =====
+
+$event-colors: (
+  'blue': (
+    'light': (
+      'bg': rgba(59, 130, 246, 0.1),
+      'border': #2563eb,
+      'text': #1e40af
+    ),
+    'dark': (
+      'bg': rgba(96, 165, 250, 0.1),
+      'border': #60a5fa,
+      'text': #93c5fd
+    )
+  ),
+  'green': (
+    'light': (
+      'bg': rgba(16, 185, 129, 0.1),
+      'border': #059669,
+      'text': #047857
+    ),
+    'dark': (
+      'bg': rgba(52, 211, 153, 0.1),
+      'border': #34d399,
+      'text': #6ee7b7
+    )
+  ),
+  'red': (
+    'light': (
+      'bg': rgba(239, 68, 68, 0.1),
+      'border': #dc2626,
+      'text': #b91c1c
+    ),
+    'dark': (
+      'bg': rgba(248, 113, 113, 0.1),
+      'border': #f87171,
+      'text': #fca5a5
+    )
+  ),
+  'yellow': (
+    'light': (
+      'bg': rgba(245, 158, 11, 0.1),
+      'border': #d97706,
+      'text': #b45309
+    ),
+    'dark': (
+      'bg': rgba(251, 191, 36, 0.1),
+      'border': #fbbf24,
+      'text': #fcd34d
+    )
+  ),
+  'purple': (
+    'light': (
+      'bg': rgba(147, 51, 234, 0.1),
+      'border': #7c3aed,
+      'text': #6d28d9
+    ),
+    'dark': (
+      'bg': rgba(168, 85, 247, 0.1),
+      'border': #a855f7,
+      'text': #c084fc
+    )
+  ),
+  'orange': (
+    'light': (
+      'bg': rgba(234, 88, 12, 0.1),
+      'border': #c2410c,
+      'text': #9a3412
+    ),
+    'dark': (
+      'bg': rgba(251, 146, 60, 0.1),
+      'border': #fb923c,
+      'text': #fdba74
+    )
+  ),
+  'indigo': (
+    'light': (
+      'bg': rgba(79, 70, 229, 0.1),
+      'border': #4338ca,
+      'text': #3730a3
+    ),
+    'dark': (
+      'bg': rgba(129, 140, 248, 0.1),
+      'border': #818cf8,
+      'text': #a5b4fc
+    )
+  ),
+  'emerald': (
+    'light': (
+      'bg': rgba(5, 150, 105, 0.1),
+      'border': #047857,
+      'text': #065f46
+    ),
+    'dark': (
+      'bg': rgba(16, 185, 129, 0.1),
+      'border': #10b981,
+      'text': #34d399
+    )
+  ),
+  'amber': (
+    'light': (
+      'bg': rgba(217, 119, 6, 0.1),
+      'border': #b45309,
+      'text': #92400e
+    ),
+    'dark': (
+      'bg': rgba(245, 158, 11, 0.1),
+      'border': #f59e0b,
+      'text': #fbbf24
+    )
+  )
+);
+
+// ===== EVENT COLOR GENERATION =====
+
+@each $color-name, $color-variants in $event-colors {
+  :root {
+    --atempo-event-#{$color-name}-bg: #{map.get($color-variants, 'light', 'bg')};
+    --atempo-event-#{$color-name}-border: #{map.get($color-variants, 'light', 'border')};
+    --atempo-event-#{$color-name}-text: #{map.get($color-variants, 'light', 'text')};
+  }
+  
+  .dark,
+  [data-theme="dark"] {
+    --atempo-event-#{$color-name}-bg: #{map.get($color-variants, 'dark', 'bg')};
+    --atempo-event-#{$color-name}-border: #{map.get($color-variants, 'dark', 'border')};
+    --atempo-event-#{$color-name}-text: #{map.get($color-variants, 'dark', 'text')};
+  }
+}
+
+// ===== THEME ANIMATION SUPPORT =====
+
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    --atempo-transition-duration: 0.2s;
+    --atempo-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --atempo-transition-duration: 0s;
+    --atempo-transition-easing: linear;
+  }
+}
+
+// ===== HIGH CONTRAST SUPPORT =====
+
+@media (prefers-contrast: high) {
+  :root {
+    --atempo-border-primary: #{$gray-400};
+    --atempo-border-secondary: #{$gray-500};
+    --atempo-text-secondary: #{$gray-700};
+  }
+  
+  .dark,
+  [data-theme="dark"] {
+    --atempo-border-primary: #{$gray-500};
+    --atempo-border-secondary: #{$gray-400};
+    --atempo-text-secondary: #{$gray-200};
+  }
+}

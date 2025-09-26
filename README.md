@@ -244,15 +244,6 @@ export default boot(({ app }) => {
 
 **Step 2: Register Boot File**
 
-```javascript
-// quasar.config.js
-module.exports = {
-  boot: [
-    'atempo-cal'
-  ]
-  // Note: AtempoCal is NOT a Quasar plugin - use boot files only
-}
-```
 
 **Quasar Compatibility Features:**
 - ✅ **Grid Lines**: Strengthened border declarations with `!important` to override Quasar's CSS reset
