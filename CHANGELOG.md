@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.3](https://github.com/NaturalDevCR/AtempoCal/compare/v2.2.2...v2.2.3) (2025-01-27)
+
+
+### Features
+
+* add showEventTitles configuration option for flexible event display ([#show-event-titles](https://github.com/NaturalDevCR/AtempoCal/commit/show-event-titles)) - Users can now control whether to display event titles for single-day events while preserving time information. Multi-day events always show titles regardless of this setting.
+* implement dynamic grid height adaptation based on event quantity ([#dynamic-height](https://github.com/NaturalDevCR/AtempoCal/commit/dynamic-height)) - Grid rows now automatically expand to accommodate all events without overflow or cutoff issues
+* enhance multi-day event display with inline text layout ([#inline-multiday](https://github.com/NaturalDevCR/AtempoCal/commit/inline-multiday)) - Multi-day events now display event titles and date ranges on the same horizontal line for better space efficiency
+
+### Bug Fixes
+
+* fix event display and grid sizing issues ([#event-display-fixes](https://github.com/NaturalDevCR/AtempoCal/commit/event-display-fixes)) - Restored multi-day event title display, fixed event chip resizing, and corrected grid layout responsiveness
+* resolve dynamic height calculation for proper event stacking ([#height-calculation](https://github.com/NaturalDevCR/AtempoCal/commit/height-calculation)) - Enhanced event height calculation algorithms to ensure all events are visible regardless of quantity
+
 ## [2.2.2](https://github.com/NaturalDevCR/AtempoCal/compare/v2.2.1...v2.2.2) (2025-01-27)
 
 
