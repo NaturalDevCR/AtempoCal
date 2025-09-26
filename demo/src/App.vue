@@ -2,35 +2,35 @@
   <div id="app">
     <!-- Header -->
     <header class="demo-header">
-      <div class="demo-container">
-        <div class="demo-header-content">
-          <div class="demo-logo">
-            <div class="demo-logo-icon">
-              <div class="demo-logo-badge">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="container">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2">
+              <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h1 class="demo-title">
+              <h1 class="text-xl font-semibold text-gray-900">
                 AtempoCal Demo
               </h1>
             </div>
-            <span class="demo-version">
+            <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
               v1.0.0
             </span>
           </div>
           
-          <div class="demo-actions">
+          <div class="flex items-center space-x-4">
             <!-- Theme Toggle -->
             <button
               @click="toggleTheme"
-              class="demo-btn"
+              class="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
               title="Toggle theme"
             >
-              <svg v-if="currentTheme === 'light'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg v-if="currentTheme === 'light'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
               </svg>
-              <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
             </button>
@@ -39,10 +39,10 @@
             <a
               href="https://github.com/your-org/atempo-cal"
               target="_blank"
-              class="demo-btn"
+              class="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
               title="View on GitHub"
             >
-              <svg fill="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
               </svg>
             </a>
@@ -52,110 +52,114 @@
     </header>
 
     <!-- Main Content -->
-    <main class="demo-container demo-main">
+    <main class="container py-8">
       <!-- Demo Info -->
-      <div class="demo-card">
-        <h2 class="demo-card-title">
-          Welcome to AtempoCal - Resource Calendar
-        </h2>
-        <p class="demo-card-description">
-          A highly customizable Vue 3 resource calendar component built with TypeScript, SCSS, and the Atemporal library.
-          This demo showcases a worker scheduling system where the weekly view shows resources (workers) on the left, and the daily view shows hourly time slots.
-        </p>
-        <div class="demo-tags">
-          <span class="demo-tag blue">
-            Vue 3 + TypeScript
-          </span>
-          <span class="demo-tag green">
-            Atemporal Library
-          </span>
-          <span class="demo-tag purple">
-            SCSS Styling
-          </span>
-          <span class="demo-tag orange">
-            Dark/Light Theme
-          </span>
+      <div class="mb-8">
+        <div class="demo-card p-6">
+          <h2 class="text-lg font-semibold text-gray-900 mb-2">
+            Welcome to AtempoCal - Resource Calendar
+          </h2>
+          <p class="text-gray-600 mb-4">
+            A highly customizable Vue 3 resource calendar component built with TypeScript, SCSS, and the Atemporal library.
+            This demo showcases a worker scheduling system where the weekly view shows resources (workers) on the left, and the daily view shows hourly time slots.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-full">
+              Vue 3 + TypeScript
+            </span>
+            <span class="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-full">
+              Atemporal Library
+            </span>
+            <span class="px-3 py-1 text-sm bg-purple-100 text-purple-800 rounded-full">
+              SCSS
+            </span>
+            <span class="px-3 py-1 text-sm bg-orange-100 text-orange-800 rounded-full">
+              Dark/Light Theme
+            </span>
+          </div>
         </div>
       </div>
 
       <!-- Scroll Configuration Demo Controls -->
-      <div class="demo-card">
-        <h3 class="demo-card-title">
-          🔧 Scroll Configuration Demo
-        </h3>
-        <p class="demo-card-description">
-          Test different scroll behaviors with {{ demoResources.length }} workers. Change the settings below to see how the calendar adapts.
-        </p>
-        
-        <div class="demo-controls-grid">
-          <!-- Scroll Mode Selection -->
-          <div class="demo-control-group">
-            <label class="demo-label">
-              Scroll Mode
-            </label>
-            <select 
-              v-model="scrollMode"
-              class="demo-select"
-            >
-              <option value="auto">Auto (Default)</option>
-              <option value="fixed">Fixed Height</option>
-              <option value="workers">Max Workers Threshold</option>
-              <option value="disabled">No Scroll</option>
-            </select>
-            <p class="demo-help-text">
-              <span v-if="scrollMode === 'auto'">Automatic scroll when content exceeds viewport</span>
-              <span v-else-if="scrollMode === 'fixed'">Fixed height with scroll</span>
-              <span v-else-if="scrollMode === 'workers'">Scroll after worker count threshold</span>
-              <span v-else>No scroll, expand to fit content</span>
-            </p>
-          </div>
-
-          <!-- Fixed Height Control -->
-          <div class="demo-control-group" :class="{ 'disabled': scrollMode !== 'fixed' }">
-            <label class="demo-label">
-              Fixed Height (px)
-            </label>
-            <input 
-              v-model.number="fixedHeightValue"
-              type="range"
-              min="200"
-              max="800"
-              step="50"
-              :disabled="scrollMode !== 'fixed'"
-              class="demo-range"
-            />
-            <div class="demo-range-labels">
-              <span>200px</span>
-              <span class="demo-range-value">{{ fixedHeightValue }}px</span>
-              <span>800px</span>
+      <div class="mb-8">
+        <div class="demo-card p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            🔧 Scroll Configuration Demo
+          </h3>
+          <p class="text-gray-600 mb-4">
+            Test different scroll behaviors with {{ demoResources.length }} workers. Change the settings below to see how the calendar adapts.
+          </p>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Scroll Mode Selection -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Scroll Mode
+              </label>
+              <select 
+                v-model="scrollMode"
+                class="demo-select"
+              >
+                <option value="auto">Auto (Default)</option>
+                <option value="fixed">Fixed Height</option>
+                <option value="workers">Max Workers Threshold</option>
+                <option value="disabled">No Scroll</option>
+              </select>
+              <p class="text-xs text-gray-500 mt-1">
+                <span v-if="scrollMode === 'auto'">Automatic scroll when content exceeds viewport</span>
+                <span v-else-if="scrollMode === 'fixed'">Fixed height with scroll</span>
+                <span v-else-if="scrollMode === 'workers'">Scroll after worker count threshold</span>
+                <span v-else>No scroll, expand to fit content</span>
+              </p>
             </div>
-          </div>
 
-          <!-- Max Workers Control -->
-          <div class="demo-control-group" :class="{ 'disabled': scrollMode !== 'workers' }">
-            <label class="demo-label">
-              Max Workers Before Scroll
-            </label>
-            <input 
-              v-model.number="maxWorkersValue"
-              type="range"
-              min="3"
-              max="15"
-              step="1"
-              :disabled="scrollMode !== 'workers'"
-              class="demo-range"
-            />
-            <div class="demo-range-labels">
-              <span>3</span>
-              <span class="demo-range-value">{{ maxWorkersValue }} workers</span>
-              <span>15</span>
+            <!-- Fixed Height Control -->
+            <div :class="{ 'opacity-50': scrollMode !== 'fixed' }">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Fixed Height (px)
+              </label>
+              <input 
+                v-model.number="fixedHeightValue"
+                type="range"
+                min="200"
+                max="800"
+                step="50"
+                :disabled="scrollMode !== 'fixed'"
+                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+              <div class="flex justify-between text-xs text-gray-500 mt-1">
+                <span>200px</span>
+                <span class="font-medium">{{ fixedHeightValue }}px</span>
+                <span>800px</span>
+              </div>
             </div>
-            <p class="demo-help-text">
-              Current: {{ demoResources.length }} workers
-              <span v-if="scrollMode === 'workers'">
-                ({{ demoResources.length > maxWorkersValue ? 'Scroll enabled' : 'No scroll' }})
-              </span>
-            </p>
+
+            <!-- Max Workers Control -->
+            <div :class="{ 'opacity-50': scrollMode !== 'workers' }">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Max Workers Before Scroll
+              </label>
+              <input 
+                v-model.number="maxWorkersValue"
+                type="range"
+                min="3"
+                max="15"
+                step="1"
+                :disabled="scrollMode !== 'workers'"
+                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+              <div class="flex justify-between text-xs text-gray-500 mt-1">
+                <span>3</span>
+                <span class="font-medium">{{ maxWorkersValue }} workers</span>
+                <span>15</span>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">
+                Current: {{ demoResources.length }} workers
+                <span v-if="scrollMode === 'workers'" class="ml-2">
+                  ({{ demoResources.length > maxWorkersValue ? 'Scroll enabled' : 'No scroll' }})
+                </span>
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -182,24 +186,24 @@
         >
           <!-- Custom Navigation Slot (Left) -->
           <template #navigation="{ navigatePrevious, navigateNext, navigateToday }">
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div class="flex items-center space-x-2">
               <button
                 @click="navigatePrevious"
-                class="demo-nav-btn"
+                class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-200 shadow-sm"
                 title="Previous"
               >
-                <ChevronLeftIcon />
+                <ChevronLeftIcon class="w-5 h-5" />
               </button>
               <button
                 @click="navigateNext"
-                class="demo-nav-btn"
+                class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-200 shadow-sm"
                 title="Next"
               >
-                <ChevronRightIcon />
+                <ChevronRightIcon class="w-5 h-5" />
               </button>
               <button
                 @click="navigateToday"
-                class="demo-nav-today"
+                class="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white font-medium transition-colors duration-200 shadow-sm"
                 title="Go to Today"
               >
                 Today
@@ -209,11 +213,11 @@
 
           <!-- Custom Title Slot (Center) -->
           <template #title="{ displayTitle }">
-            <div class="demo-custom-title">
-              <h2 class="demo-title-main">
+            <div class="flex flex-col items-center">
+              <h2 class="text-xl font-bold text-gray-900">
                 📅 {{ displayTitle }}
               </h2>
-              <p class="demo-title-sub">
+              <p class="text-sm text-gray-500 mt-1">
                 Custom Demo Calendar
               </p>
             </div>
@@ -221,14 +225,14 @@
 
           <!-- Custom Date Picker Slot (Right) -->
           <template #datepicker="{ currentDate, onDateChange }">
-            <div class="demo-datepicker">
-              <div class="demo-datepicker-group">
-                <CalendarDaysIcon class="demo-datepicker-icon" />
+            <div class="flex items-center space-x-3">
+              <div class="flex items-center space-x-2">
+                <CalendarDaysIcon class="w-5 h-5 text-gray-500" />
                 <input
                   type="date"
                   :value="atemporal(currentDate).format('YYYY-MM-DD')"
                   @change="(e) => onDateChange((e.target as HTMLInputElement).value)"
-                  class="demo-datepicker-input"
+                  class="demo-input"
                 />
               </div>
               <!-- View selector removed since only one view is supported -->
@@ -239,43 +243,43 @@
       <!-- Event Details Modal -->
       <div
         v-if="selectedEvent"
-        class="demo-modal-overlay"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
         @click="selectedEvent = null"
       >
         <div
-          class="demo-modal"
+          class="demo-modal max-w-md w-full p-6"
           @click.stop
         >
-          <div class="demo-modal-header">
-            <h3 class="demo-modal-title">
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">
               {{ selectedEvent.title }}
             </h3>
             <button
               @click="selectedEvent = null"
-              class="demo-modal-close"
+              class="text-gray-400 hover:text-gray-600"
             >
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
           
-          <div class="demo-modal-content">
-            <div v-if="selectedEvent.description" class="demo-modal-field">
-              <p class="demo-modal-field-label">Description</p>
-              <p class="demo-modal-field-value">{{ selectedEvent.description }}</p>
+          <div class="space-y-3">
+            <div v-if="selectedEvent.description">
+              <p class="text-sm font-medium text-gray-700">Description</p>
+              <p class="text-gray-600">{{ selectedEvent.description }}</p>
             </div>
             
-            <div class="demo-modal-field">
-              <p class="demo-modal-field-label">Time</p>
-              <p class="demo-modal-field-value">
+            <div>
+              <p class="text-sm font-medium text-gray-700">Time</p>
+              <p class="text-gray-600">
                 {{ formatEventTime(selectedEvent) }}
               </p>
             </div>
             
-            <div v-if="selectedEvent.resourceId" class="demo-modal-field">
-              <p class="demo-modal-field-label">Resource</p>
-              <p class="demo-modal-field-value">
+            <div v-if="selectedEvent.resourceId">
+              <p class="text-sm font-medium text-gray-700">Resource</p>
+              <p class="text-gray-600">
                 {{ getResourceName(selectedEvent.resourceId) }}
               </p>
             </div>
