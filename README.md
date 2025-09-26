@@ -1,6 +1,6 @@
 # AtempoCal
 
-> A Vue 3 weekly scheduling calendar component designed for worker/resource management with dark/light theme support and TypeScript integration.
+> A high-performance Vue 3 weekly scheduling calendar component designed for worker/resource management with Spanish localization, dark/light theme support, and comprehensive TypeScript integration.
 
 [![npm version](https://badge.fury.io/js/atempo-cal.svg)](https://badge.fury.io/js/atempo-cal)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -11,8 +11,9 @@
 
 - 📅 **Weekly Scheduling Focus**: Exclusively designed for weekly calendar view and resource scheduling
 - 👥 **Worker/Resource Management**: Advanced employee/resource scheduling with detailed metadata support
+- 🇪🇸 **Spanish Localization**: Built-in Spanish date formatting with memoized performance optimization
 - 🌙 **Dark/Light Theme**: Automatic theme detection with smooth transitions and prop-based configuration
-- 🎨 **Modern UI**: Clean, professional interface built with Tailwind CSS
+- 🎨 **Modern UI**: Clean, professional interface with integrated styling (borders, shadows, rounded corners)
 - 🕐 **Timezone Support**: Global timezone configuration with Atemporal library integration
 - 🌍 **Internationalization**: Built-in i18n support for multiple locales
 - 🔧 **TypeScript**: Full type safety with comprehensive type definitions
@@ -20,8 +21,9 @@
 - 🚫 **Smart Event Stacking**: Intelligent vertical stacking prevents visual overlaps
 - 🏷️ **Multi-Day Events**: Seamless handling of events spanning multiple days with date ranges
 - ⏰ **Time Display**: Time ranges for single-day events, title + date range for multi-day events
-- ⚡ **Performance Optimized**: Efficient rendering with Vue 3 Composition API
+- ⚡ **Performance Optimized**: Memoization caches, debounced navigation, hardware acceleration
 - 🎯 **Easy Integration**: Works with Vue 3, Nuxt, Quasar, and other Vue-based frameworks
+- 🎛️ **Self-Contained Styling**: No wrapper divs needed - component includes integrated visual styling
 
 ## 🚀 Quick Start
 
@@ -43,7 +45,7 @@ pnpm add atempo-cal
 AtempoCal requires the following peer dependencies:
 
 ```bash
-npm install vue@^3.4.0 atemporal@^0.1.0
+npm install vue@^3.5.22 atemporal@0.1.9
 ```
 
 ### Basic Usage
@@ -364,22 +366,217 @@ The component automatically includes:
 | `--atempo-warning` | Warning color | `#f59e0b` | `#fbbf24` |
 | `--atempo-error` | Error color | `#ef4444` | `#f87171` |
 
-## 🌍 Internationalization
+## 🌍 Internationalization & Spanish Localization
 
-AtempoCal leverages the Atemporal library's built-in internationalization:
+AtempoCal features built-in Spanish localization with optimized performance:
+
+### Spanish Date Formatting
+
+The component includes native Spanish date formatting with memoized caching for optimal performance:
 
 ```vue
 <template>
+  <!-- Spanish localization is built-in and automatically used -->
   <AtempoCal
+    :events="events"
+    :resources="resources"
     :config="{
-      locale: 'es-ES', // Spanish
+      locale: 'es-ES',
       timezone: 'Europe/Madrid'
     }"
   />
 </template>
 ```
 
+**Spanish Features:**
+- **Date Format**: "22 sept" (day + Spanish month abbreviation)
+- **Day Names**: "LUN", "MAR", "MIE", "JUE", "VIE", "SÁB", "DOM"
+- **Month Abbreviations**: "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sept", "oct", "nov", "dic"
+- **Performance Optimized**: Memoized caching prevents redundant date calculations
+
+### Performance Optimizations
+
+The Spanish date helpers include several performance optimizations:
+
+```typescript
+// Memoization caches for performance
+const spanishMonthCache = new Map<string, string>()
+const spanishDayCache = new Map<string, string>()
+const spanishDateCache = new Map<string, string>()
+
+// Cached Spanish month formatting
+export const getSpanishMonth = (date: Atemporal): string => {
+  const cacheKey = `${date.year}-${date.month}`
+  if (spanishMonthCache.has(cacheKey)) {
+    return spanishMonthCache.get(cacheKey)!
+  }
+  // ... formatting logic with cache storage
+}
+```
+
+### Other Locales
+
+AtempoCal leverages the Atemporal library's built-in internationalization for other locales:
+
+```vue
+<template>
+  <AtempoCal
+    :config="{
+      locale: 'en-US', // English
+      timezone: 'America/New_York'
+    }"
+  />
+</template>
+```
+
 Supported locales include all standard IETF language tags. The component automatically formats dates, times, and day names according to the specified locale.
+
+## ⚡ Performance Optimizations
+
+AtempoCal includes comprehensive performance optimizations for smooth, responsive user experience:
+
+### Memoization & Caching
+
+**Event Filtering Cache**: Expensive event filtering operations are memoized to prevent redundant calculations:
+
+```typescript
+// Cached event filtering for workers and dates
+const eventFilterCache = new Map<string, CalendarEvent[]>()
+const multiDayEventCache = new Map<string, CalendarEvent[]>()
+
+// Cache invalidation on data changes
+watch([() => props.events, () => props.resources], () => {
+  eventFilterCache.clear()
+  multiDayEventCache.clear()
+}, { deep: true })
+```
+
+**Spanish Date Helpers**: All Spanish date formatting functions use memoization:
+- `getSpanishMonth()` - Cached month abbreviations
+- `getSpanishDay()` - Cached day names  
+- `formatSpanishDate()` - Cached complete date strings
+
+**Worker Row Heights**: Dynamic height calculations are cached to prevent layout thrashing:
+
+```typescript
+const workerRowHeightCache = new Map<string, number>()
+
+const getWorkerRowHeight = (workerId: string): number => {
+  if (workerRowHeightCache.has(workerId)) {
+    return workerRowHeightCache.get(workerId)!
+  }
+  // Calculate and cache height
+}
+```
+
+### Debounced Interactions
+
+**Navigation Functions**: Navigation actions are debounced to prevent rapid-fire updates:
+
+```typescript
+const debouncedNavigatePrevious = debounce(() => {
+  navigatePrevious()
+}, 150)
+
+const debouncedNavigateNext = debounce(() => {
+  navigateNext()
+}, 150)
+```
+
+### Vue.js Optimizations
+
+**v-memo Directives**: Expensive list rendering uses `v-memo` for intelligent re-rendering:
+
+```vue
+<template>
+  <!-- Day headers with memoization -->
+  <div
+    v-for="date in weekDates"
+    :key="date.toString()"
+    v-memo="[date.toString(), isToday(date), isWeekend(date)]"
+    class="day-header"
+  >
+    <!-- content -->
+  </div>
+  
+  <!-- Worker rows with memoization -->
+  <div
+    v-for="worker in displayWorkers"
+    :key="worker.id"
+    v-memo="[worker.id, worker.name, worker.color, getWorkerRowHeight(worker.id)]"
+    class="resource-row"
+  >
+    <!-- content -->
+  </div>
+</template>
+```
+
+### CSS Hardware Acceleration
+
+**Transform3D**: Critical animations use hardware acceleration:
+
+```css
+.atempo-cal {
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+.resource-row {
+  transform: translate3d(0, 0, 0);
+  will-change: height;
+}
+
+.stacked-event {
+  transform: translate3d(0, 0, 0);
+  will-change: transform, opacity;
+}
+```
+
+**Optimized Scrolling**: Smooth scrolling with momentum and hardware acceleration:
+
+```css
+.week-content {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  transform: translate3d(0, 0, 0);
+}
+```
+
+### Memory Management
+
+**Cache Invalidation**: Automatic cache clearing prevents memory leaks:
+
+```typescript
+// Clear caches when component unmounts
+onUnmounted(() => {
+  eventFilterCache.clear()
+  multiDayEventCache.clear()
+  workerRowHeightCache.clear()
+  spanishMonthCache.clear()
+  spanishDayCache.clear()
+  spanishDateCache.clear()
+})
+```
+
+**Shallow Reactivity**: Non-critical data uses `shallowRef` for better performance:
+
+```typescript
+const workerRowHeightCache = shallowRef(new Map<string, number>())
+const eventFilterCache = shallowRef(new Map<string, CalendarEvent[]>())
+```
+
+### Performance Monitoring
+
+For development and debugging, you can monitor cache performance:
+
+```typescript
+// Enable performance logging in development
+if (import.meta.env.DEV) {
+  console.log('Event filter cache size:', eventFilterCache.size)
+  console.log('Spanish date cache size:', spanishDateCache.size)
+  console.log('Worker height cache size:', workerRowHeightCache.size)
+}
+```
 
 ## ⚡ Advanced Usage
 
@@ -524,8 +721,8 @@ const {
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/atempo-cal.git
-cd atempo-cal
+git clone https://github.com/NaturalDevCR/AtempoCal.git
+cd AtempoCal
 
 # Install dependencies
 npm install
@@ -582,9 +779,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- 📖 [Documentation](https://github.com/your-org/atempo-cal#readme)
-- 🐛 [Issue Tracker](https://github.com/your-org/atempo-cal/issues)
-- 💬 [Discussions](https://github.com/your-org/atempo-cal/discussions)
+- 📖 [Documentation](https://github.com/NaturalDevCR/AtempoCal#readme)
+- 🐛 [Issue Tracker](https://github.com/NaturalDevCR/AtempoCal/issues)
+- 💬 [Discussions](https://github.com/NaturalDevCR/AtempoCal/discussions)
 
 ---
 
