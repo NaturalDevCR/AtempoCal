@@ -667,6 +667,9 @@ const multiDayEventsCache = shallowRef(new Map<string, CalendarEvent[]>())
 const getMultiDayEventsForWorker = (workerId: string): CalendarEvent[] => {
   const weekStart = weekDates.value[0]
   const weekEnd = weekDates.value[weekDates.value.length - 1]
+  
+  if (!weekStart || !weekEnd) return []
+  
   const cacheKey = `${workerId}-${weekStart.format('YYYY-MM-DD')}`
   
   // Check cache first
@@ -679,8 +682,8 @@ const getMultiDayEventsForWorker = (workerId: string): CalendarEvent[] => {
     
     const eventStart = atemporal(event.startTime).startOf('day')
     const eventEnd = atemporal(event.endTime).startOf('day')
-    const weekStartDay = weekStart.startOf('day')
-    const weekEndDay = weekEnd.startOf('day')
+    const weekStartDay = weekStart!.startOf('day')
+    const weekEndDay = weekEnd!.startOf('day')
     
     // Event intersects with week if:
     // event start <= week end AND event end >= week start
@@ -784,7 +787,10 @@ const workerRowHeightCache = shallowRef(new Map<string, number>())
  * Calculate worker row height based on maximum events (both single-day and multi-day) - memoized
  */
 const getWorkerRowHeight = (workerId: string): number => {
-  const weekKey = weekDates.value[0].format('YYYY-MM-DD')
+  const firstWeekDate = weekDates.value[0]
+  if (!firstWeekDate) return MIN_ROW_HEIGHT
+  
+  const weekKey = firstWeekDate.format('YYYY-MM-DD')
   const cacheKey = `${workerId}-${weekKey}`
   
   // Check cache first
@@ -826,10 +832,17 @@ const getStackedEventStyle = (eventIndex: number, workerId: string): Record<stri
  * Get style for worker-specific multi-day event with proper positioning
  */
 const getWorkerMultiDayEventStyle = (event: CalendarEvent & { lane: number }, _workerId: string): Record<string, string | number> => {
+  const firstWeekDate = weekDates.value[0]
+  const lastWeekDate = weekDates.value[weekDates.value.length - 1]
+  
+  if (!firstWeekDate || !lastWeekDate) {
+    return { display: 'none' }
+  }
+  
   const eventStartDate = atemporal(event.startTime).startOf('day')
   const eventEndDate = atemporal(event.endTime).startOf('day')
-  const weekStart = weekDates.value[0].startOf('day')
-  const weekEnd = weekDates.value[weekDates.value.length - 1].startOf('day')
+  const weekStart = firstWeekDate.startOf('day')
+  const weekEnd = lastWeekDate.startOf('day')
   
   // Calculate the actual start and end dates within the current week
   const displayStartDate = eventStartDate.isBefore(weekStart) ? weekStart : eventStartDate

@@ -68,8 +68,9 @@ export const getSpanishDay = (date: Atemporal): string => {
     return spanishDayCache.get(cacheKey)!
   }
   
-  const dayOfWeek = date.dayOfWeek as number
-  const result = SPANISH_DAYS[dayOfWeek] || 'LUN'
+  const dayOfWeek = typeof date.dayOfWeek === 'function' ? date.dayOfWeek() : date.dayOfWeek
+  const dayIndex = typeof dayOfWeek === 'number' ? dayOfWeek : 1
+  const result = SPANISH_DAYS[dayIndex] || 'LUN'
   spanishDayCache.set(cacheKey, result)
   return result
 }
