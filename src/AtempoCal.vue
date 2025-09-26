@@ -9,7 +9,29 @@
       @navigate-next="navigateNext"
       @navigate-today="navigateToday"
       @date-change="handleDateChange"
-    />
+    >
+      <!-- Pass through navbar slots for customization -->
+      <template #left="slotProps">
+        <slot 
+          name="navbar-left" 
+          v-bind="slotProps"
+        />
+      </template>
+      
+      <template #center="slotProps">
+        <slot 
+          name="navbar-center" 
+          v-bind="slotProps"
+        />
+      </template>
+      
+      <template #right="slotProps">
+        <slot 
+          name="navbar-right" 
+          v-bind="slotProps"
+        />
+      </template>
+    </NavigationBar>
 
     <!-- Main Calendar Content -->
     <div class="atempo-cal-content">

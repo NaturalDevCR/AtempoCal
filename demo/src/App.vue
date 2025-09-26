@@ -379,25 +379,28 @@
           @slot-click="handleSlotClick"
         >
           <!-- Custom Navigation Slot (Left) -->
-          <template #navigation="{ navigatePrevious, navigateNext, navigateToday }">
+          <template #navbar-left="{ navigatePrevious, navigateNext, navigateToday, loading }">
             <div class="flex items-center space-x-2">
               <button
                 @click="navigatePrevious"
-                class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-200 shadow-sm"
-                title="Previous"
+                :disabled="loading"
+                class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-200 shadow-sm disabled:opacity-50"
+                title="Previous Week"
               >
                 <ChevronLeftIcon class="w-5 h-5" />
               </button>
               <button
                 @click="navigateNext"
-                class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-200 shadow-sm"
-                title="Next"
+                :disabled="loading"
+                class="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-200 shadow-sm disabled:opacity-50"
+                title="Next Week"
               >
                 <ChevronRightIcon class="w-5 h-5" />
               </button>
               <button
                 @click="navigateToday"
-                class="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white font-medium transition-colors duration-200 shadow-sm"
+                :disabled="loading"
+                class="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white font-medium transition-colors duration-200 shadow-sm disabled:opacity-50"
                 title="Go to Today"
               >
                 Today
@@ -406,19 +409,19 @@
           </template>
 
           <!-- Custom Title Slot (Center) -->
-          <template #title="{ displayTitle }">
+          <template #navbar-center="{ displayTitle, currentDate }">
             <div class="flex flex-col items-center">
               <h2 class="text-xl font-bold text-gray-900">
                 📅 {{ displayTitle }}
               </h2>
               <p class="text-sm text-gray-500 mt-1">
-                Custom Demo Calendar
+                Custom Demo Calendar - {{ atemporal(currentDate).format('YYYY') }}
               </p>
             </div>
           </template>
 
           <!-- Custom Date Picker Slot (Right) -->
-          <template #datepicker="{ currentDate, onDateChange }">
+          <template #navbar-right="{ currentDate, onDateChange, showDatePicker, toggleDatePicker }">
             <div class="flex items-center space-x-3">
               <div class="flex items-center space-x-2">
                 <CalendarDaysIcon class="w-5 h-5 text-gray-500" />
@@ -429,7 +432,14 @@
                   class="demo-input"
                 />
               </div>
-              <!-- View selector removed since only one view is supported -->
+              <button
+                v-if="showDatePicker"
+                @click="toggleDatePicker"
+                class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+                title="Open Date Picker"
+              >
+                <CalendarDaysIcon class="w-4 h-4" />
+              </button>
             </div>
           </template>
         </AtempoCal>

@@ -695,6 +695,76 @@ const events = ref<CalendarEvent[]>([
 - **Unified Daily View**: Daily view shows all events in a single column with resource badges
 - **Intelligent Positioning**: Events are automatically positioned to prevent conflicts while maximizing space usage
 
+### Custom Navbar Slots
+
+AtempoCal provides three slots for customizing the navigation bar:
+
+```vue
+<template>
+  <AtempoCal
+    :events="events"
+    :resources="resources"
+  >
+    <!-- Customize left section (navigation controls) -->
+    <template #navbar-left="{ navigatePrevious, navigateNext, navigateToday, loading }">
+      <div class="custom-nav-controls">
+        <button @click="navigatePrevious" :disabled="loading">
+          ← Previous
+        </button>
+        <button @click="navigateNext" :disabled="loading">
+          Next →
+        </button>
+        <button @click="navigateToday" :disabled="loading">
+          Today
+        </button>
+      </div>
+    </template>
+
+    <!-- Customize center section (title display) -->
+    <template #navbar-center="{ displayTitle, currentDate }">
+      <div class="custom-title">
+        <h2>{{ displayTitle }}</h2>
+        <p>Custom Calendar - {{ currentDate.format('YYYY') }}</p>
+      </div>
+    </template>
+
+    <!-- Customize right section (date picker and controls) -->
+    <template #navbar-right="{ currentDate, onDateChange, showDatePicker, toggleDatePicker }">
+      <div class="custom-controls">
+        <input
+          type="date"
+          :value="currentDate.format('YYYY-MM-DD')"
+          @change="(e) => onDateChange(e.target.value)"
+        />
+        <button v-if="showDatePicker" @click="toggleDatePicker">
+          📅
+        </button>
+      </div>
+    </template>
+  </AtempoCal>
+</template>
+```
+
+#### Available Slot Props
+
+**navbar-left slot:**
+- `navigatePrevious()` - Function to navigate to previous week
+- `navigateNext()` - Function to navigate to next week
+- `navigateToday()` - Function to navigate to current week
+- `loading` - Boolean indicating if navigation is in progress
+- `previousTitle` - Tooltip text for previous button
+- `nextTitle` - Tooltip text for next button
+
+**navbar-center slot:**
+- `displayTitle` - Formatted title string (e.g., "January 15 - 21, 2024")
+- `currentDate` - Current Atemporal date object
+
+**navbar-right slot:**
+- `currentDate` - Current Atemporal date object
+- `onDateChange(date: string)` - Function to change the current date
+- `showDatePicker` - Boolean indicating if date picker should be shown
+- `toggleDatePicker()` - Function to toggle date picker modal
+
 ### Custom Event Actions
 
 ```vue
