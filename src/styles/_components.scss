@@ -753,14 +753,38 @@
 @include mobile {
   .atempo-cal-nav {
     padding: $spacing-3 $spacing-4;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-3;
+    
+    .nav-center {
+      order: 1;
+      flex: none;
+    }
+    
+    .nav-left {
+      order: 2;
+      flex: none;
+    }
+    
+    .nav-right {
+      order: 3;
+      flex: none;
+    }
     
     .nav-title {
       font-size: $font-size-base;
+      text-align: center;
     }
   }
   
   .weekly-view {
+    overflow-x: auto;
+    overflow-y: visible;
+    
     .week-header {
+      min-width: 800px; // Ensure minimum width for horizontal scroll
+      
       .resource-spacer {
         width: 120px;
         min-width: 120px;
@@ -786,6 +810,8 @@
     }
     
     .week-content {
+      min-width: 800px; // Ensure minimum width for horizontal scroll
+      
       .resource-row {
         .resource-info {
           width: 120px;

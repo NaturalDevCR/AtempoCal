@@ -37,8 +37,10 @@
       class="week-content" 
       ref="scrollContainer"
       :style="{
-        maxHeight: weekContentHeight,
-        overflow: shouldEnableScroll ? 'auto' : 'visible'
+        height: weekContentHeight,
+        overflow: shouldEnableScroll ? 'auto' : 'visible',
+        overflowX: 'auto',
+        overflowY: shouldEnableScroll ? 'auto' : 'visible'
       }"
     >
       <!-- Worker rows -->
@@ -258,8 +260,8 @@ const weekContentHeight = computed((): string => {
       const maxHeight = props.maxWorkersBeforeScroll * MIN_ROW_HEIGHT + 100 // Add padding
       return `${maxHeight}px`
     } else {
-      // Don't enable scroll, let content expand naturally
-      return 'auto'
+      // Don't enable scroll, let content expand naturally but with a reasonable max
+      return 'fit-content'
     }
   }
   
@@ -269,7 +271,7 @@ const weekContentHeight = computed((): string => {
   }
   
   // Priority 4: No scroll, expand to fit content
-  return 'auto'
+  return 'fit-content'
 })
 
 /**
@@ -874,6 +876,8 @@ onUnmounted(() => {
   display: flex;
   border-bottom: 1px solid var(--atempo-border-primary);
   background-color: var(--atempo-header-bg);
+  min-width: 100%;
+  width: max-content; /* Allow header to expand beyond viewport */
 }
 
 .resource-spacer {
@@ -899,12 +903,14 @@ onUnmounted(() => {
 .day-headers {
   flex: 1;
   background-color: var(--atempo-bg-primary);
+  min-width: 0; /* Allow shrinking */
 }
 
 .day-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(120px, 1fr)); /* Minimum column width for mobile */
   height: 100%;
+  min-width: 840px; /* 7 columns * 120px minimum */
 }
 
 .day-header {
@@ -977,6 +983,28 @@ onUnmounted(() => {
   -webkit-overflow-scrolling: touch;
   will-change: scroll-position;
   transform: translateZ(0); /* Force hardware acceleration */
+  
+  /* Ensure proper scrolling behavior */
+  scrollbar-width: thin;
+  scrollbar-color: var(--atempo-border-secondary) transparent;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--atempo-border-secondary);
+    border-radius: 4px;
+    
+    &:hover {
+      background-color: var(--atempo-border-primary);
+    }
+  }
 }
 
 /* Removed global multi-day section styles */
@@ -1159,6 +1187,8 @@ onUnmounted(() => {
 .resource-container {
   display: flex;
   flex-direction: column;
+  min-width: 100%;
+  width: max-content; /* Allow container to expand beyond viewport */
 }
 
 .resource-row {
@@ -1172,6 +1202,8 @@ onUnmounted(() => {
   /* Optimize paint performance */
   will-change: transform;
   transform: translateZ(0); /* Force hardware acceleration */
+  min-width: 100%;
+  width: max-content; /* Allow row to expand beyond viewport */
 }
 
 .resource-info {
@@ -1231,6 +1263,7 @@ onUnmounted(() => {
   /* Ensure resource-days container expands to match row height */
   height: 100%;
   min-height: inherit;
+  min-width: 840px; /* Match day-grid minimum width */
 }
 
 .multiday-events-overlay {
