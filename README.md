@@ -623,6 +623,87 @@ if (import.meta.env.DEV) {
 }
 ```
 
+## 📱 Perfect Responsive Design
+
+AtempoCal features a mobile-first responsive design that provides an optimal experience across all devices:
+
+### Mobile-First Approach
+
+**Horizontal Scrolling**: On mobile devices, the calendar enables smooth horizontal scrolling to view all days of the week:
+
+```css
+/* Automatic horizontal scrolling on mobile */
+.weekly-view {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.week-header,
+.week-content {
+  min-width: 850px; /* Ensures all 7 days are visible */
+}
+```
+
+**Vertical Navbar Stacking**: The navigation bar automatically reorganizes on mobile devices:
+
+- **Desktop**: Horizontal layout (left | center | right)
+- **Mobile**: Vertical stacking (center on top, left in middle, right at bottom)
+
+```vue
+<template>
+  <!-- Desktop: horizontal layout -->
+  <div class="nav-desktop-layout">
+    <div class="nav-left"><!-- Navigation controls --></div>
+    <div class="nav-center"><!-- Title display --></div>
+    <div class="nav-right"><!-- Date picker --></div>
+  </div>
+
+  <!-- Mobile: vertical stacked layout -->
+  <div class="nav-mobile-layout">
+    <div class="nav-mobile-center"><!-- Title on top --></div>
+    <div class="nav-mobile-left"><!-- Controls in middle --></div>
+    <div class="nav-mobile-right"><!-- Date picker at bottom --></div>
+  </div>
+</template>
+```
+
+### Responsive Features
+
+- **Touch-Optimized Scrolling**: Smooth momentum scrolling with `-webkit-overflow-scrolling: touch`
+- **Grid Alignment**: Perfect alignment between header and content sections across all screen sizes
+- **Flexible Widths**: Dynamic column widths that adapt to content while maintaining readability
+- **Preserved Functionality**: All features work seamlessly on mobile, including fixed height and event interactions
+
+### Breakpoints
+
+```scss
+// Mobile breakpoint
+@media (max-width: 768px) {
+  // Mobile-specific styles
+}
+
+// Desktop breakpoint
+@media (min-width: 769px) {
+  // Desktop-specific styles
+}
+```
+
+### Configuration Options
+
+The responsive behavior works automatically, but you can control scroll behavior:
+
+```vue
+<template>
+  <AtempoCal
+    :config="{
+      maxWorkersBeforeScroll: 5,
+      fixedHeight: '600px',
+      enableAutoScroll: true
+    }"
+  />
+</template>
+```
+
 ## ⚡ Advanced Usage
 
 ### Resource Management
