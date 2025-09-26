@@ -83,8 +83,10 @@
                     backgroundColor: getEventColor(event, props.resources, props.specialEventColors) ? getEventColor(event, props.resources, props.specialEventColors) + '20' : '#3b82f620',
                     borderLeftColor: getEventColor(event, props.resources, props.specialEventColors) || '#3b82f6' 
                   }">
-                  <span class="multiday-title">{{ event.title }}</span>
-                  <span class="multiday-duration">{{ formatMultiDayEvent(event) }}</span>
+                  <div class="multiday-text-content">
+                    <span class="multiday-title">{{ event.title }}</span>
+                    <span class="multiday-duration">{{ formatMultiDayEvent(event) }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -878,51 +880,15 @@ const calculateEventDimensions = (event: CalendarEvent): { width: number; height
   }
 }
 
-/**
- * Get dynamic column width for a specific day based on events
- */
-const getDynamicColumnWidth = (date: Atemporal): number => {
-  const baseWidth = 115 // Minimum column width in pixels
-  let maxEventWidth = 0
-  
-  // Check all workers for events on this date
-  displayWorkers.value.forEach(worker => {
-    const singleDayEvents = getSingleDayEventsForWorkerAndDay(worker.id, date)
-    const multiDayEvents = getMultiDayEventsForWorker(worker.id)
-    
-    // Calculate width for single-day events
-    singleDayEvents.forEach(event => {
-      const dimensions = calculateEventDimensions(event)
-      maxEventWidth = Math.max(maxEventWidth, dimensions.width)
-    })
-    
-    // Calculate width for multi-day events that span this date
-    multiDayEvents.forEach(event => {
-      const eventStart = atemporal(event.startTime).startOf('day')
-      const eventEnd = atemporal(event.endTime).startOf('day')
-      const currentDate = date.startOf('day')
-      
-      if (currentDate.isSameOrAfter(eventStart) && currentDate.isSameOrBefore(eventEnd)) {
-        const dimensions = calculateEventDimensions(event)
-        maxEventWidth = Math.max(maxEventWidth, dimensions.width)
-      }
-    })
-  })
-  
-  // Return the larger of base width or calculated event width
-  return Math.max(baseWidth, maxEventWidth)
-}
+
 
 /**
  * Calculate dynamic grid template columns based on content
  */
 const dynamicGridColumns = computed((): string => {
-  const columnWidths = weekDates.value.map(date => {
-    const width = getDynamicColumnWidth(date)
-    return `${width}px`
-  })
-  
-  return columnWidths.join(' ')
+  // Use consistent column width for better grid stability
+  const baseWidth = 115 // Minimum column width in pixels
+  return `repeat(7, minmax(${baseWidth}px, 1fr))`
 })
 
 /**
@@ -1134,7 +1100,7 @@ onUnmounted(() => {
 
 .day-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(115px, 1fr));
   height: 100%;
 }
 
@@ -1274,7 +1240,7 @@ onUnmounted(() => {
   padding: 0.25rem 0.75rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   color: var(--atempo-text-primary);
   position: relative;
   overflow: visible;
@@ -1317,18 +1283,12 @@ onUnmounted(() => {
   background-color: rgba(154, 52, 18, 0.3);
 }
 
-.multiday-content {
+.multiday-text-content {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
-  height: 100%;
-  padding: 0.25rem 0.75rem;
-  border-radius: 0.375rem;
-  box-shadow: 0 1px 2px 0 var(--atempo-shadow);
-  border-left: 4px solid var(--atempo-accent-primary);
-  position: relative;
-  overflow: visible;
+  min-width: 0;
 }
 
 .multiday-title {
@@ -1336,10 +1296,11 @@ onUnmounted(() => {
   font-weight: 500;
   color: var(--atempo-text-primary);
   white-space: nowrap;
-  overflow: visible;
-  text-overflow: clip;
+  overflow: hidden;
+  text-overflow: ellipsis;
   line-height: 1.2;
   margin-bottom: 0.125rem;
+  width: 100%;
 }
 
 .multiday-duration {
@@ -1348,8 +1309,9 @@ onUnmounted(() => {
   font-weight: 400;
   color: var(--atempo-text-primary);
   white-space: nowrap;
-  overflow: visible;
-  text-overflow: clip;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .worker-container {
@@ -1511,12 +1473,13 @@ onUnmounted(() => {
 }
 
 .resource-days {
-  display: flex;
+  display: grid;
   flex: 1;
   position: relative;
   /* Ensure resource-days container expands to match row height */
   height: 100%;
   min-height: inherit;
+  /* Grid template columns will be set via inline styles */
 }
 
 .multiday-events-overlay {
@@ -1611,6 +1574,7 @@ onUnmounted(() => {
   align-items: flex-start;
   width: 100%;
   min-width: 0;
+  flex: 1;
 }
 
 .event-title {
@@ -1618,10 +1582,11 @@ onUnmounted(() => {
   font-weight: 500;
   color: var(--atempo-text-primary);
   white-space: nowrap;
-  overflow: visible;
-  text-overflow: clip;
+  overflow: hidden;
+  text-overflow: ellipsis;
   line-height: 1.2;
   margin-bottom: 0.125rem;
+  width: 100%;
 }
 
 /* Worker scheduling event type styles */
@@ -1670,23 +1635,16 @@ onUnmounted(() => {
   border-left-color: #4f46e5;
 }
 
-.event-title {
-  font-size: 0.75rem;
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-  color: var(--atempo-text-primary);
-}
-
 .event-time {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   opacity: 0.85;
-  margin-left: 0.5rem;
   flex-shrink: 0;
   color: var(--atempo-text-primary);
-  font-weight: 500;
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .event-resource {
