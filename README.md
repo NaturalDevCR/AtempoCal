@@ -22,6 +22,7 @@
 - 🏷️ **Multi-Day Events**: Seamless handling of events spanning multiple days with date ranges
 - ⏰ **Time Display**: Time ranges for single-day events, title + date range for multi-day events
 - ⚡ **Performance Optimized**: Memoization caches, debounced navigation, hardware acceleration
+- 📄 **PDF Export**: Built-in PDF export with landscape orientation and print optimization
 - 🎯 **Easy Integration**: Works with Vue 3, Nuxt, Quasar, and other Vue-based frameworks
 - 🎛️ **Self-Contained Styling**: No wrapper divs needed - component includes integrated visual styling
 
@@ -137,6 +138,70 @@ const handleEventCreate = (eventData: Partial<CalendarEvent>) => {
 }
 </script>
 ```
+
+## 📄 PDF Export
+
+AtempoCal includes built-in PDF export functionality with professional formatting and landscape orientation.
+
+### Features
+
+- **🖨️ One-Click Export**: PDF export button in the navigation bar
+- **📐 Landscape Orientation**: Automatically formatted for landscape printing
+- **👥 All Workers Visible**: Ensures all workers/resources are displayed without height constraints
+- **🎨 Professional Styling**: Maintains visual fidelity with optimized colors for print
+- **🚫 Clean Output**: Hides interactive elements (buttons, modals) in print view
+- **📄 Page Optimization**: Proper page breaks and content visibility
+
+### Usage
+
+The PDF export button is automatically available in the navigation bar. Users can:
+
+1. Click the printer icon in the top-right corner of the calendar
+2. The browser's print dialog will open with the calendar optimized for PDF export
+3. Select "Save as PDF" or print to a PDF printer
+4. The output will be in landscape orientation with all workers visible
+
+### Print Optimization
+
+The component includes comprehensive CSS print media queries that:
+
+- Force landscape page orientation (`@page { size: landscape; }`)
+- Remove height constraints to show all workers
+- Hide interactive elements (navigation buttons, delete buttons, etc.)
+- Optimize colors for professional PDF output
+- Ensure proper margins and spacing
+- Maintain visual hierarchy and readability
+
+### Customization
+
+You can customize the print styles by overriding the print media queries:
+
+```css
+@media print {
+  .atempo-cal {
+    /* Custom print styles */
+    font-size: 12px;
+  }
+  
+  .resource-name {
+    /* Custom worker name styling for print */
+    font-weight: bold;
+  }
+}
+```
+
+### Browser Compatibility
+
+PDF export works in all modern browsers that support:
+- CSS `@page` rules
+- Print media queries
+- `window.print()` API
+
+Tested browsers:
+- Chrome/Chromium 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
 
 ## 📚 Documentation
 
