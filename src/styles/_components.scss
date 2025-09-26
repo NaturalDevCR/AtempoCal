@@ -400,18 +400,27 @@
     transform: translateY(-1px);
   }
   
+  .event-content {
+    @include flex-between;
+    width: 100%;
+    align-items: center;
+    gap: $spacing-1;
+  }
+  
   .event-title {
     @include text-style($font-size-xs, $font-weight-medium);
     @include theme-text('primary');
-    @include text-truncate;
     flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
   }
   
   .event-time {
     @include text-style($font-size-xs, $font-weight-medium);
     @include theme-text('primary');
     opacity: $opacity-75;
-    margin-left: $spacing-2;
     flex-shrink: 0;
   }
   
@@ -466,7 +475,7 @@
     cursor: pointer;
     
     .multiday-content {
-      @include flex-center;
+      @include flex-between;
       @include card-base;
       
       height: 100%;
@@ -478,10 +487,29 @@
         @include theme-shadow('shadow-md');
       }
       
+      .multiday-text-content {
+        @include flex-between;
+        width: 100%;
+        align-items: center;
+        gap: $spacing-2;
+      }
+      
       .multiday-title {
         @include text-style($font-size-xs, $font-weight-medium);
         @include theme-text('primary');
-        @include text-truncate;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+      }
+      
+      .multiday-duration {
+        @include text-style($font-size-xs, $font-weight-medium);
+        @include theme-text('primary');
+        opacity: $opacity-75;
+        flex-shrink: 0;
+        margin-left: $spacing-2;
       }
     }
   }
