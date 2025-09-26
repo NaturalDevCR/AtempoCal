@@ -646,9 +646,9 @@ const getWorkerRowHeight = (workerId: string): number => {
   const maxEventsPerDay = getMaxEventsForWorker(workerId)
   
   // Calculate height with proper padding for stacked events
-  // Need top padding (8px) + bottom padding (16px) + extra space for proper visual separation
+  // Need top padding (8px) + bottom padding (40px) + extra space for proper visual separation
   const result = maxEventsPerDay === 0 ? MIN_ROW_HEIGHT : 
-    Math.max(MIN_ROW_HEIGHT, maxEventsPerDay * (EVENT_HEIGHT + EVENT_GAP) + 32) // 32px total padding (8px top + 24px bottom)
+    Math.max(MIN_ROW_HEIGHT, maxEventsPerDay * (EVENT_HEIGHT + EVENT_GAP) + 48) // 48px total padding (8px top + 40px bottom)
   
   // Cache the result
   heightCache.value.set(cacheKey, result)
