@@ -63,17 +63,7 @@
         :toggle-date-picker="toggleDatePicker"
         :current-date="currentDate"
         :on-date-change="handleDateChange"
-        :export-pdf="handleExportPdf"
       >
-        <!-- PDF Export button -->
-        <button
-          class="nav-export-btn"
-          @click="handleExportPdf"
-          title="Export as PDF"
-        >
-          <PrinterIcon class="w-4 h-4" />
-        </button>
-        
         <!-- Default date picker button -->
         <button
           v-if="showDatePicker"
@@ -152,8 +142,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   CalendarIcon,
-  XMarkIcon,
-  PrinterIcon
+  XMarkIcon
 } from '@heroicons/vue/24/outline'
 
 /**
@@ -179,7 +168,6 @@ interface Emits {
   'navigate-next': []
   'navigate-today': []
   'date-change': [date: string]
-  'export-pdf': []
 }
 
 const emit = defineEmits<Emits>()
@@ -270,13 +258,6 @@ const handleDatePickerChange = (event: Event): void => {
  */
 const handleDateChange = (date: string): void => {
   emit('date-change', date)
-}
-
-/**
- * Handle PDF export
- */
-const handleExportPdf = (): void => {
-  emit('export-pdf')
 }
 </script>
 
@@ -389,25 +370,6 @@ const handleExportPdf = (): void => {
   border-color: var(--atempo-border-primary);
 }
 
-.nav-export-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background-color: transparent;
-  border: 1px solid var(--atempo-border-secondary);
-  border-radius: 6px;
-  color: var(--atempo-text-primary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.nav-export-btn:hover {
-  background-color: var(--atempo-bg-secondary);
-  border-color: var(--atempo-border-primary);
-}
-
 /* Modal styles */
 .atempo-cal-modal {
   background-color: var(--atempo-bg-primary);
@@ -465,47 +427,6 @@ const handleExportPdf = (): void => {
 .atempo-cal-modal-button:hover {
   background-color: var(--atempo-bg-secondary);
   color: var(--atempo-text-primary);
-}
-
-/* Print styles for PDF export */
-@media print {
-  .atempo-cal-nav {
-    background: white !important;
-    color: black !important;
-    border-color: #ccc !important;
-    page-break-inside: avoid;
-    margin: 0 !important;
-    padding: 0.75rem 1rem !important;
-    border-bottom: 1px solid #e5e7eb !important;
-  }
-  
-  .nav-title {
-    color: black !important;
-  }
-  
-  /* Hide interactive elements in print */
-  .nav-arrow-btn,
-  .nav-today-btn,
-  .nav-date-picker-btn,
-  .nav-export-btn {
-    display: none !important;
-  }
-  
-  /* Hide modal in print */
-  .atempo-cal-modal {
-    display: none !important;
-  }
-  
-  /* Center the title when buttons are hidden */
-  .nav-left,
-  .nav-right {
-    display: none !important;
-  }
-  
-  .nav-center {
-    flex: 1;
-    justify-content: center;
-  }
 }
 
 /* Responsive adjustments */

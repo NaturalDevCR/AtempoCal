@@ -980,6 +980,11 @@ watch([() => props.events, weekDates], () => {
   height: 100%;
   background-color: var(--atempo-bg-primary);
   color: var(--atempo-text-primary);
+  /* Framework compatibility - strengthen borders */
+  border: 1px solid var(--atempo-border-primary) !important;
+  /* Optimize rendering performance */
+  will-change: scroll-position;
+  transform: translateZ(0); /* Force hardware acceleration */
 }
 
 .week-header {
@@ -1025,7 +1030,8 @@ watch([() => props.events, weekDates], () => {
   align-items: center;
   justify-content: center;
   padding: 1rem 0.5rem;
-  border-right: 1px solid var(--atempo-border-primary);
+  border-right: 1px solid var(--atempo-border-primary) !important;
+  border-bottom: 1px solid var(--atempo-border-primary) !important;
   cursor: pointer;
   transition: background-color 0.2s ease;
   height: 90px;
@@ -1198,13 +1204,20 @@ watch([() => props.events, weekDates], () => {
 
 .resource-row {
   display: flex;
-  border-bottom: 1px solid var(--atempo-border-primary);
+  border-bottom: 1px solid var(--atempo-border-primary) !important;
   position: relative;
+  background-color: var(--atempo-bg-primary);
+  /* Framework compatibility - ensure borders are visible */
+  border-left: 1px solid var(--atempo-border-primary) !important;
+  border-right: 1px solid var(--atempo-border-primary) !important;
+  /* Optimize paint performance */
+  will-change: transform;
+  transform: translateZ(0); /* Force hardware acceleration */
 }
 
 .resource-info {
   flex-shrink: 0;
-  border-right: 1px solid var(--atempo-border-primary);
+  border-right: 1px solid var(--atempo-border-primary) !important;
   width: 160px;
   min-width: 160px;
 }
@@ -1267,7 +1280,9 @@ watch([() => props.events, weekDates], () => {
   position: relative;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  border-right: 1px solid var(--atempo-border-primary);
+  border-right: 1px solid var(--atempo-border-primary) !important;
+  border-top: 1px solid var(--atempo-border-secondary) !important;
+  min-height: 60px;
 }
 
 .day-cell:hover {
@@ -1398,131 +1413,6 @@ watch([() => props.events, weekDates], () => {
 }
 
 
-
-/* Print styles for PDF export */
-@media print {
-  .weekly-view {
-    height: auto !important;
-    min-height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-    page-break-inside: avoid;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-  
-  .week-content {
-    height: auto !important;
-    min-height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-  }
-  
-  .resource-container {
-    height: auto !important;
-    min-height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-  }
-  
-  .resource-row {
-    height: auto !important;
-    min-height: 60px !important;
-    page-break-inside: avoid;
-    overflow: visible !important;
-  }
-  
-  .resource-info {
-    background: white !important;
-    color: black !important;
-    border-color: #ccc !important;
-  }
-  
-  .resource-name {
-    color: black !important;
-  }
-  
-  .resource-role {
-    color: #666 !important;
-  }
-  
-  .day-cell {
-    border-color: #ccc !important;
-    background: white !important;
-  }
-  
-  .day-cell.is-today {
-    background: #f0f0f0 !important;
-  }
-  
-  .day-cell.is-weekend {
-    background: #f8f8f8 !important;
-  }
-  
-  .week-header {
-    background: white !important;
-    color: black !important;
-    border-color: #ccc !important;
-  }
-  
-  .day-header {
-    background: white !important;
-    color: black !important;
-    border-color: #ccc !important;
-  }
-  
-  .resource-spacer {
-    background: white !important;
-    color: black !important;
-    border-color: #ccc !important;
-  }
-  
-  .resource-label {
-    color: black !important;
-  }
-  
-  .day-name {
-    color: black !important;
-  }
-  
-  .day-date {
-    color: #666 !important;
-  }
-  
-  .event-bar {
-    background: white !important;
-    color: black !important;
-    border-color: #666 !important;
-    box-shadow: none !important;
-  }
-  
-  .multiday-content {
-    background: white !important;
-    color: black !important;
-    border-color: #666 !important;
-  }
-  
-  .multiday-title {
-    color: black !important;
-  }
-  
-  .event-time {
-    color: black !important;
-  }
-  
-  /* Hide interactive elements in print */
-  .delete-btn,
-  .add-indicator {
-    display: none !important;
-  }
-  
-  /* Ensure proper text colors for print */
-  * {
-    color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-}
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
