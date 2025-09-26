@@ -229,15 +229,10 @@ export default defineNuxtPlugin((nuxtApp) => {
 
 AtempoCal is fully compatible with Quasar Framework. The component includes specific CSS fixes to ensure proper grid rendering and alignment:
 
-```typescript
-// quasar.config.js
-module.exports = {
-  framework: {
-    plugins: ['AtempoCal']
-  }
-}
+**Step 1: Create Boot File**
 
-// boot/atempo-cal.ts
+```typescript
+// src/boot/atempo-cal.ts
 import { boot } from 'quasar/wrappers'
 import AtempoCal from 'atempo-cal'
 import 'atempo-cal/dist/style.css'
@@ -247,6 +242,18 @@ export default boot(({ app }) => {
 })
 ```
 
+**Step 2: Register Boot File**
+
+```javascript
+// quasar.config.js
+module.exports = {
+  boot: [
+    'atempo-cal'
+  ]
+  // Note: AtempoCal is NOT a Quasar plugin - use boot files only
+}
+```
+
 **Quasar Compatibility Features:**
 - ✅ **Grid Lines**: Strengthened border declarations with `!important` to override Quasar's CSS reset
 - ✅ **Proper Alignment**: Fixed flexbox and grid layouts to work correctly within Quasar components
@@ -254,7 +261,8 @@ export default boot(({ app }) => {
 - ✅ **Border Visibility**: All calendar borders are explicitly defined to ensure visibility
 - ✅ **Responsive Design**: Maintains responsive behavior within Quasar's layout system
 
-**Usage in Quasar Pages:**
+**Step 3: Usage in Quasar Pages**
+
 ```vue
 <template>
   <q-page class="q-pa-md">
@@ -270,6 +278,25 @@ export default boot(({ app }) => {
     </div>
   </q-page>
 </template>
+```
+
+**Alternative: Local Component Import**
+
+If you prefer not to register globally, you can import the component locally:
+
+```vue
+<template>
+  <q-page class="q-pa-md">
+    <AtempoCal :events="events" :resources="resources" />
+  </q-page>
+</template>
+
+<script setup lang="ts">
+import AtempoCal from 'atempo-cal'
+import 'atempo-cal/dist/style.css'
+
+// Your component logic here
+</script>
 ```
 
 ### Direct Component Import
