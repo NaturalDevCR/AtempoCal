@@ -1,147 +1,153 @@
 <template>
   <div class="weekly-view">
-    <!-- Week header with days -->
-    <div class="week-header">
-      <!-- Worker column spacer -->
-      <div class="resource-spacer" :style="{ width: dynamicWorkerColumnWidth, minWidth: dynamicWorkerColumnWidth }">
-        <span class="resource-label">Colaboradores</span>
-      </div>
-      
-      <!-- Day headers -->
-      <div class="day-headers">
-        <div class="day-grid">
-          <div
-            v-for="date in weekDates"
-            :key="date.toString()"
-            v-memo="[date.toString(), isToday(date), isWeekend(date)]"
-            class="day-header"
-            :class="{
-              'is-today': isToday(date),
-              'is-weekend': isWeekend(date)
-            }"
-            @click="handleDayClick(date)"
-          >
-            <div class="day-name">
-              {{ getSpanishDay(date) }}
-            </div>
-            <div class="day-date">
-              {{ formatSpanishDate(date) }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Scrollable content area -->
+    <!-- Outer scroll container for horizontal scrolling -->
     <div 
-      class="week-content" 
-      ref="scrollContainer"
-      :style="{
-        height: weekContentHeight,
-        overflow: shouldEnableScroll ? 'auto' : 'visible',
-        overflowX: 'auto',
-        overflowY: shouldEnableScroll ? 'auto' : 'visible'
-      }"
+      class="weekly-scroll-container"
+      ref="horizontalScrollContainer"
+      @scroll="handleHorizontalScroll"
     >
-      <!-- Worker rows -->
-      <div class="resource-container">
-        <div
-          v-for="worker in displayWorkers"
-          :key="`worker-${worker.id}-${eventsVersion}`"
-          v-memo="[worker.id, worker.name, worker.color, getWorkerRowHeight(worker.id), eventsVersion]"
-          class="resource-row"
-          :style="{ height: getWorkerRowHeight(worker.id) + 'px' }"
-        >
-          <!-- Worker info column -->
-          <div class="resource-info" :style="{ width: dynamicWorkerColumnWidth, minWidth: dynamicWorkerColumnWidth }">
-            <div class="resource-content">
-              <div class="resource-indicator" :style="{ backgroundColor: worker.color || '#6B7280' }"></div>
-              <div class="resource-details">
-                <span class="resource-name">{{ worker.name }}</span>
-                <span v-if="worker.metadata?.role" class="resource-role">{{ worker.metadata.role }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Day cells for this worker -->
-          <div class="resource-days">
-            <!-- Multi-day events container positioned relative to day cells only -->
-            <div class="multiday-events-overlay">
-              <div
-                v-for="event in getMultiDayEventsForWorkerWithLanes(worker.id)"
-                :key="`multiday-${event.id}-${eventsVersion}`"
-                class="resource-multiday-event group"
-                :style="getWorkerMultiDayEventStyle(event, worker.id)"
-                @click="handleEventClick(event, 'multiday')"
-              >
-                <div class="multiday-content" 
-                  :class="{
-                    'time-off': event.metadata?.type === 'time-off',
-                    'training': event.metadata?.type === 'training',
-                    'project': event.metadata?.type === 'project',
-                    'certification': event.metadata?.category === 'certification'
-                  }"
-                  :style="{ 
-                    backgroundColor: getEventColor(event, props.resources, props.specialEventColors) ? getEventColor(event, props.resources, props.specialEventColors) + '20' : '#3b82f620',
-                    borderLeftColor: getEventColor(event, props.resources, props.specialEventColors) || '#3b82f6' 
-                  }">
-                  <span class="multiday-title">{{ formatMultiDayEvent(event) }}</span>
-                </div>
-              </div>
-            </div>
-
+      <!-- Week header with days -->
+      <div class="week-header">
+        <!-- Worker column spacer -->
+        <div class="resource-spacer" :style="{ width: dynamicWorkerColumnWidth, minWidth: dynamicWorkerColumnWidth }">
+          <span class="resource-label">Colaboradores</span>
+        </div>
+        
+        <!-- Day headers -->
+        <div class="day-headers">
+          <div class="day-grid">
             <div
               v-for="date in weekDates"
-              :key="`cell-${worker.id}-${date.toString()}`"
-              class="day-cell"
+              :key="date.toString()"
+              v-memo="[date.toString(), isToday(date), isWeekend(date)]"
+              class="day-header"
               :class="{
                 'is-today': isToday(date),
                 'is-weekend': isWeekend(date)
               }"
-              @click="handleWorkerSlotClick(worker, date)"
+              @click="handleDayClick(date)"
             >
-              <!-- Stacked events for this resource and day -->
-              <div class="events-stack">
+              <div class="day-name">
+                {{ getSpanishDay(date) }}
+              </div>
+              <div class="day-date">
+                {{ formatSpanishDate(date) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scrollable content area -->
+      <div 
+        class="week-content" 
+        ref="scrollContainer"
+        :style="{
+          height: weekContentHeight,
+          overflowY: shouldEnableScroll ? 'auto' : 'visible',
+          overflowX: 'hidden'
+        }"
+      >
+        <!-- Worker rows -->
+        <div class="resource-container">
+          <div
+            v-for="worker in displayWorkers"
+            :key="`worker-${worker.id}-${eventsVersion}`"
+            v-memo="[worker.id, worker.name, worker.color, getWorkerRowHeight(worker.id), eventsVersion]"
+            class="resource-row"
+            :style="{ height: getWorkerRowHeight(worker.id) + 'px' }"
+          >
+            <!-- Worker info column -->
+            <div class="resource-info" :style="{ width: dynamicWorkerColumnWidth, minWidth: dynamicWorkerColumnWidth }">
+              <div class="resource-content">
+                <div class="resource-indicator" :style="{ backgroundColor: worker.color || '#6B7280' }"></div>
+                <div class="resource-details">
+                  <span class="resource-name">{{ worker.name }}</span>
+                  <span v-if="worker.metadata?.role" class="resource-role">{{ worker.metadata.role }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Day cells for this worker -->
+            <div class="resource-days">
+              <!-- Multi-day events container positioned relative to day cells only -->
+              <div class="multiday-events-overlay">
                 <div
-                  v-for="(event, eventIndex) in getSingleDayEventsForWorkerAndDay(worker.id, date)"
-                  :key="`event-${event.id}-${eventsVersion}`"
-                  class="stacked-event"
-                  :style="getStackedEventStyle(eventIndex, worker.id, date)"
-                  @click.stop="handleEventClick(event, 'single-day')"
+                  v-for="event in getMultiDayEventsForWorkerWithLanes(worker.id)"
+                  :key="`multiday-${event.id}-${eventsVersion}`"
+                  class="resource-multiday-event group"
+                  :style="getWorkerMultiDayEventStyle(event, worker.id)"
+                  @click="handleEventClick(event, 'multiday')"
                 >
-                  <div 
-                    class="event-bar group"
+                  <div class="multiday-content" 
                     :class="{
-                      'shift-morning': event.metadata?.shiftType === 'morning',
-                      'shift-day': event.metadata?.shiftType === 'day',
-                      'shift-evening': event.metadata?.shiftType === 'evening',
-                      'shift-night': event.metadata?.shiftType === 'night',
-                      'meeting': event.metadata?.type === 'meeting',
-                      'training': event.metadata?.type === 'training',
                       'time-off': event.metadata?.type === 'time-off',
-                      'maintenance': event.metadata?.type === 'maintenance',
-                      'administrative': event.metadata?.type === 'administrative'
+                      'training': event.metadata?.type === 'training',
+                      'project': event.metadata?.type === 'project',
+                      'certification': event.metadata?.category === 'certification'
                     }"
-                    :style="{
-                      backgroundColor: getEventColor(event, props.resources, props.specialEventColors) ? getEventColor(event, props.resources, props.specialEventColors) + '30' : '#3b82f630',
-                      borderLeftColor: getEventColor(event, props.resources, props.specialEventColors) || '#3b82f6',
-                      color: '#1f2937'
-                    }"
-                  >
-                    <span class="event-time">{{ formatEventTime(event) }}</span>
+                    :style="{ 
+                      backgroundColor: getEventColor(event, props.resources, props.specialEventColors) ? getEventColor(event, props.resources, props.specialEventColors) + '20' : '#3b82f620',
+                      borderLeftColor: getEventColor(event, props.resources, props.specialEventColors) || '#3b82f6' 
+                    }">
+                    <span class="multiday-title">{{ formatMultiDayEvent(event) }}</span>
                   </div>
                 </div>
               </div>
-              
-              <!-- Add event indicator for empty cells -->
-              <div 
-                v-if="!readonly && getSingleDayEventsForWorkerAndDay(worker.id, date).length === 0 && getMultiDayEventsForWorker(worker.id).length === 0"
-                class="add-indicator"
+
+              <div
+                v-for="date in weekDates"
+                :key="`cell-${worker.id}-${date.toString()}`"
+                class="day-cell"
+                :class="{
+                  'is-today': isToday(date),
+                  'is-weekend': isWeekend(date)
+                }"
+                @click="handleWorkerSlotClick(worker, date)"
               >
-                <div class="add-btn">
-                  <svg class="add-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                  </svg>
+                <!-- Stacked events for this resource and day -->
+                <div class="events-stack">
+                  <div
+                    v-for="(event, eventIndex) in getSingleDayEventsForWorkerAndDay(worker.id, date)"
+                    :key="`event-${event.id}-${eventsVersion}`"
+                    class="stacked-event"
+                    :style="getStackedEventStyle(eventIndex, worker.id, date)"
+                    @click.stop="handleEventClick(event, 'single-day')"
+                  >
+                    <div 
+                      class="event-bar group"
+                      :class="{
+                        'shift-morning': event.metadata?.shiftType === 'morning',
+                        'shift-day': event.metadata?.shiftType === 'day',
+                        'shift-evening': event.metadata?.shiftType === 'evening',
+                        'shift-night': event.metadata?.shiftType === 'night',
+                        'meeting': event.metadata?.type === 'meeting',
+                        'training': event.metadata?.type === 'training',
+                        'time-off': event.metadata?.type === 'time-off',
+                        'maintenance': event.metadata?.type === 'maintenance',
+                        'administrative': event.metadata?.type === 'administrative'
+                      }"
+                      :style="{
+                        backgroundColor: getEventColor(event, props.resources, props.specialEventColors) ? getEventColor(event, props.resources, props.specialEventColors) + '30' : '#3b82f630',
+                        borderLeftColor: getEventColor(event, props.resources, props.specialEventColors) || '#3b82f6',
+                        color: '#1f2937'
+                      }"
+                    >
+                      <span class="event-time">{{ formatEventTime(event) }}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Add event indicator for empty cells -->
+                <div 
+                  v-if="!readonly && getSingleDayEventsForWorkerAndDay(worker.id, date).length === 0 && getMultiDayEventsForWorker(worker.id).length === 0"
+                  class="add-indicator"
+                >
+                  <div class="add-btn">
+                    <svg class="add-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                  </div>
                 </div>
               </div>
             </div>
@@ -218,6 +224,7 @@ const MIN_ROW_HEIGHT = 60
 
 // Template refs
 const scrollContainer = ref<HTMLElement>()
+const horizontalScrollContainer = ref<HTMLElement>()
 
 // Reactive cache system with proper invalidation
 const eventsVersion = ref(0)
@@ -818,6 +825,14 @@ const handleEventClick = (event: CalendarEvent, _eventType: 'single-day' | 'mult
 }
 
 /**
+ * Handle horizontal scroll synchronization
+ */
+const handleHorizontalScroll = (): void => {
+  // This function is intentionally empty as the scroll is handled by CSS
+  // The outer container handles both header and content scrolling together
+}
+
+/**
  * Enhanced cache invalidation system for perfect reactivity
  */
 const clearAllCaches = () => {
@@ -870,6 +885,39 @@ onUnmounted(() => {
   border: 1px solid var(--atempo-border-primary) !important;
   will-change: scroll-position;
   transform: translateZ(0);
+}
+
+.weekly-scroll-container {
+  display: flex;
+  flex-direction: column;
+  overflow-x: auto;
+  overflow-y: visible;
+  /* Optimize scrolling performance */
+  -webkit-overflow-scrolling: touch;
+  will-change: scroll-position;
+  transform: translateZ(0);
+  
+  /* Scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: var(--atempo-border-secondary) transparent;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--atempo-border-secondary);
+    border-radius: 4px;
+    
+    &:hover {
+      background-color: var(--atempo-border-primary);
+    }
+  }
 }
 
 .week-header {
@@ -983,28 +1031,6 @@ onUnmounted(() => {
   -webkit-overflow-scrolling: touch;
   will-change: scroll-position;
   transform: translateZ(0); /* Force hardware acceleration */
-  
-  /* Ensure proper scrolling behavior */
-  scrollbar-width: thin;
-  scrollbar-color: var(--atempo-border-secondary) transparent;
-  
-  &::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background-color: var(--atempo-border-secondary);
-    border-radius: 4px;
-    
-    &:hover {
-      background-color: var(--atempo-border-primary);
-    }
-  }
 }
 
 /* Removed global multi-day section styles */
