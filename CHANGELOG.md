@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.0](https://github.com/NaturalDevCR/AtempoCal/compare/v2.1.0...v2.2.0) (2025-09-26)
+
+
+### Features
+
+* increase bottom padding for worker rows to improve visual spacing ([d19b0f2](https://github.com/NaturalDevCR/AtempoCal/commit/d19b0f242c9ad1dfe9b9b4a44f188b94348866ca))
+
+
+### Bug Fixes
+
+* resolve all SCSS and Vue warnings ([996433b](https://github.com/NaturalDevCR/AtempoCal/commit/996433b028c0fc897929365d86149571a5910f17))
+
 ## [2.1.0](https://github.com/NaturalDevCR/AtempoCal/compare/v2.0.0...v2.1.0) (2025-09-26)
 
 
