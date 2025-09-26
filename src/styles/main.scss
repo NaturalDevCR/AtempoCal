@@ -321,8 +321,8 @@ $breakpoint-desktop: 1280px;
 }
 
 .resource-spacer {
-  width: 160px;
-  min-width: 160px;
+  width: 190px;
+  min-width: 190px;
   @include flex-center;
   padding: $spacing-md;
   background-color: var(--atempo-bg-secondary);
@@ -393,8 +393,8 @@ $breakpoint-desktop: 1280px;
 }
 
 .resource-info {
-  width: 160px;
-  min-width: 160px;
+  width: 190;
+  min-width: 190px;
   @include flex-center;
   padding: $spacing-sm;
   background-color: var(--atempo-bg-secondary);
@@ -550,7 +550,7 @@ $breakpoint-desktop: 1280px;
 @include mobile {
   .day-header {
     padding: $spacing-xs;
-    height: 60px;
+    min-height: 60px;
   }
   
   .day-name {

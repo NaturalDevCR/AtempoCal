@@ -309,7 +309,7 @@ const { currentTheme, toggleTheme } = useTheme()
 
 // Calendar state
 // Set to the week where our demo events are located (September 8-14, 2025)
-const selectedDate = ref(atemporal().toString())
+const selectedDate = ref(atemporal('2025-09-08').toString())
 const selectedEvent = ref<CalendarEvent | null>(null)
 
 // Scroll configuration options for demo

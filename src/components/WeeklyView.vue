@@ -68,7 +68,7 @@
               <div
                 v-for="event in getMultiDayEventsForWorkerWithLanes(worker.id)"
                 :key="'multiday-' + event.id"
-                class="resource-multiday-event"
+                class="resource-multiday-event group"
                 :style="getWorkerMultiDayEventStyle(event, worker.id)"
                 @click="handleEventClick(event, 'multiday')"
               >
@@ -84,6 +84,16 @@
                     borderLeftColor: getEventColor(event, props.resources, props.specialEventColors) || '#3b82f6' 
                   }">
                   <span class="multiday-title">{{ formatMultiDayEvent(event) }}</span>
+                  <!-- Delete button for multi-day events -->
+                  <button
+                    v-if="!readonly"
+                    class="delete-btn multiday-delete-btn"
+                    @click.stop="$emit('event-delete', event)"
+                  >
+                    <svg class="delete-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>
@@ -96,6 +106,7 @@
                 'is-today': isToday(date),
                 'is-weekend': isWeekend(date)
               }"
+
               @click="handleWorkerSlotClick(worker, date)"
             >
               <!-- Stacked events for this resource and day -->
@@ -161,7 +172,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, withDefaults, shallowRef, watch } from 'vue'
+import { ref, computed, withDefaults, shallowRef, watch, onMounted } from 'vue'
 import atemporal from 'atemporal'
 import type {
   CalendarEvent,
@@ -298,205 +309,20 @@ const shouldEnableScroll = computed((): boolean => {
  * Get single-day events (non-multi-day events)
  */
 const singleDayEvents = computed((): CalendarEvent[] => {
-  // Generate example events for the week of September 22-28, 2025
-  const testSingleDayEvents: CalendarEvent[] = []
-  
-  // Check if current week contains September 25, 2025 (Thursday)
-  const targetDate = atemporal('2025-09-25')
-  const isTargetWeek = weekDates.value.some(date => date.isSame(targetDate, 'day'))
-  
-  if (isTargetWeek) {
-    // September 22, 2025 (Monday) - John Smith (Production Supervisor)
-    testSingleDayEvents.push(
-      {
-        id: 'john-sep22-1',
-        title: 'Morning Shift Supervision',
-        startTime: '2025-09-22T06:00:00',
-        endTime: '2025-09-22T14:00:00',
-        resourceId: 'emp-001',
-        metadata: { type: 'shift', shiftType: 'morning' }
-      },
-      
-      // September 23, 2025 (Tuesday) - John Smith & Sarah Johnson
-      {
-        id: 'john-sep23-1',
-        title: 'Q3 Performance Reviews',
-        startTime: '2025-09-23T09:00:00',
-        endTime: '2025-09-23T11:00:00',
-        resourceId: 'emp-001',
-        color: '#059669',
-        metadata: { type: 'meeting', category: 'hr' }
-      },
-      {
-        id: 'sarah-sep23-1',
-        title: 'Safety Training Renewal',
-        startTime: '2025-09-23T09:00:00',
-        endTime: '2025-09-23T12:00:00',
-        resourceId: 'emp-002',
-        color: '#DC2626',
-        metadata: { type: 'training', category: 'safety' }
-      },
-      {
-        id: 'mike-sep23-1',
-        title: 'Vendor Meeting',
-        startTime: '2025-09-23T10:00:00',
-        endTime: '2025-09-23T11:00:00',
-        resourceId: 'emp-003',
-        color: '#7C3AED',
-        metadata: { type: 'meeting', category: 'vendor' }
-      },
-      
-      // September 24, 2025 (Wednesday) - Equipment & Quality Focus
-      {
-        id: 'john-sep24-1',
-        title: 'Equipment Maintenance Oversight',
-        startTime: '2025-09-24T08:00:00',
-        endTime: '2025-09-24T16:00:00',
-        resourceId: 'emp-001',
-        color: '#D97706',
-        metadata: { type: 'maintenance', category: 'oversight' }
-      },
-      {
-        id: 'sarah-sep24-1',
-        title: 'Inspection Rounds',
-        startTime: '2025-09-24T06:00:00',
-        endTime: '2025-09-24T14:00:00',
-        resourceId: 'emp-002',
-        metadata: { type: 'inspection', category: 'quality' }
-      },
-      {
-        id: 'mike-sep24-1',
-        title: 'Staff Training',
-        startTime: '2025-09-24T14:00:00',
-        endTime: '2025-09-24T16:00:00',
-        resourceId: 'emp-003',
-        color: '#7C2D12',
-        metadata: { type: 'training', category: 'staff' }
-      },
-      {
-        id: 'lisa-sep24-1',
-        title: 'Emergency Repair',
-        startTime: '2025-09-24T10:00:00',
-        endTime: '2025-09-24T18:00:00',
-        resourceId: 'emp-004',
-        color: '#DC2626',
-        metadata: { type: 'maintenance', category: 'emergency' }
-      },
-      
-      // September 25, 2025 (Thursday) - Today's Events
-      {
-        id: 'john-sep25-1',
-        title: 'Team Meeting',
-        startTime: '2025-09-25T09:00:00',
-        endTime: '2025-09-25T10:00:00',
-        resourceId: 'emp-001',
-        color: '#7C3AED',
-        metadata: { type: 'meeting', category: 'team' }
-      },
-      {
-        id: 'john-sep25-2',
-        title: 'Afternoon Shift',
-        startTime: '2025-09-25T14:00:00',
-        endTime: '2025-09-25T22:00:00',
-        resourceId: 'emp-001',
-        metadata: { type: 'shift', shiftType: 'afternoon' }
-      },
-      {
-        id: 'sarah-sep25-1',
-        title: 'Quality Review Meeting',
-        startTime: '2025-09-25T13:00:00',
-        endTime: '2025-09-25T14:00:00',
-        resourceId: 'emp-002',
-        color: '#B45309',
-        metadata: { type: 'meeting', category: 'quality' }
-      },
-      {
-        id: 'mike-sep25-1',
-        title: 'Logistics Planning',
-        startTime: '2025-09-25T09:00:00',
-        endTime: '2025-09-25T17:00:00',
-        resourceId: 'emp-003',
-        color: '#047857',
-        metadata: { type: 'planning', category: 'logistics' }
-      },
-      {
-        id: 'lisa-sep25-1',
-        title: 'Maintenance Planning',
-        startTime: '2025-09-25T07:00:00',
-        endTime: '2025-09-25T15:00:00',
-        resourceId: 'emp-004',
-        color: '#D97706',
-        metadata: { type: 'planning', category: 'maintenance' }
-      },
-      
-      // September 26, 2025 (Friday) - End of Quarter Prep
-      {
-        id: 'john-sep26-1',
-        title: 'End-of-Quarter Planning',
-        startTime: '2025-09-26T10:00:00',
-        endTime: '2025-09-26T12:00:00',
-        resourceId: 'emp-001',
-        color: '#059669',
-        metadata: { type: 'planning', category: 'quarterly' }
-      },
-      {
-        id: 'sarah-sep26-1',
-        title: 'Documentation Review',
-        startTime: '2025-09-26T08:00:00',
-        endTime: '2025-09-26T16:00:00',
-        resourceId: 'emp-002',
-        color: '#7C3AED',
-        metadata: { type: 'administrative', category: 'documentation' }
-      },
-      {
-        id: 'mike-sep26-1',
-        title: 'Weekend Prep',
-        startTime: '2025-09-26T07:00:00',
-        endTime: '2025-09-26T15:00:00',
-        resourceId: 'emp-003',
-        color: '#92400E',
-        metadata: { type: 'preparation', category: 'weekend' }
-      },
-      {  
-        id: 'lisa-sep26-1',
-        title: 'Tool Inventory',
-        startTime: '2025-09-26T09:00:00',
-        endTime: '2025-09-26T13:00:00',
-        resourceId: 'emp-004',
-        metadata: { type: 'inventory', category: 'tools' }
-      },
-      
-      // September 27, 2025 (Saturday) - Special Events Examples
-      {
-        id: 'mike-sep27-dayoff',
-        title: 'Day Off',
-        startTime: '2025-09-27T00:00:00',
-        endTime: '2025-09-27T23:59:59',
-        resourceId: 'emp-003',
-        eventType: 'day-off',
-        isAllDay: true,
-        metadata: { type: 'time-off', category: 'personal' }
-      },
-      {
-        id: 'lisa-sep28-sick',
-        title: 'Sick Leave',
-        startTime: '2025-09-28T00:00:00',
-        endTime: '2025-09-28T23:59:59',
-        resourceId: 'emp-004',
-        eventType: 'sick-leave',
-        isAllDay: true,
-        metadata: { type: 'time-off', category: 'medical' }
-      }
-    )
-  }
-  
+  // Filter events to only include single-day events (start and end on same day)
   const userEvents = props.events.filter(event => {
-    const startDate = atemporal(event.startTime)
-    const endDate = atemporal(event.endTime)
-    return startDate.isSame(endDate, 'day')
+    try {
+      const startDate = atemporal(event.startTime)
+      const endDate = atemporal(event.endTime)
+      const isSameDay = startDate.isSame(endDate, 'day')
+      
+      return isSameDay
+    } catch {
+      return false
+    }
   })
   
-  return [...userEvents, ...testSingleDayEvents]
+  return userEvents
 })
 
 /**
@@ -510,67 +336,7 @@ const multiDayEvents = computed((): CalendarEvent[] => {
     return !startDate.isSame(endDate, 'day')
   })
   
-  // Generate multi-day events for September 2025
-  const testMultiDayEvents: CalendarEvent[] = []
-  
-  // Check if current week contains September 25, 2025 (Thursday)
-  const targetDate = atemporal('2025-09-25')
-  const isTargetWeek = weekDates.value.some(date => date.isSame(targetDate, 'day'))
-  
-  if (isTargetWeek) {
-    // Multi-day events for September 2025
-    testMultiDayEvents.push(
-      // Annual leave period (September 23-25, 2025)
-      {
-        id: 'sarah-leave-sep2025',
-        title: 'Annual Leave',
-        startTime: '2025-09-23T00:00:00',
-        endTime: '2025-09-25T23:59:59',
-        resourceId: 'emp-002',
-        eventType: 'annual-leave',
-        isAllDay: true,
-        metadata: { type: 'time-off', category: 'vacation' }
-      },
-      
-      // Equipment upgrade project (September 22-26, 2025)
-      {
-        id: 'equipment-upgrade-sep2025',
-        title: 'Equipment Upgrade Project',
-        startTime: '2025-09-22T00:00:00',
-        endTime: '2025-09-26T23:59:59',
-        resourceId: 'emp-003',
-        color: '#92400E',
-        isAllDay: true,
-        metadata: { type: 'project', category: 'equipment' }
-      },
-      
-      // Safety certification course (September 24-25, 2025)
-      {
-        id: 'safety-cert-sep2025',
-        title: 'Safety Certification Course',
-        startTime: '2025-09-24T00:00:00',
-        endTime: '2025-09-25T23:59:59',
-        resourceId: 'emp-004',
-        eventType: 'training',
-        isAllDay: true,
-        metadata: { type: 'training', category: 'certification' }
-      },
-      
-      // Facility maintenance shutdown (September 27-28, 2025)
-      {
-        id: 'facility-shutdown-sep2025',
-        title: 'Facility Maintenance Shutdown',
-        startTime: '2025-09-27T00:00:00',
-        endTime: '2025-09-28T23:59:59',
-        resourceId: 'emp-001',
-        eventType: 'maintenance',
-        isAllDay: true,
-        metadata: { type: 'maintenance', category: 'shutdown' }
-      }
-    )
-  }
-  
-  return [...userEvents, ...testMultiDayEvents]
+  return userEvents
 })
 
 /**
@@ -617,10 +383,15 @@ const getSingleDayEventsForWorkerAndDay = (workerId: string, date: Atemporal): C
   const targetDate = date.format('YYYY-MM-DD')
   const cacheKey = `${workerId}-${targetDate}`
   
+
+  
   // Check cache first
   if (singleDayEventsCache.value.has(cacheKey)) {
     return singleDayEventsCache.value.get(cacheKey)!
   }
+  
+
+
   
   const result = singleDayEvents.value.filter(event => {
     const eventStartDate = atemporal(event.startTime)
@@ -629,7 +400,12 @@ const getSingleDayEventsForWorkerAndDay = (workerId: string, date: Atemporal): C
     const isSameDay = eventStartDate.format('YYYY-MM-DD') === targetDate && 
                       eventEndDate.format('YYYY-MM-DD') === targetDate
     
-    return isSameDay && event.resourceId === workerId
+    const matchesWorker = event.resourceId === workerId
+    const matches = isSameDay && matchesWorker
+    
+
+    
+    return matches
   }).sort((a, b) => {
     // Sort by start time for consistent stacking order
     const startA = atemporal(a.startTime)
@@ -637,16 +413,35 @@ const getSingleDayEventsForWorkerAndDay = (workerId: string, date: Atemporal): C
     return startA.isBefore(startB) ? -1 : 1
   })
   
+
+  
   // Cache the result
   singleDayEventsCache.value.set(cacheKey, result)
   return result
 }
 
 /**
- * Calculate the maximum number of total events (single-day + multi-day) that can appear on any single day for a worker
+ * Memoized cache for max events per worker
+ */
+const maxEventsCache = shallowRef(new Map<string, number>())
+
+/**
+ * Calculate the maximum number of total events (single-day + multi-day) that can appear on any single day for a worker - memoized
  */
 const getMaxEventsForWorker = (workerId: string): number => {
+  const firstWeekDate = weekDates.value[0]
+  if (!firstWeekDate) return 0
+  
+  const weekKey = firstWeekDate.format('YYYY-MM-DD')
+  const cacheKey = `${workerId}-${weekKey}`
+  
+  // Check cache first
+  if (maxEventsCache.value.has(cacheKey)) {
+    return maxEventsCache.value.get(cacheKey)!
+  }
+  
   let maxEvents = 0
+  let debugInfo: any[] = []
   
   weekDates.value.forEach(date => {
     // Count single-day events for this specific date
@@ -666,8 +461,19 @@ const getMaxEventsForWorker = (workerId: string): number => {
     // Total events that can appear on this day
     const totalEventsForDay = singleDayEventsCount + multiDayEventsCount
     maxEvents = Math.max(maxEvents, totalEventsForDay)
+    
+    debugInfo.push({
+      date: date.format('YYYY-MM-DD'),
+      singleDay: singleDayEventsCount,
+      multiDay: multiDayEventsCount,
+      total: totalEventsForDay
+    })
   })
   
+
+  
+  // Cache the result
+  maxEventsCache.value.set(cacheKey, maxEvents)
   return maxEvents
 }
 
@@ -816,8 +622,9 @@ const getWorkerRowHeight = (workerId: string): number => {
   // Get the maximum number of events that can appear on any single day
   const maxEventsPerDay = getMaxEventsForWorker(workerId)
   
+  // Calculate height with proper padding for stacked events
   const result = maxEventsPerDay === 0 ? MIN_ROW_HEIGHT : 
-    Math.max(MIN_ROW_HEIGHT, maxEventsPerDay * EVENT_HEIGHT + (maxEventsPerDay - 1) * EVENT_GAP + 16)
+    Math.max(MIN_ROW_HEIGHT, maxEventsPerDay * (EVENT_HEIGHT + EVENT_GAP) + 20) // 20px padding
   
   // Cache the result
   workerRowHeightCache.value.set(cacheKey, result)
@@ -845,16 +652,21 @@ const getStackedEventStyle = (eventIndex: number, workerId: string, eventDate?: 
     multiDayEventsCount = getMaxMultiDayEventsForWorker(workerId)
   }
   
+  // Calculate proper vertical positioning with adequate spacing
   const multiDayOffset = multiDayEventsCount * (EVENT_HEIGHT + EVENT_GAP)
-  const top = 8 + multiDayOffset + eventIndex * (EVENT_HEIGHT + EVENT_GAP) // 8px top padding + multi-day offset
+  const eventOffset = eventIndex * (EVENT_HEIGHT + EVENT_GAP)
+  const top = 8 + multiDayOffset + eventOffset // 8px top padding + multi-day offset + event stacking
   
   return {
     position: 'absolute',
     top: top + 'px',
     left: '4px',
     right: '4px',
+    width: 'calc(100% - 8px)', // Explicit width calculation
     height: EVENT_HEIGHT + 'px',
-    zIndex: 1
+    zIndex: 10 + eventIndex, // Higher z-index for proper layering
+    // Prevent overlapping with proper containment
+    boxSizing: 'border-box'
   }
 }
 
@@ -991,12 +803,17 @@ const handleEventClick = (event: CalendarEvent, _eventType: 'single-day' | 'mult
 }
 
 // Cache invalidation watchers for performance optimization
-watch([() => props.events, weekDates], () => {
-  // Clear all caches when events or week changes
+watch([() => props.events, () => props.resources, weekDates], () => {
   singleDayEventsCache.value.clear()
   multiDayEventsCache.value.clear()
   workerRowHeightCache.value.clear()
-}, { deep: true })
+  maxEventsCache.value.clear()
+}, { deep: true, immediate: true })
+
+// Component lifecycle
+onMounted(() => {
+  // Component mounted successfully
+})
 
 // Removed getResourceName function - no longer needed
 </script>
@@ -1021,8 +838,8 @@ watch([() => props.events, weekDates], () => {
 }
 
 .resource-spacer {
-  width: 160px;
-  min-width: 160px;
+  width: 190px;
+  min-width: 190px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1157,6 +974,8 @@ watch([() => props.events, weekDates], () => {
   align-items: center;
   justify-content: space-between;
   color: var(--atempo-text-primary);
+  position: relative;
+  overflow: visible;
 }
 
 /* Multi-day event type styles */
@@ -1197,14 +1016,15 @@ watch([() => props.events, weekDates], () => {
 }
 
 .multiday-title {
-  font-size: 0.875rem;
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-  color: var(--atempo-text-primary);
-}
+    font-size: 0.75rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--atempo-text-primary);
+    flex: 1;
+    margin-right: 0.5rem;
+  }
 
 .multiday-duration {
   font-size: 0.75rem;
@@ -1233,7 +1053,7 @@ watch([() => props.events, weekDates], () => {
 .worker-info {
   flex-shrink: 0;
   border-right: 1px solid #e5e7eb;
-  width: 160px;
+  width: 190px;
 }
 
 .dark .worker-info {
@@ -1318,14 +1138,23 @@ watch([() => props.events, weekDates], () => {
 .resource-info {
   flex-shrink: 0;
   border-right: 1px solid var(--atempo-border-primary) !important;
-  width: 160px;
-  min-width: 160px;
+  /* Dynamic width based on content */
+  min-width: 190px;
+  max-width: 250px;
+  height: 100% !important;
+  width: auto;
+  /* Ensure full height inheritance */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .resource-content {
   display: flex;
   align-items: center;
+  /* Expand to full row height */
   height: 100%;
+  flex: 1;
   padding: 0.5rem 0.75rem;
   background-color: var(--atempo-bg-secondary);
 }
@@ -1347,23 +1176,27 @@ watch([() => props.events, weekDates], () => {
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--atempo-text-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* Allow text wrapping for longer names */
+  word-wrap: break-word;
+  line-height: 1.2;
 }
 
 .resource-role {
   font-size: 0.75rem;
   color: var(--atempo-text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* Allow text wrapping for longer roles */
+  word-wrap: break-word;
+  line-height: 1.2;
+  margin-top: 0.125rem;
 }
 
 .resource-days {
   display: flex;
   flex: 1;
   position: relative;
+  /* Ensure resource-days container expands to match row height */
+  height: 100%;
+  min-height: inherit;
 }
 
 .multiday-events-overlay {
@@ -1373,6 +1206,8 @@ watch([() => props.events, weekDates], () => {
   right: 0;
   bottom: 0;
   pointer-events: none;
+  /* Ensure overlay expands to full row height */
+  height: 100%;
 
   .worker-multiday-event,
   .resource-multiday-event {
@@ -1388,6 +1223,12 @@ watch([() => props.events, weekDates], () => {
   border-right: 1px solid var(--atempo-border-primary) !important;
   border-top: 1px solid var(--atempo-border-secondary) !important;
   min-height: 60px;
+  /* Force day-cell to inherit full row height */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  /* Ensure proper height inheritance from parent */
+  align-self: stretch;
 }
 
 .day-cell:hover {
@@ -1405,7 +1246,13 @@ watch([() => props.events, weekDates], () => {
 .events-stack {
   position: relative;
   width: 100%;
+  /* Take full height of day-cell */
   height: 100%;
+  flex: 1;
+  /* Ensure events stack properly within the expanded day-cell */
+  min-height: inherit;
+  /* Provide proper container for absolutely positioned events */
+  overflow: visible;
 }
 
 .stacked-event {
@@ -1511,17 +1358,21 @@ watch([() => props.events, weekDates], () => {
 
 .delete-btn {
   opacity: 0;
-  width: 1rem;
-  height: 1rem;
-  border-radius: 0.25rem;
-  background-color: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  width: 1.25rem;
+  height: 1.25rem;
+  border: none;
+  border-radius: 0.375rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #4b5563;
+  color: #dc2626;
   transition: all 0.2s ease;
-  margin-left: 0.25rem;
+  margin-left: 0.5rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  z-index: 10;
 }
 
 .group:hover .delete-btn {
@@ -1529,12 +1380,46 @@ watch([() => props.events, weekDates], () => {
 }
 
 .delete-btn:hover {
-  background-color: white;
+  background-color: #fee2e2;
+  color: #b91c1c;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.15);
+}
+
+.delete-btn:active {
+  transform: scale(0.95);
+}
+
+.delete-btn:focus {
+  outline: 2px solid #dc2626;
+  outline-offset: 2px;
 }
 
 .delete-icon {
-  width: 0.375rem;
-  height: 0.375rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  stroke-width: 2.5;
+}
+
+/* Multi-day event delete button specific styling */
+.multiday-delete-btn {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+}
+
+.multiday-delete-btn:hover {
+  background-color: #fee2e2;
+  backdrop-filter: blur(8px);
+}
+
+.multiday-delete-btn .delete-icon {
+  width: 0.625rem;
+  height: 0.625rem;
 }
 
 .add-indicator {
@@ -1549,9 +1434,11 @@ watch([() => props.events, weekDates], () => {
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  /* Ensure it works with flexbox day-cell */
+  z-index: 1;
 }
 
-.add-indicator:hover {
+.day-cell:hover .add-indicator {
   opacity: 1;
 }
 
@@ -1576,7 +1463,7 @@ watch([() => props.events, weekDates], () => {
 @media (max-width: 768px) {
   .day-header {
     padding: 0.25rem;
-    height: 60px;
+    min-height: 60px;
   }
   
   .day-name {
@@ -1588,7 +1475,7 @@ watch([() => props.events, weekDates], () => {
   }
   
   .resource-spacer {
-    height: 60px;
+    min-height: 60px;
   }
 }
 </style>

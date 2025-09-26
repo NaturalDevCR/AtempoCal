@@ -155,8 +155,8 @@
       @include theme-bg('colaboradores-bg');
       @include theme-border('primary', 1px, solid);
       
-      width: 160px;
-      min-width: 160px;
+      width: 190px;
+      min-width: 190px;
       height: $calendar-resource-header-height;
       border-right-width: 1px;
       
@@ -183,7 +183,7 @@
           
           padding: $spacing-3;
           border-right-width: 1px;
-          height: $calendar-day-header-height;
+          min-height: $calendar-day-header-height;
           
           &:last-child {
             border-right: none;
@@ -241,8 +241,8 @@
           @include theme-bg('secondary');
           @include theme-border('primary', 1px, solid);
           
-          width: 160px;
-          min-width: 160px;
+          width: 190px;
+          min-width: 190px;
           height: $calendar-time-slot-height;
           border-right-width: 1px;
           padding: $spacing-3;
@@ -764,7 +764,7 @@
       .resource-spacer {
         width: 120px;
         min-width: 120px;
-        height: 60px;
+        min-height: 60px;
         
         .resource-label {
           font-size: $font-size-xs;
@@ -773,7 +773,7 @@
       
       .day-header {
         padding: $spacing-1;
-        height: 60px;
+        min-height: 60px;
         
         .day-name {
           font-size: $font-size-xs;
