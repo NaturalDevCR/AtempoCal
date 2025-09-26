@@ -1285,10 +1285,11 @@ onUnmounted(() => {
 
 .multiday-text-content {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  flex-direction: row;
+  align-items: center;
   width: 100%;
   min-width: 0;
+  gap: 0.5rem;
 }
 
 .multiday-title {
@@ -1299,8 +1300,8 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.2;
-  margin-bottom: 0.125rem;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
 }
 
 .multiday-duration {
@@ -1311,7 +1312,7 @@ onUnmounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: 100%;
+  flex-shrink: 0;
 }
 
 .worker-container {
