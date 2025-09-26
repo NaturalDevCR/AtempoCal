@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.0](https://github.com/NaturalDevCR/AtempoCal/compare/v2.0.0...v2.1.0) (2025-09-26)
+
+
+### Features
+
+* add navbar customization slots for left, center, and right sections ([e9981b9](https://github.com/NaturalDevCR/AtempoCal/commit/e9981b953f2b216da5e5528cb170fc272c80cc6f))
+
 ## [2.0.0](https://github.com/NaturalDevCR/AtempoCal/compare/v0.2.3...v2.0.0) (2025-09-26)
 
 
