@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.2](https://github.com/NaturalDevCR/AtempoCal/compare/v2.2.1...v2.2.2) (2025-01-27)
+
+
+### Bug Fixes
+
+* implement perfect responsive design with mobile-first approach ([#responsive-design](https://github.com/NaturalDevCR/AtempoCal/commit/responsive-design)) - Added horizontal scrolling for calendar grid, fixed navbar positioning for mobile/desktop, and resolved grid cutoff issues
+* fix horizontal grid cutoff where last day column was being cut off ([#grid-cutoff](https://github.com/NaturalDevCR/AtempoCal/commit/grid-cutoff)) - Enhanced CSS Grid implementation with proper column distribution and width calculations
+* correct navbar positioning issues on both mobile and desktop layouts ([#navbar-positioning](https://github.com/NaturalDevCR/AtempoCal/commit/navbar-positioning)) - Fixed left-alignment on desktop and centering issues on mobile
+
+### Features
+
+* enhance responsive design with mobile-first CSS approach ([#mobile-first](https://github.com/NaturalDevCR/AtempoCal/commit/mobile-first)) - Implemented touch-optimized scrolling, proper breakpoints, and flexible grid system
+* improve grid alignment and prevent content cutoff ([#grid-alignment](https://github.com/NaturalDevCR/AtempoCal/commit/grid-alignment)) - Increased minimum widths and ensured all 7 days are fully visible
+
 ## [2.2.1](https://github.com/NaturalDevCR/AtempoCal/compare/v2.2.0...v2.2.1) (2025-01-27)
 
 
