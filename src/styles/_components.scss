@@ -58,16 +58,24 @@
     @include flex-column;
     padding: $spacing-3 $spacing-4;
     gap: $spacing-3;
+    align-items: center;
+    text-align: center;
     
     .nav-mobile-center,
     .nav-mobile-left,
     .nav-mobile-right {
       @include flex-center;
       justify-content: center;
+      width: 100%;
     }
     
     .nav-mobile-left {
       gap: $spacing-2;
+    }
+    
+    .nav-title {
+      text-align: center;
+      margin: 0;
     }
   }
   
@@ -772,16 +780,27 @@
 
 // ===== RESPONSIVE DESIGN =====
 
+// Default: show desktop layout, hide mobile layout
+.atempo-cal-nav {
+  .nav-desktop-layout {
+    display: flex;
+  }
+  
+  .nav-mobile-layout {
+    display: none;
+  }
+}
+
 @include mobile {
   .atempo-cal-nav {
     // Hide desktop layout on mobile
     .nav-desktop-layout {
-      display: none;
+      display: none !important;
     }
     
     // Show mobile layout on mobile
     .nav-mobile-layout {
-      display: flex;
+      display: flex !important;
     }
     
     .nav-title {
@@ -796,8 +815,8 @@
     -webkit-overflow-scrolling: touch;
     
     .week-header {
-      // Set minimum width to ensure horizontal scrolling
-      min-width: 800px;
+      // Set minimum width to ensure horizontal scrolling with padding
+      min-width: 850px;
       
       .resource-spacer {
         width: 120px;
@@ -812,13 +831,13 @@
       
       .day-headers {
         flex-shrink: 0;
-        min-width: 680px; // 7 days * ~97px each
+        min-width: 730px; // 7 days * 104px each + padding
       }
       
       .day-header {
         padding: $spacing-1;
         min-height: 60px;
-        min-width: 97px;
+        min-width: 104px; // Increased width to prevent cutting
         flex-shrink: 0;
         
         .day-name {
@@ -833,7 +852,7 @@
     
     .week-content {
       // Ensure content matches header width for alignment
-      min-width: 800px;
+      min-width: 850px;
       
       .resource-container {
         min-width: 100%;
@@ -850,28 +869,20 @@
         }
         
         .resource-days {
-          min-width: 680px;
+          min-width: 730px; // Match day-headers width
           flex-shrink: 0;
+          
+          .day-cell {
+            min-width: 104px; // Match day-header width
+            flex-shrink: 0;
+          }
         }
       }
     }
   }
 }
 
-// Desktop responsive adjustments
-@media (min-width: 769px) {
-  .atempo-cal-nav {
-    // Show desktop layout on desktop
-    .nav-desktop-layout {
-      display: flex;
-    }
-    
-    // Hide mobile layout on desktop
-    .nav-mobile-layout {
-      display: none;
-    }
-  }
-}
+
 
 // ===== PRINT STYLES =====
 
