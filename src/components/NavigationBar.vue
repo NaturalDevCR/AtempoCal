@@ -1,79 +1,161 @@
 <template>
   <div class="atempo-cal-nav">
-    <!-- Left section: Navigation controls -->
-    <div class="nav-left">
-      <slot 
-        name="left" 
-        :navigate-previous="debouncedNavigatePrevious"
-        :navigate-next="debouncedNavigateNext"
-        :navigate-today="debouncedNavigateToday"
-        :loading="loading"
-        :previous-title="getPreviousTitle()"
-        :next-title="getNextTitle()"
-      >
-        <!-- Default navigation buttons -->
-        <button
-          class="nav-arrow-btn"
-          :disabled="loading"
-          @click="debouncedNavigatePrevious"
-          :title="getPreviousTitle()"
+    <!-- Desktop layout: horizontal -->
+    <div class="nav-desktop-layout">
+      <!-- Left section: Navigation controls -->
+      <div class="nav-left">
+        <slot 
+          name="left" 
+          :navigate-previous="debouncedNavigatePrevious"
+          :navigate-next="debouncedNavigateNext"
+          :navigate-today="debouncedNavigateToday"
+          :loading="loading"
+          :previous-title="getPreviousTitle()"
+          :next-title="getNextTitle()"
         >
-          <ChevronLeftIcon class="nav-icon" />
-        </button>
-        
-        <button
-          class="nav-arrow-btn"
-          :disabled="loading"
-          @click="debouncedNavigateNext"
-          :title="getNextTitle()"
+          <!-- Default navigation buttons -->
+          <button
+            class="nav-arrow-btn"
+            :disabled="loading"
+            @click="debouncedNavigatePrevious"
+            :title="getPreviousTitle()"
+          >
+            <ChevronLeftIcon class="nav-icon" />
+          </button>
+          
+          <button
+            class="nav-arrow-btn"
+            :disabled="loading"
+            @click="debouncedNavigateNext"
+            :title="getNextTitle()"
+          >
+            <ChevronRightIcon class="nav-icon" />
+          </button>
+          
+          <button
+            class="nav-today-btn"
+            :disabled="loading"
+            @click="debouncedNavigateToday"
+            title="Go to today"
+          >
+            Today
+          </button>
+        </slot>
+      </div>
+
+      <!-- Center section: Current date/period display -->
+      <div class="nav-center">
+        <slot 
+          name="center" 
+          :display-title="getDisplayTitle()"
+          :current-date="currentDate"
         >
-          <ChevronRightIcon class="nav-icon" />
-        </button>
-        
-        <button
-          class="nav-today-btn"
-          :disabled="loading"
-          @click="debouncedNavigateToday"
-          title="Go to today"
+          <!-- Default title display -->
+          <h1 class="nav-title">
+            {{ getDisplayTitle() }}
+          </h1>
+        </slot>
+      </div>
+
+      <!-- Right section: Date picker and additional controls -->
+      <div class="nav-right">
+        <slot 
+          name="right" 
+          :show-date-picker="showDatePicker"
+          :toggle-date-picker="toggleDatePicker"
+          :current-date="currentDate"
+          :on-date-change="handleDateChange"
         >
-          Today
-        </button>
-      </slot>
+          <!-- Default date picker button -->
+          <button
+            v-if="showDatePicker"
+            class="nav-date-picker-btn"
+            @click="toggleDatePicker"
+            title="Select date"
+          >
+            <CalendarIcon class="nav-icon-sm" />
+          </button>
+        </slot>
+      </div>
     </div>
 
-    <!-- Center section: Current date/period display -->
-    <div class="nav-center">
-      <slot 
-        name="center" 
-        :display-title="getDisplayTitle()"
-        :current-date="currentDate"
-      >
-        <!-- Default title display -->
-        <h1 class="nav-title">
-          {{ getDisplayTitle() }}
-        </h1>
-      </slot>
-    </div>
-
-    <!-- Right section: Date picker and additional controls -->
-    <div class="nav-right">
-      <slot 
-        name="right" 
-        :show-date-picker="showDatePicker"
-        :toggle-date-picker="toggleDatePicker"
-        :current-date="currentDate"
-        :on-date-change="handleDateChange"
-      >
-        <!-- Default date picker button -->
-        <button
-          v-if="showDatePicker"
-          class="nav-date-picker-btn"
-          @click="toggleDatePicker"
-          title="Select date"
+    <!-- Mobile layout: vertical stacked -->
+    <div class="nav-mobile-layout">
+      <!-- Center slot on top -->
+      <div class="nav-mobile-center">
+        <slot 
+          name="center" 
+          :display-title="getDisplayTitle()"
+          :current-date="currentDate"
         >
-          <CalendarIcon class="nav-icon-sm" />
-        </button>
-      </slot>
+          <!-- Default title display -->
+          <h1 class="nav-title">
+            {{ getDisplayTitle() }}
+          </h1>
+        </slot>
+      </div>
+
+      <!-- Left slot in middle -->
+      <div class="nav-mobile-left">
+        <slot 
+          name="left" 
+          :navigate-previous="debouncedNavigatePrevious"
+          :navigate-next="debouncedNavigateNext"
+          :navigate-today="debouncedNavigateToday"
+          :loading="loading"
+          :previous-title="getPreviousTitle()"
+          :next-title="getNextTitle()"
+        >
+          <!-- Default navigation buttons -->
+          <button
+            class="nav-arrow-btn"
+            :disabled="loading"
+            @click="debouncedNavigatePrevious"
+            :title="getPreviousTitle()"
+          >
+            <ChevronLeftIcon class="nav-icon" />
+          </button>
+          
+          <button
+            class="nav-arrow-btn"
+            :disabled="loading"
+            @click="debouncedNavigateNext"
+            :title="getNextTitle()"
+          >
+            <ChevronRightIcon class="nav-icon" />
+          </button>
+          
+          <button
+            class="nav-today-btn"
+            :disabled="loading"
+            @click="debouncedNavigateToday"
+            title="Go to today"
+          >
+            Today
+          </button>
+        </slot>
+      </div>
+
+      <!-- Right slot at bottom -->
+      <div class="nav-mobile-right">
+        <slot 
+          name="right" 
+          :show-date-picker="showDatePicker"
+          :toggle-date-picker="toggleDatePicker"
+          :current-date="currentDate"
+          :on-date-change="handleDateChange"
+        >
+          <!-- Default date picker button -->
+          <button
+            v-if="showDatePicker"
+            class="nav-date-picker-btn"
+            @click="toggleDatePicker"
+            title="Select date"
+          >
+            <CalendarIcon class="nav-icon-sm" />
+          </button>
+        </slot>
+      </div>
     </div>
 
     <!-- Date picker modal (if enabled) -->
