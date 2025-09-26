@@ -199,13 +199,93 @@ const handleDateChange = (date: string): void => {
 }
 
 /**
- * Handle PDF export by triggering browser print dialog
+ * Handle PDF export by creating a print-optimized version of the calendar
+ * This function isolates the AtempoCal component and switches to light mode for printing
  */
 const handleExportPdf = (): void => {
-  // Use setTimeout to ensure the UI is ready before printing
+  // Store current theme to restore later
+  const originalTheme = currentTheme.value
+  
+  // Create a print-specific container
+  const printContainer = document.createElement('div')
+  printContainer.className = 'atempo-cal-print-container'
+  printContainer.style.display = 'none'
+  
+  // Clone the calendar element
+  const calendarElement = document.querySelector('.atempo-cal')
+  if (!calendarElement) {
+    // Calendar element not found for PDF export
+    return
+  }
+  
+  const calendarClone = calendarElement.cloneNode(true) as HTMLElement
+  
+  // Apply print-specific classes and light theme
+  calendarClone.classList.add('atempo-cal-print-mode')
+  calendarClone.setAttribute('data-theme', 'light')
+  
+  // Add the clone to the print container
+  printContainer.appendChild(calendarClone)
+  document.body.appendChild(printContainer)
+  
+  // Temporarily switch to light mode for better print quality
+  setTheme('light')
+  
+  // Add print-specific styles to the document
+  const printStyles = document.createElement('style')
+  printStyles.id = 'atempo-cal-print-styles'
+  printStyles.textContent = `
+    @media print {
+      /* Hide everything except the print container */
+      body > *:not(.atempo-cal-print-container) {
+        display: none !important;
+      }
+      
+      /* Show and style the print container */
+      .atempo-cal-print-container {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      
+      /* Ensure the calendar fills the print area */
+      .atempo-cal-print-mode {
+        width: 100% !important;
+        height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+    }
+  `
+  document.head.appendChild(printStyles)
+  
+  // Use setTimeout to ensure DOM updates are complete before printing
   setTimeout(() => {
+    // Trigger print dialog
     window.print()
-  }, 100)
+    
+    // Clean up after printing (with a delay to ensure print dialog has processed)
+    setTimeout(() => {
+      // Remove print-specific elements
+      document.body.removeChild(printContainer)
+      const printStylesElement = document.getElementById('atempo-cal-print-styles')
+      if (printStylesElement) {
+        document.head.removeChild(printStylesElement)
+      }
+      
+      // Restore original theme
+      setTheme(originalTheme)
+    }, 1000)
+  }, 200)
 }
 
 // Watch for theme prop changes
@@ -317,16 +397,32 @@ defineExpose({
     margin: 0.5in;
   }
   
-  .atempo-cal {
+  /* Force light theme colors for print */
+  .atempo-cal,
+  .atempo-cal-print-mode {
+    /* Light theme CSS variables for print */
+    --atempo-bg-primary: #ffffff !important;
+    --atempo-bg-secondary: #f8fafc !important;
+    --atempo-bg-tertiary: #f1f5f9 !important;
+    --atempo-text-primary: #1f2937 !important;
+    --atempo-text-secondary: #6b7280 !important;
+    --atempo-text-tertiary: #9ca3af !important;
+    --atempo-border-primary: #e5e7eb !important;
+    --atempo-border-secondary: #d1d5db !important;
+    --atempo-accent-primary: #3b82f6 !important;
+    --atempo-accent-secondary: #1d4ed8 !important;
+    --atempo-nav-bg: #ffffff !important;
+    
+    /* Base styles */
     height: auto !important;
     min-height: auto !important;
     max-height: none !important;
     overflow: visible !important;
     box-shadow: none !important;
-    border: none !important;
+    border: 1px solid #e5e7eb !important;
     border-radius: 0 !important;
-    background: white !important;
-    color: black !important;
+    background: #ffffff !important;
+    color: #1f2937 !important;
     page-break-inside: avoid;
   }
   
@@ -336,6 +432,7 @@ defineExpose({
     max-height: none !important;
     overflow: visible !important;
     position: static !important;
+    background: #ffffff !important;
   }
   
   /* Hide loading overlay in print */
@@ -343,11 +440,38 @@ defineExpose({
     display: none !important;
   }
   
-  /* Ensure proper text colors for print */
-  * {
-    color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  /* Force light theme for all calendar elements */
+  .atempo-cal * {
+    color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Ensure navigation bar uses light theme */
+  .atempo-cal-nav {
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+    border-bottom: 1px solid #e5e7eb !important;
+  }
+  
+  /* Ensure proper contrast for text elements */
+  .nav-title,
+  .resource-info h3,
+  .resource-info p {
+    color: #1f2937 !important;
+  }
+  
+  /* Force light theme for event cards */
+  .event-card {
+    background-color: #f8fafc !important;
+    border: 1px solid #e5e7eb !important;
+    color: #1f2937 !important;
+  }
+  
+  /* Ensure grid lines are visible */
+  .time-grid-line,
+  .day-column-border {
+    border-color: #e5e7eb !important;
   }
 }
 </style>
