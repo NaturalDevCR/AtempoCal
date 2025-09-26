@@ -474,6 +474,9 @@ const handleExportPdf = (): void => {
     color: black !important;
     border-color: #ccc !important;
     page-break-inside: avoid;
+    margin: 0 !important;
+    padding: 0.75rem 1rem !important;
+    border-bottom: 1px solid #e5e7eb !important;
   }
   
   .nav-title {

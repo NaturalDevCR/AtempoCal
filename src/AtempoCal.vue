@@ -235,10 +235,21 @@ const handleExportPdf = (): void => {
   const printStyles = document.createElement('style')
   printStyles.id = 'atempo-cal-print-styles'
   printStyles.textContent = `
+    @page {
+      size: A4 landscape;
+      margin: 0.3in;
+    }
+    
     @media print {
       /* Hide everything except the print container */
       body > *:not(.atempo-cal-print-container) {
         display: none !important;
+      }
+      
+      /* Reset body margins and padding */
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
       }
       
       /* Show and style the print container */
@@ -249,6 +260,7 @@ const handleExportPdf = (): void => {
         height: auto !important;
         margin: 0 !important;
         padding: 0 !important;
+        page-break-inside: avoid;
       }
       
       /* Ensure the calendar fills the print area */
@@ -263,6 +275,7 @@ const handleExportPdf = (): void => {
         border-radius: 0 !important;
         margin: 0 !important;
         padding: 0 !important;
+        page-break-inside: avoid;
       }
     }
   `
@@ -393,8 +406,15 @@ defineExpose({
 /* Print styles for PDF export */
 @media print {
   @page {
-    size: landscape;
-    margin: 0.5in;
+    size: A4 landscape;
+    margin: 0.3in;
+  }
+  
+  /* Reset body and html for print */
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
   }
   
   /* Force light theme colors for print */
@@ -424,6 +444,8 @@ defineExpose({
     background: #ffffff !important;
     color: #1f2937 !important;
     page-break-inside: avoid;
+    margin: 0 !important;
+    padding: 0 !important;
   }
   
   .atempo-cal-content {

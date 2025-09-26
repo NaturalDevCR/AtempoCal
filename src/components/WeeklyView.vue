@@ -1407,6 +1407,8 @@ watch([() => props.events, weekDates], () => {
     max-height: none !important;
     overflow: visible !important;
     page-break-inside: avoid;
+    margin: 0 !important;
+    padding: 0 !important;
   }
   
   .week-content {
