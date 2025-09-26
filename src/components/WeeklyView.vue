@@ -1,153 +1,145 @@
 <template>
   <div class="weekly-view">
-    <!-- Outer scroll container for horizontal scrolling -->
-    <div 
-      class="weekly-scroll-container"
-      ref="horizontalScrollContainer"
-      @scroll="handleHorizontalScroll"
-    >
-      <!-- Week header with days -->
-      <div class="week-header">
-        <!-- Worker column spacer -->
-        <div class="resource-spacer" :style="{ width: dynamicWorkerColumnWidth, minWidth: dynamicWorkerColumnWidth }">
-          <span class="resource-label">Colaboradores</span>
-        </div>
-        
-        <!-- Day headers -->
-        <div class="day-headers">
-          <div class="day-grid">
-            <div
-              v-for="date in weekDates"
-              :key="date.toString()"
-              v-memo="[date.toString(), isToday(date), isWeekend(date)]"
-              class="day-header"
-              :class="{
-                'is-today': isToday(date),
-                'is-weekend': isWeekend(date)
-              }"
-              @click="handleDayClick(date)"
-            >
-              <div class="day-name">
-                {{ getSpanishDay(date) }}
-              </div>
-              <div class="day-date">
-                {{ formatSpanishDate(date) }}
-              </div>
+    <!-- Week header with days -->
+    <div class="week-header">
+      <!-- Worker column spacer -->
+      <div class="resource-spacer" :style="{ width: dynamicWorkerColumnWidth, minWidth: dynamicWorkerColumnWidth }">
+        <span class="resource-label">Colaboradores</span>
+      </div>
+      
+      <!-- Day headers -->
+      <div class="day-headers">
+        <div class="day-grid">
+          <div
+            v-for="date in weekDates"
+            :key="date.toString()"
+            v-memo="[date.toString(), isToday(date), isWeekend(date)]"
+            class="day-header"
+            :class="{
+              'is-today': isToday(date),
+              'is-weekend': isWeekend(date)
+            }"
+            @click="handleDayClick(date)"
+          >
+            <div class="day-name">
+              {{ getSpanishDay(date) }}
+            </div>
+            <div class="day-date">
+              {{ formatSpanishDate(date) }}
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Scrollable content area -->
-      <div 
-        class="week-content" 
-        ref="scrollContainer"
-        :style="{
-          height: weekContentHeight,
-          overflowY: shouldEnableScroll ? 'auto' : 'visible',
-          overflowX: 'hidden'
-        }"
-      >
-        <!-- Worker rows -->
-        <div class="resource-container">
-          <div
-            v-for="worker in displayWorkers"
-            :key="`worker-${worker.id}-${eventsVersion}`"
-            v-memo="[worker.id, worker.name, worker.color, getWorkerRowHeight(worker.id), eventsVersion]"
-            class="resource-row"
-            :style="{ height: getWorkerRowHeight(worker.id) + 'px' }"
-          >
-            <!-- Worker info column -->
-            <div class="resource-info" :style="{ width: dynamicWorkerColumnWidth, minWidth: dynamicWorkerColumnWidth }">
-              <div class="resource-content">
-                <div class="resource-indicator" :style="{ backgroundColor: worker.color || '#6B7280' }"></div>
-                <div class="resource-details">
-                  <span class="resource-name">{{ worker.name }}</span>
-                  <span v-if="worker.metadata?.role" class="resource-role">{{ worker.metadata.role }}</span>
+    <!-- Scrollable content area -->
+    <div 
+      class="week-content" 
+      ref="scrollContainer"
+      :style="{
+        maxHeight: weekContentHeight,
+        overflow: shouldEnableScroll ? 'auto' : 'visible'
+      }"
+    >
+      <!-- Worker rows -->
+      <div class="resource-container">
+        <div
+          v-for="worker in displayWorkers"
+          :key="`worker-${worker.id}-${eventsVersion}`"
+          v-memo="[worker.id, worker.name, worker.color, getWorkerRowHeight(worker.id), eventsVersion]"
+          class="resource-row"
+          :style="{ height: getWorkerRowHeight(worker.id) + 'px' }"
+        >
+          <!-- Worker info column -->
+          <div class="resource-info" :style="{ width: dynamicWorkerColumnWidth, minWidth: dynamicWorkerColumnWidth }">
+            <div class="resource-content">
+              <div class="resource-indicator" :style="{ backgroundColor: worker.color || '#6B7280' }"></div>
+              <div class="resource-details">
+                <span class="resource-name">{{ worker.name }}</span>
+                <span v-if="worker.metadata?.role" class="resource-role">{{ worker.metadata.role }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Day cells for this worker -->
+          <div class="resource-days">
+            <!-- Multi-day events container positioned relative to day cells only -->
+            <div class="multiday-events-overlay">
+              <div
+                v-for="event in getMultiDayEventsForWorkerWithLanes(worker.id)"
+                :key="`multiday-${event.id}-${eventsVersion}`"
+                class="resource-multiday-event group"
+                :style="getWorkerMultiDayEventStyle(event, worker.id)"
+                @click="handleEventClick(event, 'multiday')"
+              >
+                <div class="multiday-content" 
+                  :class="{
+                    'time-off': event.metadata?.type === 'time-off',
+                    'training': event.metadata?.type === 'training',
+                    'project': event.metadata?.type === 'project',
+                    'certification': event.metadata?.category === 'certification'
+                  }"
+                  :style="{ 
+                    backgroundColor: getEventColor(event, props.resources, props.specialEventColors) ? getEventColor(event, props.resources, props.specialEventColors) + '20' : '#3b82f620',
+                    borderLeftColor: getEventColor(event, props.resources, props.specialEventColors) || '#3b82f6' 
+                  }">
+                  <span class="multiday-title">{{ formatMultiDayEvent(event) }}</span>
                 </div>
               </div>
             </div>
 
-            <!-- Day cells for this worker -->
-            <div class="resource-days">
-              <!-- Multi-day events container positioned relative to day cells only -->
-              <div class="multiday-events-overlay">
+            <div
+              v-for="date in weekDates"
+              :key="`cell-${worker.id}-${date.toString()}`"
+              class="day-cell"
+              :class="{
+                'is-today': isToday(date),
+                'is-weekend': isWeekend(date)
+              }"
+              @click="handleWorkerSlotClick(worker, date)"
+            >
+              <!-- Stacked events for this resource and day -->
+              <div class="events-stack">
                 <div
-                  v-for="event in getMultiDayEventsForWorkerWithLanes(worker.id)"
-                  :key="`multiday-${event.id}-${eventsVersion}`"
-                  class="resource-multiday-event group"
-                  :style="getWorkerMultiDayEventStyle(event, worker.id)"
-                  @click="handleEventClick(event, 'multiday')"
+                  v-for="(event, eventIndex) in getSingleDayEventsForWorkerAndDay(worker.id, date)"
+                  :key="`event-${event.id}-${eventsVersion}`"
+                  class="stacked-event"
+                  :style="getStackedEventStyle(eventIndex, worker.id, date)"
+                  @click.stop="handleEventClick(event, 'single-day')"
                 >
-                  <div class="multiday-content" 
+                  <div 
+                    class="event-bar group"
                     :class="{
-                      'time-off': event.metadata?.type === 'time-off',
+                      'shift-morning': event.metadata?.shiftType === 'morning',
+                      'shift-day': event.metadata?.shiftType === 'day',
+                      'shift-evening': event.metadata?.shiftType === 'evening',
+                      'shift-night': event.metadata?.shiftType === 'night',
+                      'meeting': event.metadata?.type === 'meeting',
                       'training': event.metadata?.type === 'training',
-                      'project': event.metadata?.type === 'project',
-                      'certification': event.metadata?.category === 'certification'
+                      'time-off': event.metadata?.type === 'time-off',
+                      'maintenance': event.metadata?.type === 'maintenance',
+                      'administrative': event.metadata?.type === 'administrative'
                     }"
-                    :style="{ 
-                      backgroundColor: getEventColor(event, props.resources, props.specialEventColors) ? getEventColor(event, props.resources, props.specialEventColors) + '20' : '#3b82f620',
-                      borderLeftColor: getEventColor(event, props.resources, props.specialEventColors) || '#3b82f6' 
-                    }">
-                    <span class="multiday-title">{{ formatMultiDayEvent(event) }}</span>
+                    :style="{
+                      backgroundColor: getEventColor(event, props.resources, props.specialEventColors) ? getEventColor(event, props.resources, props.specialEventColors) + '30' : '#3b82f630',
+                      borderLeftColor: getEventColor(event, props.resources, props.specialEventColors) || '#3b82f6',
+                      color: '#1f2937'
+                    }"
+                  >
+                    <span class="event-time">{{ formatEventTime(event) }}</span>
                   </div>
                 </div>
               </div>
-
-              <div
-                v-for="date in weekDates"
-                :key="`cell-${worker.id}-${date.toString()}`"
-                class="day-cell"
-                :class="{
-                  'is-today': isToday(date),
-                  'is-weekend': isWeekend(date)
-                }"
-                @click="handleWorkerSlotClick(worker, date)"
+              
+              <!-- Add event indicator for empty cells -->
+              <div 
+                v-if="!readonly && getSingleDayEventsForWorkerAndDay(worker.id, date).length === 0 && getMultiDayEventsForWorker(worker.id).length === 0"
+                class="add-indicator"
               >
-                <!-- Stacked events for this resource and day -->
-                <div class="events-stack">
-                  <div
-                    v-for="(event, eventIndex) in getSingleDayEventsForWorkerAndDay(worker.id, date)"
-                    :key="`event-${event.id}-${eventsVersion}`"
-                    class="stacked-event"
-                    :style="getStackedEventStyle(eventIndex, worker.id, date)"
-                    @click.stop="handleEventClick(event, 'single-day')"
-                  >
-                    <div 
-                      class="event-bar group"
-                      :class="{
-                        'shift-morning': event.metadata?.shiftType === 'morning',
-                        'shift-day': event.metadata?.shiftType === 'day',
-                        'shift-evening': event.metadata?.shiftType === 'evening',
-                        'shift-night': event.metadata?.shiftType === 'night',
-                        'meeting': event.metadata?.type === 'meeting',
-                        'training': event.metadata?.type === 'training',
-                        'time-off': event.metadata?.type === 'time-off',
-                        'maintenance': event.metadata?.type === 'maintenance',
-                        'administrative': event.metadata?.type === 'administrative'
-                      }"
-                      :style="{
-                        backgroundColor: getEventColor(event, props.resources, props.specialEventColors) ? getEventColor(event, props.resources, props.specialEventColors) + '30' : '#3b82f630',
-                        borderLeftColor: getEventColor(event, props.resources, props.specialEventColors) || '#3b82f6',
-                        color: '#1f2937'
-                      }"
-                    >
-                      <span class="event-time">{{ formatEventTime(event) }}</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- Add event indicator for empty cells -->
-                <div 
-                  v-if="!readonly && getSingleDayEventsForWorkerAndDay(worker.id, date).length === 0 && getMultiDayEventsForWorker(worker.id).length === 0"
-                  class="add-indicator"
-                >
-                  <div class="add-btn">
-                    <svg class="add-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                  </div>
+                <div class="add-btn">
+                  <svg class="add-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                  </svg>
                 </div>
               </div>
             </div>
@@ -159,7 +151,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, shallowRef, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, shallowRef, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import atemporal from 'atemporal'
 import type {
   CalendarEvent,
@@ -224,7 +216,11 @@ const MIN_ROW_HEIGHT = 60
 
 // Template refs
 const scrollContainer = ref<HTMLElement>()
-const horizontalScrollContainer = ref<HTMLElement>()
+
+// Scroll state management
+const scrollHeight = ref(0)
+const clientHeight = ref(0)
+const isScrollInitialized = ref(false)
 
 // Reactive cache system with proper invalidation
 const eventsVersion = ref(0)
@@ -249,6 +245,68 @@ const displayWorkers = computed((): CalendarResource[] => {
 })
 
 /**
+ * Calculate total content height for proper scroll detection
+ */
+const calculateContentHeight = (): number => {
+  if (!scrollContainer.value) return 0
+  
+  const resourceContainer = scrollContainer.value.querySelector('.resource-container')
+  if (!resourceContainer) return 0
+  
+  // Calculate total height of all worker rows
+  let totalHeight = 0
+  const workerRows = resourceContainer.querySelectorAll('.resource-row')
+  
+  workerRows.forEach(row => {
+    const rowElement = row as HTMLElement
+    totalHeight += rowElement.offsetHeight
+  })
+  
+  return totalHeight
+}
+
+/**
+ * Initialize scroll container with proper height detection
+ */
+const initializeScrollContainer = async (): Promise<void> => {
+  if (!scrollContainer.value || isScrollInitialized.value) return
+  
+  await nextTick()
+  
+  const container = scrollContainer.value
+  
+  // Force layout calculation
+  container.style.visibility = 'hidden'
+  container.offsetHeight // Trigger reflow
+  container.style.visibility = 'visible'
+  
+  // Update scroll measurements
+  updateScrollMeasurements()
+  
+  // Mark as initialized
+  isScrollInitialized.value = true
+}
+
+/**
+ * Update scroll container measurements
+ */
+const updateScrollMeasurements = (): void => {
+  if (!scrollContainer.value) return
+  
+  const container = scrollContainer.value
+  scrollHeight.value = container.scrollHeight
+  clientHeight.value = container.clientHeight
+  
+  // Also calculate content height for debugging purposes
+  const contentHeight = calculateContentHeight()
+  
+  // Ensure scroll detection works properly by forcing a layout recalculation
+  if (contentHeight > clientHeight.value && shouldEnableScroll.value) {
+    container.style.overflowY = 'auto'
+  }
+}
+
+/**
  * Calculate dynamic height for the week content based on scroll configuration
  */
 const weekContentHeight = computed((): string => {
@@ -267,8 +325,8 @@ const weekContentHeight = computed((): string => {
       const maxHeight = props.maxWorkersBeforeScroll * MIN_ROW_HEIGHT + 100 // Add padding
       return `${maxHeight}px`
     } else {
-      // Don't enable scroll, let content expand naturally but with a reasonable max
-      return 'fit-content'
+      // Don't enable scroll, let content expand naturally
+      return 'auto'
     }
   }
   
@@ -278,7 +336,7 @@ const weekContentHeight = computed((): string => {
   }
   
   // Priority 4: No scroll, expand to fit content
-  return 'fit-content'
+  return 'auto'
 })
 
 /**
@@ -825,14 +883,6 @@ const handleEventClick = (event: CalendarEvent, _eventType: 'single-day' | 'mult
 }
 
 /**
- * Handle horizontal scroll synchronization
- */
-const handleHorizontalScroll = (): void => {
-  // This function is intentionally empty as the scroll is handled by CSS
-  // The outer container handles both header and content scrolling together
-}
-
-/**
  * Enhanced cache invalidation system for perfect reactivity
  */
 const clearAllCaches = () => {
@@ -843,30 +893,87 @@ const clearAllCaches = () => {
 /**
  * Optimized watchers for real-time reactivity
  */
-watch(() => props.events, () => {
+watch(() => props.events, async () => {
   eventsVersion.value++
   clearAllCaches()
+  
+  // Reinitialize scroll container when events change
+  if (shouldEnableScroll.value) {
+    await nextTick()
+    updateScrollMeasurements()
+  }
 }, { deep: true, immediate: false })
 
-watch(() => props.resources, () => {
+watch(() => props.resources, async () => {
   resourcesVersion.value++
   clearAllCaches()
+  
+  // Reinitialize scroll container when resources change
+  if (shouldEnableScroll.value) {
+    await nextTick()
+    updateScrollMeasurements()
+  }
 }, { deep: true, immediate: false })
 
-watch(weekDates, () => {
+watch(weekDates, async () => {
   weekVersion.value++
   clearAllCaches()
+  
+  // Reinitialize scroll container when week changes
+  if (shouldEnableScroll.value) {
+    await nextTick()
+    updateScrollMeasurements()
+  }
 }, { deep: true, immediate: false })
 
+// Watch for scroll configuration changes
+watch([() => props.fixedHeight, () => props.maxWorkersBeforeScroll, () => props.enableAutoScroll], async () => {
+  isScrollInitialized.value = false
+  await nextTick()
+  await initializeScrollContainer()
+}, { deep: true })
+
+/**
+ * Handle scroll events for proper scroll behavior
+ */
+const handleScroll = (): void => {
+  updateScrollMeasurements()
+}
+
+/**
+ * Handle resize events to recalculate scroll measurements
+ */
+const handleResize = (): void => {
+  if (scrollContainer.value && shouldEnableScroll.value) {
+    updateScrollMeasurements()
+  }
+}
+
 // Component lifecycle
-onMounted(() => {
+onMounted(async () => {
   // Initialize version counters
   eventsVersion.value = 1
   resourcesVersion.value = 1
   weekVersion.value = 1
+  
+  // Initialize scroll container after DOM is ready
+  await nextTick()
+  await initializeScrollContainer()
+  
+  // Add event listeners for scroll and resize
+  if (scrollContainer.value) {
+    scrollContainer.value.addEventListener('scroll', handleScroll, { passive: true })
+  }
+  window.addEventListener('resize', handleResize, { passive: true })
 })
 
 onUnmounted(() => {
+  // Clean up event listeners
+  if (scrollContainer.value) {
+    scrollContainer.value.removeEventListener('scroll', handleScroll)
+  }
+  window.removeEventListener('resize', handleResize)
+  
   // Clean up caches on unmount
   clearAllCaches()
 })
@@ -887,46 +994,10 @@ onUnmounted(() => {
   transform: translateZ(0);
 }
 
-.weekly-scroll-container {
-  display: flex;
-  flex-direction: column;
-  overflow-x: auto;
-  overflow-y: visible;
-  height: 100%; /* Inherit height from parent */
-  /* Optimize scrolling performance */
-  -webkit-overflow-scrolling: touch;
-  will-change: scroll-position;
-  transform: translateZ(0);
-  
-  /* Scrollbar styling */
-  scrollbar-width: thin;
-  scrollbar-color: var(--atempo-border-secondary) transparent;
-  
-  &::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background-color: var(--atempo-border-secondary);
-    border-radius: 4px;
-    
-    &:hover {
-      background-color: var(--atempo-border-primary);
-    }
-  }
-}
-
 .week-header {
   display: flex;
   border-bottom: 1px solid var(--atempo-border-primary);
   background-color: var(--atempo-header-bg);
-  min-width: 1080px; /* Match resource-row minimum width */
-  width: max-content; /* Allow header to expand beyond viewport */
 }
 
 .resource-spacer {
@@ -952,15 +1023,12 @@ onUnmounted(() => {
 .day-headers {
   flex: 1;
   background-color: var(--atempo-bg-primary);
-  min-width: 0; /* Allow shrinking */
 }
 
 .day-grid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(120px, 1fr)); /* Minimum column width for mobile */
+  grid-template-columns: repeat(7, 1fr);
   height: 100%;
-  min-width: 840px; /* 7 columns * 120px minimum */
-  width: 100%; /* Ensure grid takes full available width */
 }
 
 .day-header {
@@ -1033,6 +1101,38 @@ onUnmounted(() => {
   -webkit-overflow-scrolling: touch;
   will-change: scroll-position;
   transform: translateZ(0); /* Force hardware acceleration */
+  
+  /* Ensure proper scroll behavior */
+  scroll-behavior: smooth;
+  
+  /* Force scrollbar visibility when needed */
+  scrollbar-width: auto;
+  scrollbar-color: var(--atempo-scrollbar-thumb, #cbd5e1) var(--atempo-scrollbar-track, transparent);
+}
+
+/* Webkit scrollbar styling for better visibility */
+.week-content::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.week-content::-webkit-scrollbar-track {
+  background: var(--atempo-scrollbar-track, #f1f5f9);
+  border-radius: 6px;
+}
+
+.week-content::-webkit-scrollbar-thumb {
+  background: var(--atempo-scrollbar-thumb, #cbd5e1);
+  border-radius: 6px;
+  border: 2px solid var(--atempo-scrollbar-track, #f1f5f9);
+}
+
+.week-content::-webkit-scrollbar-thumb:hover {
+  background: var(--atempo-scrollbar-thumb-hover, #94a3b8);
+}
+
+.week-content::-webkit-scrollbar-corner {
+  background: var(--atempo-scrollbar-track, #f1f5f9);
 }
 
 /* Removed global multi-day section styles */
@@ -1215,8 +1315,9 @@ onUnmounted(() => {
 .resource-container {
   display: flex;
   flex-direction: column;
-  min-width: 100%;
-  width: max-content; /* Allow container to expand beyond viewport */
+  /* Ensure proper height calculation for scroll detection */
+  min-height: min-content;
+  width: 100%;
 }
 
 .resource-row {
@@ -1225,13 +1326,16 @@ onUnmounted(() => {
   position: relative;
   background-color: var(--atempo-bg-primary);
   /* Framework compatibility - ensure borders are visible */
+  /* Ensure proper height calculation */
+  flex-shrink: 0;
+  min-height: 60px;
+  /* Force layout recalculation when height changes */
+  contain: layout style;
   border-left: 1px solid var(--atempo-border-primary) !important;
   border-right: 1px solid var(--atempo-border-primary) !important;
   /* Optimize paint performance */
   will-change: transform;
   transform: translateZ(0); /* Force hardware acceleration */
-  min-width: 1080px; /* Ensure minimum width: 240px (worker column) + 840px (7 days * 120px) */
-  width: max-content; /* Allow row to expand beyond viewport */
 }
 
 .resource-info {
@@ -1291,8 +1395,6 @@ onUnmounted(() => {
   /* Ensure resource-days container expands to match row height */
   height: 100%;
   min-height: inherit;
-  min-width: 840px; /* Match day-grid minimum width */
-  width: 100%; /* Ensure full width utilization */
 }
 
 .multiday-events-overlay {
@@ -1319,7 +1421,6 @@ onUnmounted(() => {
   border-right: 1px solid var(--atempo-border-primary) !important;
   border-top: 1px solid var(--atempo-border-secondary) !important;
   min-height: 60px;
-  min-width: 120px; /* Ensure minimum width for each day cell */
   /* Force day-cell to inherit full row height */
   height: 100%;
   display: flex;
