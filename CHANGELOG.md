@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2024-12-25
+
+### Fixed
+- Enhanced CSS compatibility with Quasar framework
+- Strengthened grid border declarations with !important rules
+- Improved framework isolation with protected box-sizing and display properties
+- Fixed alignment issues in Quasar projects
+- Added specific CSS rules for day headers and resource rows
+- Enhanced visual consistency across different CSS frameworks
+
+### Improved
+- Better CSS protection against external framework interference
+- More robust styling for grid lines and borders
+- Enhanced documentation with Quasar compatibility guidelines
+
 ## [1.0.0] - 2024-12-25
 
 ### Added
