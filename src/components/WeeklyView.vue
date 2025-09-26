@@ -518,12 +518,14 @@ const getMultiDayEventsForWorker = (workerId: string): CalendarEvent[] => {
 
 /**
  * Check if two multi-day events overlap in their date ranges
+ * Fixed to properly handle end times for multi-day events
  */
 const doMultiDayEventsOverlap = (event1: CalendarEvent, event2: CalendarEvent): boolean => {
   const start1 = atemporal(event1.startTime).startOf('day')
-  const end1 = atemporal(event1.endTime).startOf('day')
+  // For end times, use endOf('day') to include the entire end date
+  const end1 = atemporal(event1.endTime).endOf('day')
   const start2 = atemporal(event2.startTime).startOf('day')
-  const end2 = atemporal(event2.endTime).startOf('day')
+  const end2 = atemporal(event2.endTime).endOf('day')
   
   // Events overlap if start1 <= end2 && start2 <= end1
   // Use proper date comparison for multi-day events
@@ -623,8 +625,9 @@ const getWorkerRowHeight = (workerId: string): number => {
   const maxEventsPerDay = getMaxEventsForWorker(workerId)
   
   // Calculate height with proper padding for stacked events
+  // Need top padding (8px) + bottom padding (16px) + extra space for proper visual separation
   const result = maxEventsPerDay === 0 ? MIN_ROW_HEIGHT : 
-    Math.max(MIN_ROW_HEIGHT, maxEventsPerDay * (EVENT_HEIGHT + EVENT_GAP) + 20) // 20px padding
+    Math.max(MIN_ROW_HEIGHT, maxEventsPerDay * (EVENT_HEIGHT + EVENT_GAP) + 32) // 32px total padding (8px top + 24px bottom)
   
   // Cache the result
   workerRowHeightCache.value.set(cacheKey, result)
@@ -642,7 +645,8 @@ const getStackedEventStyle = (eventIndex: number, workerId: string, eventDate?: 
     const multiDayEvents = getMultiDayEventsForWorker(workerId)
     multiDayEventsCount = multiDayEvents.filter(event => {
       const eventStart = atemporal(event.startTime).startOf('day')
-      const eventEnd = atemporal(event.endTime).startOf('day')
+      // Fix: Use endOf('day') to properly include the entire end date
+      const eventEnd = atemporal(event.endTime).endOf('day')
       const targetDate = eventDate.startOf('day')
       
       return eventStart.isSameOrBefore(targetDate) && eventEnd.isSameOrAfter(targetDate)
@@ -682,9 +686,10 @@ const getWorkerMultiDayEventStyle = (event: CalendarEvent & { lane: number }, _w
   }
   
   const eventStartDate = atemporal(event.startTime).startOf('day')
-  const eventEndDate = atemporal(event.endTime).startOf('day')
+  // Fix: Use endOf('day') for proper end date calculation
+  const eventEndDate = atemporal(event.endTime).endOf('day')
   const weekStart = firstWeekDate.startOf('day')
-  const weekEnd = lastWeekDate.startOf('day')
+  const weekEnd = lastWeekDate.endOf('day')
   
   // Calculate the actual start and end dates within the current week
   const displayStartDate = eventStartDate.isBefore(weekStart) ? weekStart : eventStartDate

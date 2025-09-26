@@ -291,7 +291,6 @@
 </template>
 
 <script setup lang="ts">
-/* eslint-disable no-console */
 import { ref, onMounted, watch } from 'vue'
 import atemporal from 'atemporal'
 import AtempoCal from '../../src/AtempoCal.vue'
@@ -768,40 +767,44 @@ const demoEvents = ref<CalendarEvent[]>([
     id: 'event-15',
     title: 'Multi-Day Conference',
     description: 'Annual tech conference - attending sessions and networking',
-    startTime: '2025-09-09T08:00:00Z', // Tuesday
-    endTime: '2025-09-11T18:00:00Z',   // Thursday
+    startTime: '2025-09-09T00:00:00Z', // Tuesday
+    endTime: '2025-09-11T23:59:59Z',   // Thursday
     resourceId: 'worker-john',
     color: '#F59E0B',
+    isAllDay: true,
     metadata: { type: 'conference', duration: 'multi-day', location: 'Convention Center' }
   },
   {
     id: 'event-16',
     title: 'Design Sprint',
     description: 'Intensive 3-day design sprint for new product feature',
-    startTime: '2025-09-08T09:00:00Z', // Monday
-    endTime: '2025-09-10T17:00:00Z',   // Wednesday
+    startTime: '2025-09-08T00:00:00Z', // Monday
+    endTime: '2025-09-10T23:59:59Z',   // Wednesday
     resourceId: 'worker-sarah',
     color: '#EF4444',
+    isAllDay: true,
     metadata: { type: 'sprint', duration: 'multi-day', feature: 'Mobile Checkout' }
   },
   {
     id: 'event-17',
     title: 'Marketing Roadshow',
     description: 'Multi-city marketing events and client visits',
-    startTime: '2025-09-10T08:00:00Z', // Wednesday
-    endTime: '2025-09-12T19:00:00Z',   // Friday
+    startTime: '2025-09-10T00:00:00Z', // Wednesday
+    endTime: '2025-09-12T23:59:59Z',   // Friday
     resourceId: 'worker-mike',
     color: '#EC4899',
+    isAllDay: true,
     metadata: { type: 'travel', cities: ['NYC', 'Boston', 'Philadelphia'] }
   },
   {
     id: 'event-18',
     title: 'Training Workshop',
     description: 'Advanced React and TypeScript training program',
-    startTime: '2025-09-11T08:00:00Z', // Thursday
-    endTime: '2025-09-14T17:00:00Z',   // Sunday
+    startTime: '2025-09-11T00:00:00Z', // Thursday
+    endTime: '2025-09-14T23:59:59Z',   // Sunday
     resourceId: 'worker-lisa',
     color: '#06B6D4',
+    isAllDay: true,
     eventType: 'training',
     metadata: { type: 'training', duration: 'multi-day', skills: ['React', 'TypeScript', 'Testing'] }
   },
@@ -814,16 +817,18 @@ const demoEvents = ref<CalendarEvent[]>([
     endTime: '2025-09-12T23:59:59Z',   // Friday
     resourceId: 'worker-john',
     color: '#10B981',
+    isAllDay: true,
     metadata: { type: 'vacation', duration: 'multi-day' }
   },
   {
     id: 'event-20',
     title: 'Design Conference',
     description: 'UX/UI Design conference',
-    startTime: '2025-09-09T08:00:00Z', // Tuesday
-    endTime: '2025-09-11T18:00:00Z',   // Thursday
+    startTime: '2025-09-09T00:00:00Z', // Tuesday
+    endTime: '2025-09-11T23:59:59Z',   // Thursday
     resourceId: 'worker-sarah',
     color: '#8B5CF6',
+    isAllDay: true,
     metadata: { type: 'conference', duration: 'multi-day' }
   },
   {
@@ -834,16 +839,18 @@ const demoEvents = ref<CalendarEvent[]>([
     endTime: '2025-09-12T23:59:59Z',   // Friday
     resourceId: 'worker-mike',
     color: '#F59E0B',
+    isAllDay: true,
     metadata: { type: 'leave', duration: 'multi-day' }
   },
   {
     id: 'event-22',
     title: 'Technical Training',
     description: 'Advanced technical skills training',
-    startTime: '2025-09-12T08:00:00Z', // Friday
-    endTime: '2025-09-15T17:00:00Z',   // Monday
+    startTime: '2025-09-12T00:00:00Z', // Friday
+    endTime: '2025-09-15T23:59:59Z',   // Monday
     resourceId: 'worker-lisa',
     color: '#EF4444',
+    isAllDay: true,
     metadata: { type: 'training', duration: 'multi-day' }
   }
 ])
@@ -855,7 +862,6 @@ const eventActions = ref<EventAction[]>([])
  * Handle event click
  */
 const handleEventClick = (event: CalendarEvent) => {
-  console.log('Event clicked:', event)
   selectedEvent.value = event
 }
 
@@ -863,7 +869,6 @@ const handleEventClick = (event: CalendarEvent) => {
  * Handle event creation
  */
 const handleEventCreate = (eventData: Partial<CalendarEvent>) => {
-  console.log('Create event:', eventData)
   const newEvent: CalendarEvent = {
     id: `event-${Date.now()}`,
     title: eventData.title || 'New Event',
@@ -881,7 +886,6 @@ const handleEventCreate = (eventData: Partial<CalendarEvent>) => {
  * Handle event update
  */
 const handleEventUpdate = (event: CalendarEvent) => {
-  console.log('Update event:', event)
   const index = demoEvents.value.findIndex(e => e.id === event.id)
   if (index > -1) {
     demoEvents.value[index] = event
@@ -892,7 +896,6 @@ const handleEventUpdate = (event: CalendarEvent) => {
  * Handle event deletion
  */
 const handleEventDelete = (event: CalendarEvent) => {
-  console.log('Delete event requested:', event)
   // Show alert with event data for user to handle deletion
   const message = `Delete Event Request:\n\nTitle: ${event.title}\nID: ${event.id}\nStart: ${event.startTime}\nEnd: ${event.endTime}\nResource: ${getResourceName(event.resourceId || '')}\n\nAtempoCal emits the complete event object.\nThe user should implement their own deletion logic.\n\n(Event is NOT actually deleted in this demo)`
   alert(message)
@@ -905,7 +908,6 @@ const handleEventDelete = (event: CalendarEvent) => {
  * Handle date change
  */
 const handleDateChange = (date: string) => {
-  console.log('Date changed:', date)
   selectedDate.value = date
 }
 
@@ -913,7 +915,6 @@ const handleDateChange = (date: string) => {
  * Handle slot click
  */
 const handleSlotClick = (slotInfo: any) => {
-  console.log('Slot clicked:', slotInfo)
   // Show alert with comprehensive slot data for user to handle event creation
   const resourceName = slotInfo.resource ? slotInfo.resource.name : getResourceName(slotInfo.resourceId || '')
   const message = `Slot Click Data:\n\nDate: ${slotInfo.date}\nFormatted Date: ${slotInfo.formattedDate || slotInfo.date}\nDay Name: ${slotInfo.dayName || 'N/A'}\nDefault Time: ${slotInfo.time}\nResource ID: ${slotInfo.resourceId}\nResource Name: ${resourceName}\nIs Today: ${slotInfo.isToday || false}\nIs Weekend: ${slotInfo.isWeekend || false}\n\nThe user should handle event creation with this data.`
@@ -958,9 +959,7 @@ watch([scrollMode, fixedHeightValue, maxWorkersValue], () => {
  * Initialize demo data on mount
  */
 onMounted(() => {
-  console.log('🗓️ AtempoCal Demo initialized')
-  console.log('📅 Sample events loaded:', demoEvents.value.length)
-  console.log('🏢 Sample resources loaded:', demoResources.value.length)
+  // Demo data initialized
 })
 </script>
 

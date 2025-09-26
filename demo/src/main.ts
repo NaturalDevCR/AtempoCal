@@ -13,16 +13,11 @@ const app = createApp(App)
 app.mount('#app')
 
 // Log demo information
-/* eslint-disable no-console */
-console.log('🗓️ AtempoCal Demo Started')
-console.log('📚 Documentation: https://github.com/your-org/atempo-cal')
-console.log('🎨 Built with Vue 3 + TypeScript + Tailwind CSS')
-console.log('⏰ Powered by Atemporal library')
+// Development mode logging
+// AtempoCal Demo Started
 
-// Development helpers
 if (import.meta.env.DEV) {
-  console.log('🔧 Development mode enabled')
-  
+  // Development mode enabled
   // Make app instance available globally for debugging
   ;(window as any).__ATEMPO_CAL_APP__ = app
 }

@@ -211,9 +211,7 @@ provide('calendar-readonly', computed(() => props.readonly))
 
 // Component lifecycle
 onMounted(() => {
-  // Initialize any additional setup if needed
-  // eslint-disable-next-line no-console
-  console.log('AtempoCal mounted with config:', mergedConfig.value)
+  // AtempoCal mounted
 })
 
 // Expose public methods for parent components
