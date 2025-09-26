@@ -37,18 +37,29 @@
   
   // Desktop layout - horizontal
   .nav-desktop-layout {
-    @include flex-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: $spacing-4 $spacing-6;
     
     .nav-left,
     .nav-right {
       @include flex-center;
       gap: $spacing-2;
+      flex: 0 0 auto;
+      min-width: 0;
     }
     
     .nav-center {
       @include flex-center;
+      justify-content: center;
       flex: 1;
+      text-align: center;
+      
+      .nav-title {
+        margin: 0;
+        text-align: center;
+      }
     }
   }
   
@@ -67,6 +78,7 @@
       @include flex-center;
       justify-content: center;
       width: 100%;
+      text-align: center;
     }
     
     .nav-mobile-left {
@@ -815,8 +827,8 @@
     -webkit-overflow-scrolling: touch;
     
     .week-header {
-      // Set minimum width to ensure horizontal scrolling with padding
-      min-width: 850px;
+      // Increased minimum width to prevent last day cutoff
+      min-width: 900px;
       
       .resource-spacer {
         width: 120px;
@@ -831,13 +843,19 @@
       
       .day-headers {
         flex-shrink: 0;
-        min-width: 730px; // 7 days * 104px each + padding
+        // Increased width to ensure all 7 days are fully visible
+        min-width: 780px; // 7 days * 110px each + extra padding
+        
+        .day-grid {
+          min-width: 100%;
+          grid-template-columns: repeat(7, minmax(110px, 1fr));
+        }
       }
       
       .day-header {
         padding: $spacing-1;
         min-height: 60px;
-        min-width: 104px; // Increased width to prevent cutting
+        min-width: 110px; // Increased width to prevent cutting
         flex-shrink: 0;
         
         .day-name {
@@ -852,7 +870,7 @@
     
     .week-content {
       // Ensure content matches header width for alignment
-      min-width: 850px;
+      min-width: 900px;
       
       .resource-container {
         min-width: 100%;
@@ -869,11 +887,15 @@
         }
         
         .resource-days {
-          min-width: 730px; // Match day-headers width
+          // Match day-headers width exactly
+          min-width: 780px;
           flex-shrink: 0;
+          display: flex;
           
           .day-cell {
-            min-width: 104px; // Match day-header width
+            // Match day-header width exactly
+            min-width: 110px;
+            flex: 1;
             flex-shrink: 0;
           }
         }
