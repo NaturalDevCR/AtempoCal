@@ -1,7 +1,14 @@
-@use 'sass:color';
-
 // AtempoCal Main SCSS - Comprehensive styling system
 // Framework-agnostic SCSS implementation replacing Tailwind CSS
+
+// Import all SCSS modules
+@use 'variables' as *;
+@use 'mixins' as *;
+@use 'themes' as *;
+@use 'components' as *;
+
+// Import Sass built-in modules
+@use 'sass:color';
 
 // ===== VARIABLES =====
 

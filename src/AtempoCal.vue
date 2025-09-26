@@ -232,9 +232,7 @@ defineExpose({
 })
 </script>
 
-<style scoped lang="scss">
-.atempo-cal {
-  // AtempoCal styles are now handled by the main SCSS file imported globally
-  // This ensures consistency and framework compatibility
-}
+<style lang="scss">
+// Import AtempoCal SCSS styles
+@import './style.scss';
 </style>
