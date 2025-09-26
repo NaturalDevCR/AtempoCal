@@ -13,6 +13,7 @@
           <div
             v-for="date in weekDates"
             :key="date.toString()"
+            v-memo="[date.toString(), isToday(date), isWeekend(date)]"
             class="day-header"
             :class="{
               'is-today': isToday(date),
@@ -45,6 +46,7 @@
         <div
           v-for="worker in displayWorkers"
           :key="worker.id"
+          v-memo="[worker.id, worker.name, worker.color, getWorkerRowHeight(worker.id)]"
           class="resource-row"
           :style="{ height: getWorkerRowHeight(worker.id) + 'px' }"
         >
@@ -159,7 +161,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, withDefaults } from 'vue'
+import { ref, computed, withDefaults, shallowRef, watch } from 'vue'
 import atemporal from 'atemporal'
 import type {
   CalendarEvent,
@@ -604,12 +606,23 @@ const getDayName = (date: Atemporal, _index: number): string => {
 }
 
 /**
- * Get single-day events for a specific worker and day
+ * Memoized cache for single-day events by worker and date
+ */
+const singleDayEventsCache = shallowRef(new Map<string, CalendarEvent[]>())
+
+/**
+ * Get single-day events for a specific worker and day (memoized)
  */
 const getSingleDayEventsForWorkerAndDay = (workerId: string, date: Atemporal): CalendarEvent[] => {
   const targetDate = date.format('YYYY-MM-DD')
+  const cacheKey = `${workerId}-${targetDate}`
   
-  return singleDayEvents.value.filter(event => {
+  // Check cache first
+  if (singleDayEventsCache.value.has(cacheKey)) {
+    return singleDayEventsCache.value.get(cacheKey)!
+  }
+  
+  const result = singleDayEvents.value.filter(event => {
     const eventStartDate = atemporal(event.startTime)
     const eventEndDate = atemporal(event.endTime)
     
@@ -623,6 +636,10 @@ const getSingleDayEventsForWorkerAndDay = (workerId: string, date: Atemporal): C
     const startB = atemporal(b.startTime)
     return startA.isBefore(startB) ? -1 : 1
   })
+  
+  // Cache the result
+  singleDayEventsCache.value.set(cacheKey, result)
+  return result
 }
 
 /**
@@ -640,13 +657,24 @@ const getMaxEventsForWorker = (workerId: string): number => {
 }
 
 /**
- * Get multi-day events for a specific worker that intersect with the current week
+ * Memoized cache for multi-day events by worker
+ */
+const multiDayEventsCache = shallowRef(new Map<string, CalendarEvent[]>())
+
+/**
+ * Get multi-day events for a specific worker that intersect with the current week (memoized)
  */
 const getMultiDayEventsForWorker = (workerId: string): CalendarEvent[] => {
   const weekStart = weekDates.value[0]
   const weekEnd = weekDates.value[weekDates.value.length - 1]
+  const cacheKey = `${workerId}-${weekStart.format('YYYY-MM-DD')}`
   
-  return multiDayEvents.value.filter(event => {
+  // Check cache first
+  if (multiDayEventsCache.value.has(cacheKey)) {
+    return multiDayEventsCache.value.get(cacheKey)!
+  }
+  
+  const result = multiDayEvents.value.filter(event => {
     if (event.resourceId !== workerId) return false
     
     const eventStart = atemporal(event.startTime).startOf('day')
@@ -658,6 +686,10 @@ const getMultiDayEventsForWorker = (workerId: string): CalendarEvent[] => {
     // event start <= week end AND event end >= week start
     return eventStart.isSameOrBefore(weekEndDay) && eventEnd.isSameOrAfter(weekStartDay)
   })
+  
+  // Cache the result
+  multiDayEventsCache.value.set(cacheKey, result)
+  return result
 }
 
 /**
@@ -744,19 +776,32 @@ const getMaxMultiDayEventsForWorker = (workerId: string): number => {
 }
 
 /**
- * Calculate worker row height based on maximum events (both single-day and multi-day)
+ * Memoized cache for worker row heights
+ */
+const workerRowHeightCache = shallowRef(new Map<string, number>())
+
+/**
+ * Calculate worker row height based on maximum events (both single-day and multi-day) - memoized
  */
 const getWorkerRowHeight = (workerId: string): number => {
+  const weekKey = weekDates.value[0].format('YYYY-MM-DD')
+  const cacheKey = `${workerId}-${weekKey}`
+  
+  // Check cache first
+  if (workerRowHeightCache.value.has(cacheKey)) {
+    return workerRowHeightCache.value.get(cacheKey)!
+  }
+  
   const maxSingleDayEvents = getMaxEventsForWorker(workerId)
   const maxMultiDayEvents = getMaxMultiDayEventsForWorker(workerId)
   
   const totalMaxEvents = maxSingleDayEvents + maxMultiDayEvents
-  if (totalMaxEvents === 0) return MIN_ROW_HEIGHT
+  const result = totalMaxEvents === 0 ? MIN_ROW_HEIGHT : 
+    Math.max(MIN_ROW_HEIGHT, totalMaxEvents * EVENT_HEIGHT + (totalMaxEvents - 1) * EVENT_GAP + 16)
   
-  const eventsHeight = totalMaxEvents * EVENT_HEIGHT + (totalMaxEvents - 1) * EVENT_GAP
-  const padding = 16 // Top and bottom padding
-  
-  return Math.max(MIN_ROW_HEIGHT, eventsHeight + padding)
+  // Cache the result
+  workerRowHeightCache.value.set(cacheKey, result)
+  return result
 }
 
 /**
@@ -902,6 +947,14 @@ const handleEventClick = (event: CalendarEvent, _eventType: 'single-day' | 'mult
   emit('event-click', event)
 }
 
+// Cache invalidation watchers for performance optimization
+watch([() => props.events, weekDates], () => {
+  // Clear all caches when events or week changes
+  singleDayEventsCache.value.clear()
+  multiDayEventsCache.value.clear()
+  workerRowHeightCache.value.clear()
+}, { deep: true })
+
 // Removed getResourceName function - no longer needed
 </script>
 
@@ -1018,6 +1071,10 @@ const handleEventClick = (event: CalendarEvent, _eventType: 'single-day' | 'mult
   position: relative;
   background-color: var(--atempo-bg-primary);
   /* Height and overflow are now controlled dynamically via inline styles */
+  /* Optimize scrolling performance */
+  -webkit-overflow-scrolling: touch;
+  will-change: scroll-position;
+  transform: translateZ(0); /* Force hardware acceleration */
 }
 
 /* Removed global multi-day section styles */
@@ -1028,7 +1085,10 @@ const handleEventClick = (event: CalendarEvent, _eventType: 'single-day' | 'mult
 
 /* Keep resource-multiday-event for backward compatibility */
 .resource-multiday-event {
-  @apply cursor-pointer transition-all duration-200 hover:shadow-md;
+  @apply cursor-pointer hover:shadow-md;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  will-change: transform;
+  transform: translateZ(0); /* Force hardware acceleration */
 }
 
 .multiday-content {
@@ -1215,6 +1275,8 @@ const handleEventClick = (event: CalendarEvent, _eventType: 'single-day' | 'mult
 
 .stacked-event {
   @apply absolute;
+  will-change: transform;
+  transform: translateZ(0); /* Force hardware acceleration */
 }
 
 .event-bar {
@@ -1225,12 +1287,15 @@ const handleEventClick = (event: CalendarEvent, _eventType: 'single-day' | 'mult
   border-left: 4px solid var(--atempo-accent-primary);
   padding: 0.25rem 0.5rem;
   cursor: pointer;
-  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: space-between;
   color: var(--atempo-text-primary);
   background-color: color-mix(in srgb, var(--atempo-accent-primary) 10%, var(--atempo-bg-primary));
+  /* Optimize paint performance */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform;
+  transform: translateZ(0); /* Force hardware acceleration */
 }
 
 .event-bar:hover {

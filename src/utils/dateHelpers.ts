@@ -18,15 +18,29 @@ export function createAtemporal(input?: any, timezone?: string): Atemporal {
 }
 
 /**
- * Get the start of the week for a given date
+ * Memoization cache for week start calculations
+ */
+const weekStartCache = new Map<string, Atemporal>()
+
+/**
+ * Get the start of the week for a given date (memoized)
  * @param date - Input date
  * @param firstDayOfWeek - First day of week (0 = Sunday, 1 = Monday)
  * @returns Start of week date
  */
 export function getWeekStart(date: Atemporal, firstDayOfWeek: number = 1): Atemporal {
+  const cacheKey = `${date.format('YYYY-MM-DD')}-${firstDayOfWeek}`
+  
+  if (weekStartCache.has(cacheKey)) {
+    return weekStartCache.get(cacheKey)!
+  }
+  
   const dayOfWeek = date.dayOfWeek() as number
   const daysToSubtract = (dayOfWeek - firstDayOfWeek + 7) % 7
-  return date.subtract(daysToSubtract, 'days').startOf('day')
+  const result = date.subtract(daysToSubtract, 'days').startOf('day')
+  
+  weekStartCache.set(cacheKey, result)
+  return result
 }
 
 /**
@@ -41,12 +55,23 @@ export function getWeekEnd(date: Atemporal, firstDayOfWeek: number = 1): Atempor
 }
 
 /**
- * Generate an array of dates for a week
+ * Memoization cache for week dates calculations
+ */
+const weekDatesCache = new Map<string, Atemporal[]>()
+
+/**
+ * Generate an array of dates for a week (memoized)
  * @param date - Any date within the target week
  * @param firstDayOfWeek - First day of week (0 = Sunday, 1 = Monday)
  * @returns Array of 7 dates representing the week
  */
 export function getWeekDates(date: Atemporal, firstDayOfWeek: number = 1): Atemporal[] {
+  const cacheKey = `${date.format('YYYY-MM-DD')}-${firstDayOfWeek}`
+  
+  if (weekDatesCache.has(cacheKey)) {
+    return weekDatesCache.get(cacheKey)!
+  }
+  
   const weekStart = getWeekStart(date, firstDayOfWeek)
   const dates: Atemporal[] = []
   
@@ -54,6 +79,7 @@ export function getWeekDates(date: Atemporal, firstDayOfWeek: number = 1): Atemp
     dates.push(weekStart.add(i, 'days'))
   }
   
+  weekDatesCache.set(cacheKey, dates)
   return dates
 }
 

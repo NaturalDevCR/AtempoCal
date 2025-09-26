@@ -4,9 +4,9 @@
     <div class="nav-left">
       <slot 
         name="left" 
-        :navigate-previous="() => $emit('navigate-previous')"
-        :navigate-next="() => $emit('navigate-next')"
-        :navigate-today="() => $emit('navigate-today')"
+        :navigate-previous="debouncedNavigatePrevious"
+        :navigate-next="debouncedNavigateNext"
+        :navigate-today="debouncedNavigateToday"
         :loading="loading"
         :previous-title="getPreviousTitle()"
         :next-title="getNextTitle()"
@@ -15,7 +15,7 @@
         <button
           class="nav-arrow-btn"
           :disabled="loading"
-          @click="$emit('navigate-previous')"
+          @click="debouncedNavigatePrevious"
           :title="getPreviousTitle()"
         >
           <ChevronLeftIcon class="w-5 h-5" />
@@ -24,7 +24,7 @@
         <button
           class="nav-arrow-btn"
           :disabled="loading"
-          @click="$emit('navigate-next')"
+          @click="debouncedNavigateNext"
           :title="getNextTitle()"
         >
           <ChevronRightIcon class="w-5 h-5" />
@@ -33,7 +33,7 @@
         <button
           class="nav-today-btn"
           :disabled="loading"
-          @click="$emit('navigate-today')"
+          @click="debouncedNavigateToday"
           title="Go to today"
         >
           Today
@@ -126,6 +126,17 @@ import { ref } from 'vue'
 import type { Atemporal, CalendarConfig } from '../types'
 import { formatDateForDisplay, getWeekStart } from '../utils/dateHelpers'
 
+/**
+ * Debounce utility function
+ */
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
+  let timeout: ReturnType<typeof setTimeout> | null = null
+  return ((...args: Parameters<T>) => {
+    if (timeout) clearTimeout(timeout)
+    timeout = setTimeout(() => func(...args), wait)
+  }) as T
+}
+
 // Icons (using simple SVG icons for now - can be replaced with icon library)
 import {
   ChevronLeftIcon,
@@ -163,6 +174,19 @@ const emit = defineEmits<Emits>()
 
 // Local state
 const showDatePickerModal = ref(false)
+
+// Debounced navigation functions to prevent rapid successive calls
+const debouncedNavigatePrevious = debounce(() => {
+  emit('navigate-previous')
+}, 150)
+
+const debouncedNavigateNext = debounce(() => {
+  emit('navigate-next')
+}, 150)
+
+const debouncedNavigateToday = debounce(() => {
+  emit('navigate-today')
+}, 150)
 
 /**
  * Get display title for week view
