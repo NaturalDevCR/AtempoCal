@@ -104,7 +104,7 @@
                   v-for="(event, eventIndex) in getSingleDayEventsForWorkerAndDay(worker.id, date)"
                   :key="event.id"
                   class="stacked-event"
-                  :style="getStackedEventStyle(eventIndex, worker.id)"
+                  :style="getStackedEventStyle(eventIndex, worker.id, date)"
                   @click.stop="handleEventClick(event, 'single-day')"
                 >
                   <div 
@@ -643,14 +643,29 @@ const getSingleDayEventsForWorkerAndDay = (workerId: string, date: Atemporal): C
 }
 
 /**
- * Calculate the maximum number of events in any single day for a worker
+ * Calculate the maximum number of total events (single-day + multi-day) that can appear on any single day for a worker
  */
 const getMaxEventsForWorker = (workerId: string): number => {
   let maxEvents = 0
   
   weekDates.value.forEach(date => {
-    const eventsCount = getSingleDayEventsForWorkerAndDay(workerId, date).length
-    maxEvents = Math.max(maxEvents, eventsCount)
+    // Count single-day events for this specific date
+    const singleDayEventsCount = getSingleDayEventsForWorkerAndDay(workerId, date).length
+    
+    // Count multi-day events that overlap with this specific date
+    const multiDayEvents = getMultiDayEventsForWorker(workerId)
+    const multiDayEventsCount = multiDayEvents.filter(event => {
+      const eventStart = atemporal(event.startTime).startOf('day')
+      const eventEnd = atemporal(event.endTime).startOf('day')
+      const targetDate = date.startOf('day')
+      
+      // Check if the multi-day event overlaps with this specific date
+      return eventStart.isSameOrBefore(targetDate) && eventEnd.isSameOrAfter(targetDate)
+    }).length
+    
+    // Total events that can appear on this day
+    const totalEventsForDay = singleDayEventsCount + multiDayEventsCount
+    maxEvents = Math.max(maxEvents, totalEventsForDay)
   })
   
   return maxEvents
@@ -784,7 +799,7 @@ const getMaxMultiDayEventsForWorker = (workerId: string): number => {
 const workerRowHeightCache = shallowRef(new Map<string, number>())
 
 /**
- * Calculate worker row height based on maximum events (both single-day and multi-day) - memoized
+ * Calculate worker row height based on maximum events that can appear on any single day - memoized
  */
 const getWorkerRowHeight = (workerId: string): number => {
   const firstWeekDate = weekDates.value[0]
@@ -798,12 +813,11 @@ const getWorkerRowHeight = (workerId: string): number => {
     return workerRowHeightCache.value.get(cacheKey)!
   }
   
-  const maxSingleDayEvents = getMaxEventsForWorker(workerId)
-  const maxMultiDayEvents = getMaxMultiDayEventsForWorker(workerId)
+  // Get the maximum number of events that can appear on any single day
+  const maxEventsPerDay = getMaxEventsForWorker(workerId)
   
-  const totalMaxEvents = maxSingleDayEvents + maxMultiDayEvents
-  const result = totalMaxEvents === 0 ? MIN_ROW_HEIGHT : 
-    Math.max(MIN_ROW_HEIGHT, totalMaxEvents * EVENT_HEIGHT + (totalMaxEvents - 1) * EVENT_GAP + 16)
+  const result = maxEventsPerDay === 0 ? MIN_ROW_HEIGHT : 
+    Math.max(MIN_ROW_HEIGHT, maxEventsPerDay * EVENT_HEIGHT + (maxEventsPerDay - 1) * EVENT_GAP + 16)
   
   // Cache the result
   workerRowHeightCache.value.set(cacheKey, result)
@@ -811,10 +825,26 @@ const getWorkerRowHeight = (workerId: string): number => {
 }
 
 /**
- * Get style for stacked event (positioned below multi-day events)
+ * Get style for stacked event (positioned below multi-day events for the specific day)
  */
-const getStackedEventStyle = (eventIndex: number, workerId: string): Record<string, string | number> => {
-  const multiDayEventsCount = getMaxMultiDayEventsForWorker(workerId)
+const getStackedEventStyle = (eventIndex: number, workerId: string, eventDate?: Atemporal): Record<string, string | number> => {
+  let multiDayEventsCount = 0
+  
+  if (eventDate) {
+    // Count multi-day events that overlap with this specific date
+    const multiDayEvents = getMultiDayEventsForWorker(workerId)
+    multiDayEventsCount = multiDayEvents.filter(event => {
+      const eventStart = atemporal(event.startTime).startOf('day')
+      const eventEnd = atemporal(event.endTime).startOf('day')
+      const targetDate = eventDate.startOf('day')
+      
+      return eventStart.isSameOrBefore(targetDate) && eventEnd.isSameOrAfter(targetDate)
+    }).length
+  } else {
+    // Fallback to maximum multi-day events for the worker
+    multiDayEventsCount = getMaxMultiDayEventsForWorker(workerId)
+  }
+  
   const multiDayOffset = multiDayEventsCount * (EVENT_HEIGHT + EVENT_GAP)
   const top = 8 + multiDayOffset + eventIndex * (EVENT_HEIGHT + EVENT_GAP) // 8px top padding + multi-day offset
   
