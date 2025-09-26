@@ -892,6 +892,7 @@ onUnmounted(() => {
   flex-direction: column;
   overflow-x: auto;
   overflow-y: visible;
+  height: 100%; /* Inherit height from parent */
   /* Optimize scrolling performance */
   -webkit-overflow-scrolling: touch;
   will-change: scroll-position;
@@ -924,7 +925,7 @@ onUnmounted(() => {
   display: flex;
   border-bottom: 1px solid var(--atempo-border-primary);
   background-color: var(--atempo-header-bg);
-  min-width: 100%;
+  min-width: 1080px; /* Match resource-row minimum width */
   width: max-content; /* Allow header to expand beyond viewport */
 }
 
@@ -959,6 +960,7 @@ onUnmounted(() => {
   grid-template-columns: repeat(7, minmax(120px, 1fr)); /* Minimum column width for mobile */
   height: 100%;
   min-width: 840px; /* 7 columns * 120px minimum */
+  width: 100%; /* Ensure grid takes full available width */
 }
 
 .day-header {
@@ -1228,7 +1230,7 @@ onUnmounted(() => {
   /* Optimize paint performance */
   will-change: transform;
   transform: translateZ(0); /* Force hardware acceleration */
-  min-width: 100%;
+  min-width: 1080px; /* Ensure minimum width: 240px (worker column) + 840px (7 days * 120px) */
   width: max-content; /* Allow row to expand beyond viewport */
 }
 
@@ -1290,6 +1292,7 @@ onUnmounted(() => {
   height: 100%;
   min-height: inherit;
   min-width: 840px; /* Match day-grid minimum width */
+  width: 100%; /* Ensure full width utilization */
 }
 
 .multiday-events-overlay {
@@ -1316,6 +1319,7 @@ onUnmounted(() => {
   border-right: 1px solid var(--atempo-border-primary) !important;
   border-top: 1px solid var(--atempo-border-secondary) !important;
   min-height: 60px;
+  min-width: 120px; /* Ensure minimum width for each day cell */
   /* Force day-cell to inherit full row height */
   height: 100%;
   display: flex;
