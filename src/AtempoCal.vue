@@ -253,6 +253,6 @@ defineExpose({
 </script>
 
 <style lang="scss">
-// Import AtempoCal SCSS styles
-@import './style.scss';
+// Use AtempoCal SCSS styles
+@use './style.scss';
 </style>

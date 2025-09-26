@@ -12,5 +12,5 @@
  * - Framework-agnostic approach for universal compatibility
  */
 
-/* Import the complete SCSS system including theme variables */
-@import './styles/main.scss';
+/* Use the complete SCSS system including theme variables */
+@use './styles/main.scss';

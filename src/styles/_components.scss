@@ -380,7 +380,7 @@
 
 // ===== EVENT COLOR VARIANTS =====
 
-@each $color in (blue, green, red, yellow, purple, orange, indigo, emerald, amber) {
+@each $color in ("blue", "green", "red", "yellow", "purple", "orange", "indigo", "emerald", "amber") {
   .event-bar.color-#{$color} {
     background-color: var(--atempo-event-#{$color}-bg);
     border-left-color: var(--atempo-event-#{$color}-border);
