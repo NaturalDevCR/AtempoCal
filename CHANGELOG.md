@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.1](https://github.com/NaturalDevCR/AtempoCal/compare/v2.2.0...v2.2.1) (2025-01-27)
+
+
+### Bug Fixes
+
+* fix erratic scroll behavior in WeeklyView when fixedHeight is set ([#scroll-fix](https://github.com/NaturalDevCR/AtempoCal/commit/scroll-fix)) - Improved scroll container initialization, height detection, and content measurement to ensure smooth scrolling from first interaction
+
 ## [2.2.0](https://github.com/NaturalDevCR/AtempoCal/compare/v2.1.0...v2.2.0) (2025-09-26)
 
 
