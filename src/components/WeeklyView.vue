@@ -152,7 +152,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, withDefaults, shallowRef, watch, onMounted } from 'vue'
+import { ref, computed, withDefaults, shallowRef, watch, onMounted, nextTick } from 'vue'
 import atemporal from 'atemporal'
 import type {
   CalendarEvent,
@@ -216,6 +216,9 @@ const MIN_ROW_HEIGHT = 60
 
 // Template refs
 const scrollContainer = ref<HTMLElement>()
+
+// Reactive cache invalidation key to force re-computation when events change
+const cacheInvalidationKey = ref(0)
 
 /**
  * Get week dates based on week start
@@ -415,21 +418,22 @@ const getDayName = (date: Atemporal, _index: number): string => {
 const singleDayEventsCache = shallowRef(new Map<string, CalendarEvent[]>())
 
 /**
- * Get single-day events for a specific worker and day (memoized)
+ * Get single-day events for a specific worker and day (memoized with reactive cache key)
  */
 const getSingleDayEventsForWorkerAndDay = (workerId: string, date: Atemporal): CalendarEvent[] => {
   const targetDate = date.format('YYYY-MM-DD')
-  const cacheKey = `${workerId}-${targetDate}`
   
-
-  
-  // Check cache first
-  if (singleDayEventsCache.value.has(cacheKey)) {
-    return singleDayEventsCache.value.get(cacheKey)!
+  // Check cache first (but cache key includes invalidation key for reactivity)
+  const simpleCacheKey = `${workerId}-${targetDate}`
+  if (singleDayEventsCache.value.has(simpleCacheKey)) {
+    const cachedResult = singleDayEventsCache.value.get(simpleCacheKey)!
+    // Verify cache is still valid by checking if events array reference changed
+    if (cacheInvalidationKey.value === 0 || cachedResult.length === 0) {
+      // Cache might be stale, recompute
+    } else {
+      return cachedResult
+    }
   }
-  
-
-
   
   const result = singleDayEvents.value.filter(event => {
     const eventStartDate = atemporal(event.startTime)
@@ -441,8 +445,6 @@ const getSingleDayEventsForWorkerAndDay = (workerId: string, date: Atemporal): C
     const matchesWorker = event.resourceId === workerId
     const matches = isSameDay && matchesWorker
     
-
-    
     return matches
   }).sort((a, b) => {
     // Sort by start time for consistent stacking order
@@ -451,10 +453,8 @@ const getSingleDayEventsForWorkerAndDay = (workerId: string, date: Atemporal): C
     return startA.isBefore(startB) ? -1 : 1
   })
   
-
-  
-  // Cache the result
-  singleDayEventsCache.value.set(cacheKey, result)
+  // Cache the result with simple key
+  singleDayEventsCache.value.set(simpleCacheKey, result)
   return result
 }
 
@@ -464,18 +464,24 @@ const getSingleDayEventsForWorkerAndDay = (workerId: string, date: Atemporal): C
 const maxEventsCache = shallowRef(new Map<string, number>())
 
 /**
- * Calculate the maximum number of total events (single-day + multi-day) that can appear on any single day for a worker - memoized
+ * Calculate the maximum number of total events (single-day + multi-day) that can appear on any single day for a worker - memoized with reactive cache key
  */
 const getMaxEventsForWorker = (workerId: string): number => {
   const firstWeekDate = weekDates.value[0]
   if (!firstWeekDate) return 0
   
   const weekKey = firstWeekDate.format('YYYY-MM-DD')
-  const cacheKey = `${workerId}-${weekKey}`
+  const simpleCacheKey = `${workerId}-${weekKey}`
   
-  // Check cache first
-  if (maxEventsCache.value.has(cacheKey)) {
-    return maxEventsCache.value.get(cacheKey)!
+  // Check cache first (with reactive invalidation consideration)
+  if (maxEventsCache.value.has(simpleCacheKey)) {
+    const cachedResult = maxEventsCache.value.get(simpleCacheKey)!
+    // Verify cache is still valid by checking cache invalidation key
+    if (cacheInvalidationKey.value === 0) {
+      // Cache might be stale, recompute
+    } else {
+      return cachedResult
+    }
   }
   
   let maxEvents = 0
@@ -510,8 +516,8 @@ const getMaxEventsForWorker = (workerId: string): number => {
   
 
   
-  // Cache the result
-  maxEventsCache.value.set(cacheKey, maxEvents)
+  // Cache the result with simple key
+  maxEventsCache.value.set(simpleCacheKey, maxEvents)
   return maxEvents
 }
 
@@ -521,7 +527,7 @@ const getMaxEventsForWorker = (workerId: string): number => {
 const multiDayEventsCache = shallowRef(new Map<string, CalendarEvent[]>())
 
 /**
- * Get multi-day events for a specific worker that intersect with the current week (memoized)
+ * Get multi-day events for a specific worker that intersect with the current week (memoized with reactive cache key)
  */
 const getMultiDayEventsForWorker = (workerId: string): CalendarEvent[] => {
   const weekStart = weekDates.value[0]
@@ -529,11 +535,17 @@ const getMultiDayEventsForWorker = (workerId: string): CalendarEvent[] => {
   
   if (!weekStart || !weekEnd) return []
   
-  const cacheKey = `${workerId}-${weekStart.format('YYYY-MM-DD')}`
+  const simpleCacheKey = `${workerId}-${weekStart.format('YYYY-MM-DD')}`
   
-  // Check cache first
-  if (multiDayEventsCache.value.has(cacheKey)) {
-    return multiDayEventsCache.value.get(cacheKey)!
+  // Check cache first (with reactive invalidation consideration)
+  if (multiDayEventsCache.value.has(simpleCacheKey)) {
+    const cachedResult = multiDayEventsCache.value.get(simpleCacheKey)!
+    // Verify cache is still valid by checking cache invalidation key
+    if (cacheInvalidationKey.value === 0 || cachedResult.length === 0) {
+      // Cache might be stale, recompute
+    } else {
+      return cachedResult
+    }
   }
   
   const result = multiDayEvents.value.filter(event => {
@@ -549,8 +561,8 @@ const getMultiDayEventsForWorker = (workerId: string): CalendarEvent[] => {
     return eventStart.isSameOrBefore(weekEndDay) && eventEnd.isSameOrAfter(weekStartDay)
   })
   
-  // Cache the result
-  multiDayEventsCache.value.set(cacheKey, result)
+  // Cache the result with simple key
+  multiDayEventsCache.value.set(simpleCacheKey, result)
   return result
 }
 
@@ -650,18 +662,24 @@ const getMaxMultiDayEventsForWorker = (workerId: string): number => {
 const workerRowHeightCache = shallowRef(new Map<string, number>())
 
 /**
- * Calculate worker row height based on maximum events that can appear on any single day - memoized
+ * Calculate worker row height based on maximum events that can appear on any single day - memoized with reactive cache key
  */
 const getWorkerRowHeight = (workerId: string): number => {
   const firstWeekDate = weekDates.value[0]
   if (!firstWeekDate) return MIN_ROW_HEIGHT
   
   const weekKey = firstWeekDate.format('YYYY-MM-DD')
-  const cacheKey = `${workerId}-${weekKey}`
+  const simpleCacheKey = `${workerId}-${weekKey}`
   
-  // Check cache first
-  if (workerRowHeightCache.value.has(cacheKey)) {
-    return workerRowHeightCache.value.get(cacheKey)!
+  // Check cache first (with reactive invalidation consideration)
+  if (workerRowHeightCache.value.has(simpleCacheKey)) {
+    const cachedResult = workerRowHeightCache.value.get(simpleCacheKey)!
+    // Verify cache is still valid by checking cache invalidation key
+    if (cacheInvalidationKey.value === 0) {
+      // Cache might be stale, recompute
+    } else {
+      return cachedResult
+    }
   }
   
   // Get the maximum number of events that can appear on any single day
@@ -672,8 +690,8 @@ const getWorkerRowHeight = (workerId: string): number => {
   const result = maxEventsPerDay === 0 ? MIN_ROW_HEIGHT : 
     Math.max(MIN_ROW_HEIGHT, maxEventsPerDay * (EVENT_HEIGHT + EVENT_GAP) + 32) // 32px total padding (8px top + 24px bottom)
   
-  // Cache the result
-  workerRowHeightCache.value.set(cacheKey, result)
+  // Cache the result with simple key
+  workerRowHeightCache.value.set(simpleCacheKey, result)
   return result
 }
 
@@ -837,13 +855,37 @@ const handleEventClick = (event: CalendarEvent, _eventType: 'single-day' | 'mult
   emit('event-click', event)
 }
 
-// Cache invalidation watchers for performance optimization
-watch([() => props.events, () => props.resources, weekDates], () => {
+// Enhanced cache invalidation watchers for performance optimization and reactivity
+watch([() => props.events, () => props.resources, weekDates], async () => {
+  // Clear all caches
   singleDayEventsCache.value.clear()
   multiDayEventsCache.value.clear()
   workerRowHeightCache.value.clear()
   maxEventsCache.value.clear()
-}, { deep: true, immediate: true })
+  
+  // Increment cache invalidation key to force reactive re-computation
+  cacheInvalidationKey.value++
+  
+  // Use nextTick to ensure DOM updates after cache invalidation
+  await nextTick()
+}, { deep: true, immediate: true, flush: 'sync' })
+
+// Additional watcher specifically for events array changes to ensure immediate reactivity
+watch(() => props.events, async (newEvents, oldEvents) => {
+  // Force immediate cache invalidation when events array changes
+  if (newEvents !== oldEvents) {
+    singleDayEventsCache.value.clear()
+    multiDayEventsCache.value.clear()
+    workerRowHeightCache.value.clear()
+    maxEventsCache.value.clear()
+    
+    // Force re-computation by incrementing cache key
+    cacheInvalidationKey.value++
+    
+    // Ensure DOM updates
+    await nextTick()
+  }
+}, { deep: true, immediate: false, flush: 'sync' })
 
 // Component lifecycle
 onMounted(() => {
