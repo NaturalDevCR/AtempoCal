@@ -84,16 +84,6 @@
                     borderLeftColor: getEventColor(event, props.resources, props.specialEventColors) || '#3b82f6' 
                   }">
                   <span class="multiday-title">{{ formatMultiDayEvent(event) }}</span>
-                  <!-- Delete button for multi-day events -->
-                  <button
-                    v-if="!readonly"
-                    class="delete-btn multiday-delete-btn"
-                    @click.stop="$emit('event-delete', event)"
-                  >
-                    <svg class="delete-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                  </button>
                 </div>
               </div>
             </div>
@@ -138,16 +128,6 @@
                     }"
                   >
                     <span class="event-time">{{ formatEventTime(event) }}</span>
-                    <!-- Delete button -->
-                    <button
-                      v-if="!readonly"
-                      class="delete-btn"
-                      @click.stop="$emit('event-delete', event)"
-                    >
-                      <svg class="delete-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                      </svg>
-                    </button>
                   </div>
                 </div>
               </div>
@@ -580,14 +560,19 @@ const getMultiDayEventsForWorker = (workerId: string): CalendarEvent[] => {
  */
 const doMultiDayEventsOverlap = (event1: CalendarEvent, event2: CalendarEvent): boolean => {
   const start1 = atemporal(event1.startTime).startOf('day')
-  // For end times, use endOf('day') to include the entire end date
-  const end1 = atemporal(event1.endTime).endOf('day')
+  // For multi-day events, we need to include the end date in the range
+  // Use startOf('day') for the end date but check if events actually overlap
+  const end1 = atemporal(event1.endTime).startOf('day')
   const start2 = atemporal(event2.startTime).startOf('day')
-  const end2 = atemporal(event2.endTime).endOf('day')
+  const end2 = atemporal(event2.endTime).startOf('day')
   
-  // Events overlap if start1 <= end2 && start2 <= end1
-  // Use proper date comparison for multi-day events
-  return start1.isSameOrBefore(end2) && start2.isSameOrBefore(end1)
+  // Two events overlap if:
+  // - Event 1 starts before or on the day Event 2 ends AND
+  // - Event 2 starts before or on the day Event 1 ends
+  // This ensures proper overlap detection for multi-day events
+  const overlaps = start1.isSameOrBefore(end2) && start2.isSameOrBefore(end1)
+  
+  return overlaps
 }
 
 /**
@@ -695,27 +680,14 @@ const getWorkerRowHeight = (workerId: string): number => {
 /**
  * Get style for stacked event (positioned below multi-day events for the specific day)
  */
-const getStackedEventStyle = (eventIndex: number, workerId: string, eventDate?: Atemporal): Record<string, string | number> => {
-  let multiDayEventsCount = 0
-  
-  if (eventDate) {
-    // Count multi-day events that overlap with this specific date
-    const multiDayEvents = getMultiDayEventsForWorker(workerId)
-    multiDayEventsCount = multiDayEvents.filter(event => {
-      const eventStart = atemporal(event.startTime).startOf('day')
-      // Fix: Use endOf('day') to properly include the entire end date
-      const eventEnd = atemporal(event.endTime).endOf('day')
-      const targetDate = eventDate.startOf('day')
-      
-      return eventStart.isSameOrBefore(targetDate) && eventEnd.isSameOrAfter(targetDate)
-    }).length
-  } else {
-    // Fallback to maximum multi-day events for the worker
-    multiDayEventsCount = getMaxMultiDayEventsForWorker(workerId)
-  }
+const getStackedEventStyle = (eventIndex: number, workerId: string, _eventDate?: Atemporal): Record<string, string | number> => {
+  // Use the maximum number of multi-day event lanes for this worker
+  // This ensures consistent positioning regardless of which specific day we're looking at
+  const maxMultiDayLanes = getMaxMultiDayEventsForWorker(workerId)
   
   // Calculate proper vertical positioning with adequate spacing
-  const multiDayOffset = multiDayEventsCount * (EVENT_HEIGHT + EVENT_GAP)
+  // Position single-day events below all possible multi-day event lanes
+  const multiDayOffset = maxMultiDayLanes * (EVENT_HEIGHT + EVENT_GAP)
   const eventOffset = eventIndex * (EVENT_HEIGHT + EVENT_GAP)
   const top = 8 + multiDayOffset + eventOffset // 8px top padding + multi-day offset + event stacking
   
@@ -744,8 +716,8 @@ const getWorkerMultiDayEventStyle = (event: CalendarEvent & { lane: number }, _w
   }
   
   const eventStartDate = atemporal(event.startTime).startOf('day')
-  // Fix: Use endOf('day') for proper end date calculation
-  const eventEndDate = atemporal(event.endTime).endOf('day')
+  // Fix: Use startOf('day') for end date to prevent extending into next day
+  const eventEndDate = atemporal(event.endTime).startOf('day')
   const weekStart = firstWeekDate.startOf('day')
   const weekEnd = lastWeekDate.endOf('day')
   
@@ -1414,92 +1386,7 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.delete-btn {
-  opacity: 0;
-  width: 1.5rem;
-  height: 1.5rem;
-  border: none;
-  border-radius: 0.375rem;
-  background-color: var(--atempo-bg-primary);
-  border: 1px solid var(--atempo-border-secondary);
-  box-shadow: 0 2px 4px 0 var(--atempo-shadow);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #dc2626;
-  transition: all 0.2s ease;
-  margin-left: 0.5rem;
-  cursor: pointer;
-  flex-shrink: 0;
-  z-index: 10;
-}
 
-.group:hover .delete-btn {
-  opacity: 1;
-}
-
-.delete-btn:hover {
-  background-color: #fee2e2;
-  border-color: #dc2626;
-  color: #b91c1c;
-  transform: scale(1.1);
-  box-shadow: 0 4px 8px 0 var(--atempo-shadow-lg);
-}
-
-.dark .delete-btn:hover {
-  background-color: rgba(220, 38, 38, 0.2);
-  border-color: #dc2626;
-  color: #fca5a5;
-}
-
-.delete-btn:active {
-  transform: scale(0.95);
-}
-
-.delete-btn:focus {
-  outline: 2px solid #dc2626;
-  outline-offset: 2px;
-}
-
-.delete-icon {
-  width: 1rem;
-  height: 1rem;
-  stroke-width: 2;
-}
-
-/* Multi-day event delete button specific styling */
-.multiday-delete-btn {
-  position: absolute;
-  top: 0.375rem;
-  right: 0.375rem;
-  width: 1.5rem;
-  height: 1.5rem;
-  background-color: var(--atempo-bg-primary);
-  border: 1px solid var(--atempo-border-secondary);
-  backdrop-filter: blur(4px);
-  box-shadow: 0 2px 4px 0 var(--atempo-shadow);
-}
-
-.multiday-delete-btn:hover {
-  background-color: #fee2e2;
-  border-color: #dc2626;
-  color: #b91c1c;
-  transform: scale(1.1);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 8px 0 var(--atempo-shadow-lg);
-}
-
-.dark .multiday-delete-btn:hover {
-  background-color: rgba(220, 38, 38, 0.2);
-  border-color: #dc2626;
-  color: #fca5a5;
-}
-
-.multiday-delete-btn .delete-icon {
-  width: 1rem;
-  height: 1rem;
-  stroke-width: 2;
-}
 
 .add-indicator {
   opacity: 0;

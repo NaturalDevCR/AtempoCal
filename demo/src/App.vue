@@ -847,7 +847,7 @@ const demoEvents = ref<CalendarEvent[]>([
     title: 'Technical Training',
     description: 'Advanced technical skills training',
     startTime: '2025-09-12T00:00:00Z', // Friday
-    endTime: '2025-09-15T23:59:59Z',   // Monday
+    endTime: '2025-09-18T23:59:59Z',   // Monday
     resourceId: 'worker-lisa',
     color: '#EF4444',
     isAllDay: true,
