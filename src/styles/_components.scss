@@ -77,6 +77,15 @@
 
 // ===== MODAL STYLES =====
 
+.atempo-cal-modal-overlay {
+  @include absolute-fill;
+  @include flex-center;
+  
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  padding: $spacing-4;
+}
+
 .atempo-cal-modal {
   @include card-base;
   @include theme-bg('primary');
@@ -84,6 +93,17 @@
   max-width: 400px;
   width: 100%;
   padding: $spacing-6;
+  
+  .atempo-cal-modal-header {
+    @include flex-between;
+    margin-bottom: $spacing-4;
+    
+    .atempo-cal-modal-title {
+      @include text-style($font-size-lg, $font-weight-medium);
+      @include theme-text('primary');
+      margin: 0;
+    }
+  }
   
   .atempo-cal-modal-close {
     @include button-base;
@@ -101,6 +121,14 @@
   
   .atempo-cal-date-input {
     @include input-base;
+    width: 100%;
+    margin-bottom: $spacing-4;
+  }
+  
+  .atempo-cal-modal-actions {
+    @include flex-center;
+    justify-content: flex-end;
+    gap: $spacing-2;
   }
   
   .atempo-cal-modal-button {

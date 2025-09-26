@@ -80,15 +80,15 @@
     <Teleport to="body">
       <div
         v-if="showDatePickerModal"
-        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+        class="atempo-cal-modal-overlay"
         @click="closeDatePicker"
       >
         <div
           class="atempo-cal-modal"
           @click.stop
         >
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium">
+          <div class="atempo-cal-modal-header">
+            <h3 class="atempo-cal-modal-title">
               Select Date
             </h3>
             <button
@@ -107,7 +107,7 @@
             @change="handleDatePickerChange"
           />
           
-          <div class="flex justify-end space-x-2 mt-4">
+          <div class="atempo-cal-modal-actions">
             <button
               class="atempo-cal-modal-button"
               @click="closeDatePicker"
