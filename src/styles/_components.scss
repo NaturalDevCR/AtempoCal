@@ -473,12 +473,21 @@
     position: absolute;
     pointer-events: auto;
     cursor: pointer;
+    // Allow container to expand with content
+    width: auto;
+    min-width: max-content;
+    height: auto;
+    min-height: 24px;
     
     .multiday-content {
       @include flex-between;
       @include card-base;
       
-      height: 100%;
+      // Allow dynamic height based on content
+      min-height: 24px;
+      height: auto;
+      width: auto;
+      min-width: max-content;
       padding: $spacing-2 $spacing-3;
       background-color: theme-var('event-bg');
       border-left: $calendar-event-border-width solid theme-var('event-border');
@@ -492,16 +501,19 @@
         width: 100%;
         align-items: center;
         gap: $spacing-2;
+        min-width: max-content;
       }
       
       .multiday-title {
         @include text-style($font-size-xs, $font-weight-medium);
         @include theme-text('primary');
         flex: 1;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        // Allow text wrapping for long titles
+        white-space: normal;
+        word-wrap: break-word;
+        line-height: 1.2;
         min-width: 0;
+        max-width: none;
       }
       
       .multiday-duration {
@@ -510,6 +522,7 @@
         opacity: $opacity-75;
         flex-shrink: 0;
         margin-left: $spacing-2;
+        white-space: nowrap;
       }
     }
   }
