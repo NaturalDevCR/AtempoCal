@@ -9,7 +9,7 @@
       
       <!-- Day headers -->
       <div class="day-headers">
-        <div class="day-grid">
+        <div class="day-grid" :style="{ gridTemplateColumns: dynamicGridColumns }">
           <div
             v-for="date in weekDates"
             :key="date.toString()"
@@ -62,7 +62,7 @@
           </div>
 
           <!-- Day cells for this worker -->
-          <div class="resource-days">
+          <div class="resource-days" :style="{ gridTemplateColumns: dynamicGridColumns }">
             <!-- Multi-day events container positioned relative to day cells only -->
             <div class="multiday-events-overlay">
               <div
@@ -83,7 +83,8 @@
                     backgroundColor: getEventColor(event, props.resources, props.specialEventColors) ? getEventColor(event, props.resources, props.specialEventColors) + '20' : '#3b82f620',
                     borderLeftColor: getEventColor(event, props.resources, props.specialEventColors) || '#3b82f6' 
                   }">
-                  <span class="multiday-title">{{ formatMultiDayEvent(event) }}</span>
+                  <span class="multiday-title">{{ event.title }}</span>
+                  <span class="multiday-duration">{{ formatMultiDayEvent(event) }}</span>
                 </div>
               </div>
             </div>
@@ -104,7 +105,7 @@
                   v-for="(event, eventIndex) in getSingleDayEventsForWorkerAndDay(worker.id, date)"
                   :key="`event-${event.id}-${eventsVersion}`"
                   class="stacked-event"
-                  :style="getStackedEventStyle(eventIndex, worker.id, date)"
+                  :style="getStackedEventStyle(eventIndex, worker.id, date, event)"
                   @click.stop="handleEventClick(event, 'single-day')"
                 >
                   <div 
@@ -126,7 +127,10 @@
                       color: '#1f2937'
                     }"
                   >
-                    <span class="event-time">{{ formatEventTime(event) }}</span>
+                    <div class="event-content">
+                      <span class="event-title">{{ event.title }}</span>
+                      <span class="event-time">{{ formatEventTime(event) }}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -725,16 +729,30 @@ const getWorkerRowHeight = (workerId: string): number => {
 /**
  * Get style for stacked event (positioned below multi-day events for the specific day)
  */
-const getStackedEventStyle = (eventIndex: number, workerId: string, _eventDate?: Atemporal): Record<string, string | number> => {
+const getStackedEventStyle = (eventIndex: number, workerId: string, date: Atemporal, event: CalendarEvent): Record<string, string | number> => {
   // Use the maximum number of multi-day event lanes for this worker
   // This ensures consistent positioning regardless of which specific day we're looking at
   const maxMultiDayLanes = getMaxMultiDayEventsForWorker(workerId)
   
+  // Calculate event dimensions
+  const dimensions = calculateEventDimensions(event)
+  
   // Calculate proper vertical positioning with adequate spacing
   // Position single-day events below all possible multi-day event lanes
   const multiDayOffset = maxMultiDayLanes * (EVENT_HEIGHT + EVENT_GAP)
-  const eventOffset = eventIndex * (EVENT_HEIGHT + EVENT_GAP)
-  const top = 8 + multiDayOffset + eventOffset // 8px top padding + multi-day offset + event stacking
+  
+  // Calculate cumulative height of previous events
+  let cumulativeHeight = 0
+  const singleDayEvents = getSingleDayEventsForWorkerAndDay(workerId, date)
+  for (let i = 0; i < eventIndex; i++) {
+    const prevEvent = singleDayEvents[i]
+    if (prevEvent) {
+      const prevDimensions = calculateEventDimensions(prevEvent)
+      cumulativeHeight += prevDimensions.height + EVENT_GAP
+    }
+  }
+  
+  const top = 8 + multiDayOffset + cumulativeHeight // 8px top padding + multi-day offset + cumulative height
   
   return {
     position: 'absolute',
@@ -742,7 +760,7 @@ const getStackedEventStyle = (eventIndex: number, workerId: string, _eventDate?:
     left: '4px',
     right: '4px',
     width: 'calc(100% - 8px)', // Explicit width calculation
-    height: EVENT_HEIGHT + 'px',
+    height: dimensions.height + 'px',
     zIndex: 10 + eventIndex, // Higher z-index for proper layering
     // Prevent overlapping with proper containment
     boxSizing: 'border-box'
@@ -819,6 +837,95 @@ const getWorkerMultiDayEventStyle = (event: CalendarEvent & { lane: number }, _w
 // Removed global multi-day events functions - now handled per resource
 
 /**
+ * Calculate dynamic width and height for event text content
+ */
+const calculateEventDimensions = (event: CalendarEvent): { width: number; height: number } => {
+  // Create a temporary canvas element for text measurement
+  const canvas = document.createElement('canvas')
+  const context = canvas.getContext('2d')
+  if (!context) return { width: 0, height: EVENT_HEIGHT }
+  
+  // Set font to match event styling
+  const titleFont = '500 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+  const timeFont = '400 11px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+  
+  // Get event text content
+  const eventText = formatEventTime(event)
+  const titleText = event.title || ''
+  
+  // Measure title text
+  context.font = titleFont
+  const titleWidth = context.measureText(titleText).width
+  
+  // Measure time text
+  context.font = timeFont
+  const timeWidth = context.measureText(eventText).width
+  
+  // Calculate required width (max of title and time + padding)
+  const maxTextWidth = Math.max(titleWidth, timeWidth)
+  const requiredWidth = maxTextWidth + 24 // 16px padding + 8px spacing
+  
+  // Calculate required height based on content
+  // Base height for single line + additional height for time line
+  const baseHeight = 16 // Title line height
+  const timeHeight = 14 // Time line height
+  const padding = 8 // Top and bottom padding
+  const requiredHeight = baseHeight + timeHeight + padding
+  
+  return {
+    width: Math.max(115, requiredWidth), // Minimum 115px
+    height: Math.max(EVENT_HEIGHT, requiredHeight)
+  }
+}
+
+/**
+ * Get dynamic column width for a specific day based on events
+ */
+const getDynamicColumnWidth = (date: Atemporal): number => {
+  const baseWidth = 115 // Minimum column width in pixels
+  let maxEventWidth = 0
+  
+  // Check all workers for events on this date
+  displayWorkers.value.forEach(worker => {
+    const singleDayEvents = getSingleDayEventsForWorkerAndDay(worker.id, date)
+    const multiDayEvents = getMultiDayEventsForWorker(worker.id)
+    
+    // Calculate width for single-day events
+    singleDayEvents.forEach(event => {
+      const dimensions = calculateEventDimensions(event)
+      maxEventWidth = Math.max(maxEventWidth, dimensions.width)
+    })
+    
+    // Calculate width for multi-day events that span this date
+    multiDayEvents.forEach(event => {
+      const eventStart = atemporal(event.startTime).startOf('day')
+      const eventEnd = atemporal(event.endTime).startOf('day')
+      const currentDate = date.startOf('day')
+      
+      if (currentDate.isSameOrAfter(eventStart) && currentDate.isSameOrBefore(eventEnd)) {
+        const dimensions = calculateEventDimensions(event)
+        maxEventWidth = Math.max(maxEventWidth, dimensions.width)
+      }
+    })
+  })
+  
+  // Return the larger of base width or calculated event width
+  return Math.max(baseWidth, maxEventWidth)
+}
+
+/**
+ * Calculate dynamic grid template columns based on content
+ */
+const dynamicGridColumns = computed((): string => {
+  const columnWidths = weekDates.value.map(date => {
+    const width = getDynamicColumnWidth(date)
+    return `${width}px`
+  })
+  
+  return columnWidths.join(' ')
+})
+
+/**
  * Format event time for display in 12-hour format
  */
 const formatEventTime = (event: CalendarEvent): string => {
@@ -836,7 +943,7 @@ const formatEventTime = (event: CalendarEvent): string => {
 }
 
 /**
- * Format multi-day event with title and date range in DD/MM format
+ * Format multi-day event date range in DD/MM format
  */
 const formatMultiDayEvent = (event: CalendarEvent): string => {
   const startDate = atemporal(event.startTime)
@@ -845,7 +952,7 @@ const formatMultiDayEvent = (event: CalendarEvent): string => {
   const startFormatted = startDate.format('DD/MM')
   const endFormatted = endDate.format('DD/MM')
   
-  return `${event.title} ${startFormatted} - ${endFormatted}`
+  return `${startFormatted} - ${endFormatted}`
 }
 
 /**
@@ -1210,24 +1317,39 @@ onUnmounted(() => {
   background-color: rgba(154, 52, 18, 0.3);
 }
 
-.multiday-title {
-    font-size: 0.75rem;
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: var(--atempo-text-primary);
-    flex: 1;
-    margin-right: 0.5rem;
-  }
+.multiday-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  height: 100%;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 2px 0 var(--atempo-shadow);
+  border-left: 4px solid var(--atempo-accent-primary);
+  position: relative;
+  overflow: visible;
+}
 
-.multiday-duration {
+.multiday-title {
   font-size: 0.75rem;
-  opacity: 0.85;
-  margin-left: 0.5rem;
-  flex-shrink: 0;
   font-weight: 500;
   color: var(--atempo-text-primary);
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.2;
+  margin-bottom: 0.125rem;
+}
+
+.multiday-duration {
+  font-size: 0.6875rem;
+  opacity: 0.85;
+  font-weight: 400;
+  color: var(--atempo-text-primary);
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .worker-container {
@@ -1469,17 +1591,37 @@ onUnmounted(() => {
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   color: var(--atempo-text-primary);
   background-color: color-mix(in srgb, var(--atempo-accent-primary) 10%, var(--atempo-bg-primary));
   /* Optimize paint performance */
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   will-change: transform;
   transform: translateZ(0); /* Force hardware acceleration */
+  overflow: visible;
 }
 
 .event-bar:hover {
   box-shadow: 0 4px 6px -1px var(--atempo-shadow-lg);
+}
+
+.event-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+}
+
+.event-title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--atempo-text-primary);
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.2;
+  margin-bottom: 0.125rem;
 }
 
 /* Worker scheduling event type styles */

@@ -234,11 +234,11 @@
       flex: 1;
       
       .day-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        height: 100%;
-        
-        .day-header {
+          display: grid;
+          /* Grid columns are now controlled dynamically via inline styles */
+          height: 100%;
+          
+          .day-header {
           @include flex-column-center;
           @include theme-bg('header-bg');
           @include theme-border('primary', 1px, solid);
@@ -342,9 +342,10 @@
         
         .resource-days {
           display: grid;
-          grid-template-columns: repeat(7, 1fr);
+          /* Grid columns are now controlled dynamically via inline styles */
           flex: 1;
           position: relative;
+          overflow: visible;
           
           .day-cell {
             position: relative;
@@ -883,9 +884,10 @@
         
         .day-grid {
           display: grid;
-          grid-template-columns: repeat(7, minmax(115px, 1fr));
+          /* Grid columns are controlled dynamically via inline styles */
+          /* Dynamic columns will automatically handle minimum widths */
           width: 100%;
-          min-width: 805px; // 7 * 115px = 805px minimum
+          min-width: max-content;
         }
       }
       
@@ -931,12 +933,14 @@
           flex: 1;
           min-width: 0;
           display: grid;
-          grid-template-columns: repeat(7, minmax(115px, 1fr));
-          min-width: 805px; // Match day-grid exactly
+          /* Grid columns are controlled dynamically via inline styles */
+          min-width: max-content;
+          overflow: visible;
           
           .day-cell {
-            min-width: 115px;
+            min-width: max-content;
             flex-shrink: 0;
+            overflow: visible;
           }
         }
       }
