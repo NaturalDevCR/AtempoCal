@@ -1,4 +1,5 @@
 import type { CalendarEvent, CalendarResource, SpecialEventColors, SpecialEventType } from '../types'
+import atemporal from 'atemporal'
 
 /**
  * Default color palette for special event types
@@ -168,8 +169,8 @@ export function isSpecialEvent(event: CalendarEvent): boolean {
   }
 
   // Multi-day events are special
-  const startDate = new Date(event.startTime).toDateString()
-  const endDate = new Date(event.endTime).toDateString()
+  const startDate = atemporal(event.startTime).format('YYYY-MM-DD')
+  const endDate = atemporal(event.endTime).format('YYYY-MM-DD')
   
   return startDate !== endDate
 }

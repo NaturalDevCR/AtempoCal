@@ -1,5 +1,6 @@
 import type { CalendarEvent, EventPosition, GridConfig, Atemporal } from '../types'
-import { parseISOString, getDateDifference, dateRangesOverlap, createAtemporal } from './dateHelpers'
+import { getDateDifference, dateRangesOverlap, createAtemporal } from './dateHelpers'
+import atemporal from 'atemporal'
 
 /**
  * Calculate event position within a time grid
@@ -13,8 +14,8 @@ export function calculateEventPosition(
   config: GridConfig,
   containerHeight: number
 ): EventPosition {
-  const startTime = parseISOString(event.startTime, config.timezone)
-  const endTime = parseISOString(event.endTime, config.timezone)
+  const startTime = atemporal(event.startTime, config.timezone)
+  const endTime = atemporal(event.endTime, config.timezone)
   
   const { startHour, endHour } = config
   const totalMinutes = (endHour - startHour) * 60
@@ -60,8 +61,8 @@ export function calculateEventPositions(
 
   // Sort events by start time for proper column assignment
   const sortedEvents = eventsWithPositions.sort((a, b) => {
-    const startA = parseISOString(a.startTime)
-    const startB = parseISOString(b.startTime)
+    const startA = atemporal(a.startTime)
+    const startB = atemporal(b.startTime)
     return startA.isBefore(startB) ? -1 : 1
   })
 
@@ -168,10 +169,10 @@ export function findOverlapGroups(
  * @returns True if events overlap
  */
 export function eventsOverlap(event1: CalendarEvent, event2: CalendarEvent): boolean {
-  const start1 = parseISOString(event1.startTime)
-  const end1 = parseISOString(event1.endTime)
-  const start2 = parseISOString(event2.startTime)
-  const end2 = parseISOString(event2.endTime)
+  const start1 = atemporal(event1.startTime)
+  const end1 = atemporal(event1.endTime)
+  const start2 = atemporal(event2.startTime)
+  const end2 = atemporal(event2.endTime)
   
   return dateRangesOverlap(start1, end1, start2, end2)
 }
@@ -189,8 +190,8 @@ export function filterEventsForDate(
   resourceId?: string
 ): CalendarEvent[] {
   return events.filter(event => {
-    const eventStart = parseISOString(event.startTime)
-    const eventEnd = parseISOString(event.endTime)
+    const eventStart = atemporal(event.startTime)
+    const eventEnd = atemporal(event.endTime)
     
     // Check if event occurs on the target date
     const isOnDate = eventStart.isSame(date, 'day') || 
@@ -219,8 +220,8 @@ export function filterEventsForDateRange(
   resourceId?: string
 ): CalendarEvent[] {
   return events.filter(event => {
-    const eventStart = parseISOString(event.startTime)
-    const eventEnd = parseISOString(event.endTime)
+    const eventStart = atemporal(event.startTime)
+    const eventEnd = atemporal(event.endTime)
     
     // Check if event overlaps with the date range
     const overlapsRange = dateRangesOverlap(
@@ -269,8 +270,8 @@ export function validateEvent(event: Partial<CalendarEvent>): {
   }
   
   if (event.startTime && event.endTime) {
-    const start = parseISOString(event.startTime)
-    const end = parseISOString(event.endTime)
+    const start = atemporal(event.startTime)
+    const end = atemporal(event.endTime)
     
     if (end.isBefore(start) || end.isSame(start)) {
       errors.push('End time must be after start time')
@@ -323,8 +324,8 @@ export function cloneEvent(event: CalendarEvent, overrides: Partial<CalendarEven
  */
 export function sortEventsByStartTime(events: CalendarEvent[]): CalendarEvent[] {
   return [...events].sort((a, b) => {
-    const startA = parseISOString(a.startTime)
-    const startB = parseISOString(b.startTime)
+    const startA = atemporal(a.startTime)
+    const startB = atemporal(b.startTime)
     
     if (startA.isBefore(startB)) return -1
     if (startA.isAfter(startB)) return 1
@@ -338,8 +339,8 @@ export function sortEventsByStartTime(events: CalendarEvent[]): CalendarEvent[] 
  * @returns Duration in minutes
  */
 export function getEventDuration(event: CalendarEvent): number {
-  const start = parseISOString(event.startTime)
-  const end = parseISOString(event.endTime)
+  const start = atemporal(event.startTime)
+  const end = atemporal(event.endTime)
   return getDateDifference(start, end, 'minutes')
 }
 
@@ -351,7 +352,7 @@ export function getEventDuration(event: CalendarEvent): number {
 export function isAllDayEvent(event: CalendarEvent): boolean {
   if (event.isAllDay) return true
   
-  const start = parseISOString(event.startTime)
+  const start = atemporal(event.startTime)
   
   // Check if event spans exactly 24 hours and starts at midnight
   return start.hour === 0 && 

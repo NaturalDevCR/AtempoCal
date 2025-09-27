@@ -81,6 +81,7 @@ import type { CalendarEvent, EventPosition, EventAction, CalendarResource, Speci
 import { truncateEventTitle, isAllDayEvent } from '../utils/eventHelpers'
 import { formatTime } from '../utils/dateHelpers'
 import { getEventColor } from '../utils/colorHelpers'
+import atemporal from 'atemporal'
 import {
   PencilIcon,
   TrashIcon,
@@ -245,11 +246,11 @@ const formatEventTime = (): string => {
     return 'All day'
   }
   
-  const startTime = new Date(props.event.startTime)
-  const endTime = new Date(props.event.endTime)
+  const startTime = atemporal(props.event.startTime)
+  const endTime = atemporal(props.event.endTime)
   
-  const startFormatted = formatTime(startTime.getHours(), startTime.getMinutes())
-  const endFormatted = formatTime(endTime.getHours(), endTime.getMinutes())
+  const startFormatted = formatTime(startTime.hour(), startTime.minute())
+  const endFormatted = formatTime(endTime.hour(), endTime.minute())
   
   return `${startFormatted} - ${endFormatted}`
 }

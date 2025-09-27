@@ -232,7 +232,7 @@ export function formatDateForDisplay(date: Atemporal, format: string = 'YYYY-MM-
     return date.format(format)
   } catch {
     // Fallback to basic formatting if atemporal fails with timezone issues
-    const jsDate = new Date(date.toString())
+    const jsDate = atemporal(date.toString()).toDate()
     
     // Handle common format patterns
     switch (format) {
@@ -283,7 +283,7 @@ export function getLocalizedDayNames(locale: string = 'en', format: 'long' | 'sh
   // Generate days starting from Sunday (0) to Saturday (6)
   // Use January 7, 2024 (Sunday) as base date to ensure correct day order
   for (let i = 0; i < 7; i++) {
-    const date = new Date(2024, 0, 7 + i) // January 7, 2024 is Sunday
+    const date = atemporal('2024-01-07').add(i, 'days').toDate() // January 7, 2024 is Sunday
     days.push(formatter.format(date))
   }
   
@@ -301,7 +301,7 @@ export function getLocalizedMonthNames(locale: string = 'en', format: 'long' | '
   const months: string[] = []
   
   for (let i = 0; i < 12; i++) {
-    const date = new Date(2024, i, 1)
+    const date = atemporal(`2024-${(i + 1).toString().padStart(2, '0')}-01`).toDate()
     months.push(formatter.format(date))
   }
   

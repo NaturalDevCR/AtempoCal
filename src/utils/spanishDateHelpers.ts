@@ -1,4 +1,5 @@
 import type { Atemporal } from '../types'
+import atemporal from 'atemporal'
 
 /**
  * Spanish month abbreviations mapping
@@ -76,9 +77,9 @@ export const getSpanishDay = (date: Atemporal): string => {
     const dayOfWeekValue = typeof date.dayOfWeek === 'function' ? date.dayOfWeek() : date.dayOfWeek
     dayOfWeek = typeof dayOfWeekValue === 'number' ? dayOfWeekValue : 1
   } catch {
-    // Fallback: use JavaScript Date to get day of week
-    const jsDate = new Date(date.format('YYYY-MM-DD') + 'T12:00:00')
-    dayOfWeek = jsDate.getDay() // 0=Sunday, 1=Monday, etc.
+    // Fallback: use atemporal to get day of week
+    const fallbackDate = atemporal(date.format('YYYY-MM-DD') + 'T12:00:00')
+    dayOfWeek = fallbackDate.dayOfWeek() || 1 // Default to Monday if still fails
   }
   
   // Ensure we have a valid number

@@ -1,12 +1,28 @@
-import { ref, computed, type Ref, type ComputedRef } from 'vue'
-import type { CalendarEvent, UseEventsReturn, Atemporal } from '../types'
-import {
-  validateEvent,
-  generateEventId,
-  filterEventsForDateRange,
-  filterEventsForDate
-} from '../utils/eventHelpers'
-import { parseISOString } from '../utils/dateHelpers'
+import { computed, ref, type Ref, type ComputedRef } from 'vue'
+import type { CalendarEvent, Atemporal } from '../types'
+import { validateEvent, generateEventId, filterEventsForDate, filterEventsForDateRange } from '../utils/eventHelpers'
+import atemporal from 'atemporal'
+
+/**
+ * Return type for useEvents composable
+ */
+export interface UseEventsReturn {
+  events: Ref<CalendarEvent[]>
+  filteredEvents: ComputedRef<CalendarEvent[]>
+  createEvent: (eventData: Partial<CalendarEvent>) => void
+  updateEvent: (updatedEvent: CalendarEvent) => void
+  deleteEvent: (eventId: string) => void
+  getEventsForSlot: (date: string, resourceId?: string) => CalendarEvent[]
+  getEventsForDate: (date: Atemporal, resourceId?: string) => CalendarEvent[]
+  getEventsForDateRange: (startDate: Atemporal, endDate: Atemporal, resourceId?: string) => CalendarEvent[]
+  findEventById: (eventId: string) => CalendarEvent | undefined
+  getEventsByResource: (resourceId: string) => CalendarEvent[]
+  clearEvents: () => void
+  setEvents: (newEvents: CalendarEvent[]) => void
+  addEvents: (newEvents: CalendarEvent[]) => void
+  getEventCount: () => number
+  hasEvent: (eventId: string) => boolean
+}
 
 /**
  * Event management composable
@@ -22,7 +38,11 @@ export function useEvents(initialEvents: CalendarEvent[] = []): UseEventsReturn 
    * Computed property for filtered and sorted events
    */
   const filteredEvents: ComputedRef<CalendarEvent[]> = computed(() => {
-    return events.value.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+    return events.value.sort((a, b) => {
+      const startA = atemporal(a.startTime)
+      const startB = atemporal(b.startTime)
+      return startA.isBefore(startB) ? -1 : startA.isAfter(startB) ? 1 : 0
+    })
   })
   
   /**
@@ -104,8 +124,8 @@ export function useEvents(initialEvents: CalendarEvent[] = []): UseEventsReturn 
     // This is a simplified implementation
     // In a real scenario, you might want to filter by time range as well
     return events.value.filter(event => {
-      const eventDate = parseISOString(event.startTime).format('YYYY-MM-DD')
-      const targetDate = parseISOString(date).format('YYYY-MM-DD')
+      const eventDate = atemporal(event.startTime).format('YYYY-MM-DD')
+      const targetDate = atemporal(date).format('YYYY-MM-DD')
       
       const matchesDate = eventDate === targetDate
       const matchesResource = !resourceId || event.resourceId === resourceId

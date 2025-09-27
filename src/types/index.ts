@@ -38,14 +38,27 @@ export interface SpecialEventColors {
 }
 
 /**
+ * Atemporal-compatible date/time input types
+ * Supports strings, Date objects, Firestore timestamps, and other formats that atemporal can handle
+ */
+export type AtemporalInput = string | Date | number | {
+  seconds: number
+  nanoseconds?: number
+} | {
+  _seconds: number
+  _nanoseconds?: number
+}
+
+/**
  * Calendar event data structure
+ * Now supports atemporal-compatible types for startTime and endTime
  */
 export interface CalendarEvent {
   id: string
   title: string
   description?: string
-  startTime: string // ISO 8601 format
-  endTime: string // ISO 8601 format
+  startTime: AtemporalInput // Atemporal-compatible format (string, Date, Firestore timestamp, etc.)
+  endTime: AtemporalInput // Atemporal-compatible format (string, Date, Firestore timestamp, etc.)
   resourceId?: string
   color?: string // Manual color override
   eventType?: SpecialEventType // Special event type for unified coloring

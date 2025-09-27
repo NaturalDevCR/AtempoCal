@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.3.0](https://github.com/NaturalDevCR/AtempoCal/compare/v2.2.5...v2.3.0) (2025-01-27)
+
+
+### Features
+
+* enhance time handling with native atemporal support ([#atemporal-integration](https://github.com/NaturalDevCR/AtempoCal/commit/atemporal-integration)) - AtempoCal now uses atemporal directly for handling startTime and endTime of events, supporting multiple input formats including strings, Date objects, Firestore timestamps, and other atemporal-compatible types
+* improve event processing flexibility with universal time format support ([#universal-time](https://github.com/NaturalDevCR/AtempoCal/commit/universal-time)) - All event processing functions now leverage atemporal's native ability to handle diverse date/time input formats seamlessly
+* maintain backward compatibility while expanding time format support ([#backward-compatibility](https://github.com/NaturalDevCR/AtempoCal/commit/backward-compatibility)) - Existing string-based events continue to work while gaining support for additional time formats
+
+### Bug Fixes
+
+* update CalendarEvent type definition to accept atemporal-compatible types ([#event-types](https://github.com/NaturalDevCR/AtempoCal/commit/event-types)) - Enhanced type definitions to support string | Date | Firestore Timestamp and other atemporal-compatible formats
+* refactor utility functions for consistent atemporal usage ([#utility-refactor](https://github.com/NaturalDevCR/AtempoCal/commit/utility-refactor)) - Updated eventHelpers.ts and dateHelpers.ts to use atemporal() constructor throughout for consistent time handling
+
 ## [2.2.5](https://github.com/NaturalDevCR/AtempoCal/compare/v2.2.4...v2.2.5) (2025-01-27)
 
 

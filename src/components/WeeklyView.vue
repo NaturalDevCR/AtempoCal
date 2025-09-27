@@ -279,8 +279,7 @@ const calculateContentHeight = (): number => {
     })
     
     return totalHeight
-  } catch (error) {
-    console.warn('Error calculating content height:', error)
+  } catch {
     return 0 // Safe fallback
   }
 }
@@ -347,9 +346,9 @@ const updateScrollMeasurements = (): void => {
         container.style.overflowY = 'auto'
       }
     }
-  } catch (error) {
+  } catch {
     // Handle case where container becomes null during execution or other DOM errors
-    console.warn('Error updating scroll measurements:', error)
+    // Silently handle errors to prevent console warnings in production
   }
 }
 
@@ -462,8 +461,7 @@ const dynamicWorkerColumnWidth = computed((): string => {
     const finalWidth = Math.max(minWidth, Math.min(maxWidthLimit, totalWidth))
     
     return `${Math.ceil(finalWidth)}px`
-  } catch (error) {
-    console.warn('Error calculating dynamic worker column width:', error)
+  } catch {
     return '190px' // Safe fallback
   }
 })
@@ -535,10 +533,10 @@ const getDayName = (date: Atemporal, _index: number): string => {
   try {
     return date.format('ddd') // This should give us the correct abbreviated day name
   } catch {
-    // Final fallback - avoid timezone issues by using date string directly
+    // Final fallback - avoid timezone issues by using atemporal directly
     const dateStr = date.format('YYYY-MM-DD')
-    const jsDate = new Date(dateStr + 'T12:00:00') // Add noon time to avoid timezone shifts
-    return jsDate.toLocaleDateString('en-US', { weekday: 'short' })
+    const fallbackDate = atemporal(dateStr + 'T12:00:00') // Add noon time to avoid timezone shifts
+    return fallbackDate.format('ddd')
   }
 }
 
@@ -918,8 +916,7 @@ const calculateEventDimensions = (event: CalendarEvent): { width: number; height
       width: Math.max(115, requiredWidth), // Minimum 115px
       height: Math.max(EVENT_HEIGHT, requiredHeight)
     }
-  } catch (error) {
-    console.warn('Error calculating event dimensions:', error)
+  } catch {
     return { width: 115, height: EVENT_HEIGHT } // Safe fallback
   }
 }
@@ -1056,8 +1053,8 @@ watch([() => props.fixedHeight, () => props.maxWorkersBeforeScroll, () => props.
 const handleScroll = (): void => {
   try {
     updateScrollMeasurements()
-  } catch (error) {
-    console.warn('Error handling scroll event:', error)
+  } catch {
+    // Silently handle scroll errors
   }
 }
 
@@ -1069,8 +1066,8 @@ const handleResize = (): void => {
     if (scrollContainer.value && shouldEnableScroll.value) {
       updateScrollMeasurements()
     }
-  } catch (error) {
-    console.warn('Error handling resize event:', error)
+  } catch {
+    // Silently handle resize errors
   }
 }
 
@@ -1093,8 +1090,8 @@ onMounted(async () => {
     if (window) {
       window.addEventListener('resize', handleResize, { passive: true })
     }
-  } catch (error) {
-    console.error('Error during component mounting:', error)
+  } catch {
+    // Silently handle mounting errors
   }
 })
 
@@ -1110,8 +1107,8 @@ onUnmounted(() => {
     
     // Clean up caches on unmount
     clearAllCaches()
-  } catch (error) {
-    console.error('Error during component unmounting:', error)
+  } catch {
+    // Silently handle unmounting errors
   }
 })
 
