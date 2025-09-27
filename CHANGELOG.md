@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.3.4](https://github.com/NaturalDevCR/AtempoCal/compare/v2.3.3...v2.3.4) (2025-01-27)
+
+
+### Code Improvements
+
+* remove unnecessary normalizeTimestamp function from WeeklyView component ([#code-simplification](https://github.com/NaturalDevCR/AtempoCal/commit/code-simplification)) - Removed normalizeTimestamp function and replaced all calls with direct atemporal() usage, leveraging atemporal's native Firestore timestamp handling capabilities for cleaner and more efficient code
+
 ## [2.3.3](https://github.com/NaturalDevCR/AtempoCal/compare/v2.3.2...v2.3.3) (2025-01-27)
 
 
