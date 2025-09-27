@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.3.3](https://github.com/NaturalDevCR/AtempoCal/compare/v2.3.2...v2.3.3) (2025-01-27)
+
+
+### Bug Fixes
+
+* remove unnecessary timestamp normalization in demo App.vue ([#demo-typescript-fix](https://github.com/NaturalDevCR/AtempoCal/commit/demo-typescript-fix)) - Removed normalizeTimestamp function since atemporal handles Firestore timestamps natively, fixing TypeScript errors related to 'unknown' type assignments and simplifying the demo code
+
 ## [2.3.2](https://github.com/NaturalDevCR/AtempoCal/compare/v2.3.1...v2.3.2) (2025-01-27)
 
 
