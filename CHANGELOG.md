@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.3.1](https://github.com/NaturalDevCR/AtempoCal/compare/v2.3.0...v2.3.1) (2025-01-27)
+
+
+### Bug Fixes
+
+* fix TypeScript compatibility issue between AtemporalInput and DateInput types ([#type-compatibility-fix](https://github.com/NaturalDevCR/AtempoCal/commit/type-compatibility-fix)) - Fixed FirebaseTimestampLike interface to require nanoseconds property, added normalizeTimestamp helper function to convert Firestore timestamp formats, and updated all atemporal() calls to use proper timestamp normalization for seamless type compatibility
+* resolve atemporal library import issues across all components ([#import-fixes](https://github.com/NaturalDevCR/AtempoCal/commit/import-fixes)) - Corrected import statements to use default export for atemporal and proper type imports from local types file
+
 ## [2.3.0](https://github.com/NaturalDevCR/AtempoCal/compare/v2.2.5...v2.3.0) (2025-01-27)
 
 

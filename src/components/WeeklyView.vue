@@ -163,7 +163,8 @@ import type {
   CalendarEvent,
   CalendarResource,
   SlotClickInfo,
-  Atemporal
+  Atemporal,
+  AtemporalInput
 } from '../types'
 import {
   getWeekDates,
@@ -177,6 +178,32 @@ import {
   getSpanishDay,
   formatSpanishDate
 } from '../utils/spanishDateHelpers'
+
+/**
+ * Normalize timestamp input to atemporal-compatible format
+ * Handles Firestore timestamp format conversion
+ * @param input - The timestamp input
+ * @returns Normalized timestamp
+ */
+function normalizeTimestamp(input: AtemporalInput): AtemporalInput {
+  // Handle Firestore timestamp format with _seconds and _nanoseconds
+  if (input && typeof input === 'object' && '_seconds' in input && '_nanoseconds' in input) {
+    return {
+      seconds: (input as any)._seconds,
+      nanoseconds: (input as any)._nanoseconds || 0
+    }
+  }
+  
+  // Handle objects with seconds but missing nanoseconds
+  if (input && typeof input === 'object' && 'seconds' in input && !('nanoseconds' in input)) {
+    return {
+      seconds: (input as any).seconds,
+      nanoseconds: 0
+    }
+  }
+  
+  return input
+}
 
 /**
  * WeeklyView component with true vertical event stacking and perfect reactivity
@@ -476,8 +503,8 @@ const singleDayEvents = computed((): CalendarEvent[] => {
   // Filter events to only include single-day events (start and end on same day)
   const userEvents = props.events.filter(event => {
     try {
-      const startDate = atemporal(event.startTime)
-      const endDate = atemporal(event.endTime)
+      const startDate = atemporal(normalizeTimestamp(event.startTime))
+      const endDate = atemporal(normalizeTimestamp(event.endTime))
       const isSameDay = startDate.isSame(endDate, 'day')
       
       return isSameDay
@@ -499,8 +526,8 @@ const multiDayEvents = computed((): CalendarEvent[] => {
   // Filter events that span multiple days
   const userEvents = props.events.filter(event => {
     try {
-      const startDate = atemporal(event.startTime)
-      const endDate = atemporal(event.endTime)
+      const startDate = atemporal(normalizeTimestamp(event.startTime))
+      const endDate = atemporal(normalizeTimestamp(event.endTime))
       return !startDate.isSame(endDate, 'day')
     } catch {
       return false
@@ -560,8 +587,8 @@ const getSingleDayEventsForWorkerAndDay = (workerId: string, date: Atemporal): C
   
   // Compute fresh result
   const result = singleDayEvents.value.filter(event => {
-    const eventStartDate = atemporal(event.startTime)
-    const eventEndDate = atemporal(event.endTime)
+    const eventStartDate = atemporal(normalizeTimestamp(event.startTime))
+    const eventEndDate = atemporal(normalizeTimestamp(event.endTime))
     
     const isSameDay = eventStartDate.format('YYYY-MM-DD') === targetDate && 
                       eventEndDate.format('YYYY-MM-DD') === targetDate
@@ -600,8 +627,8 @@ const getMultiDayEventsForWorker = (workerId: string): CalendarEvent[] => {
   const result = multiDayEvents.value.filter(event => {
     if (event.resourceId !== workerId) return false
     
-    const eventStart = atemporal(event.startTime).startOf('day')
-    const eventEnd = atemporal(event.endTime).startOf('day')
+    const eventStart = atemporal(normalizeTimestamp(event.startTime)).startOf('day')
+    const eventEnd = atemporal(normalizeTimestamp(event.endTime)).startOf('day')
     const weekStartDay = weekStart!.startOf('day')
     const weekEndDay = weekEnd!.startOf('day')
     
@@ -622,12 +649,12 @@ const getMultiDayEventsForWorker = (workerId: string): CalendarEvent[] => {
  * Fixed to properly handle end times for multi-day events
  */
 const doMultiDayEventsOverlap = (event1: CalendarEvent, event2: CalendarEvent): boolean => {
-  const start1 = atemporal(event1.startTime).startOf('day')
+  const start1 = atemporal(normalizeTimestamp(event1.startTime)).startOf('day')
   // For multi-day events, we need to include the end date in the range
   // Use startOf('day') for the end date but check if events actually overlap
-  const end1 = atemporal(event1.endTime).startOf('day')
-  const start2 = atemporal(event2.startTime).startOf('day')
-  const end2 = atemporal(event2.endTime).startOf('day')
+  const end1 = atemporal(normalizeTimestamp(event1.endTime)).startOf('day')
+  const start2 = atemporal(normalizeTimestamp(event2.startTime)).startOf('day')
+  const end2 = atemporal(normalizeTimestamp(event2.endTime)).startOf('day')
   
   // Two events overlap if:
   // - Event 1 starts before or on the day Event 2 ends AND
@@ -647,8 +674,8 @@ const getMultiDayEventsForWorkerWithLanes = (workerId: string): (CalendarEvent &
   
   // Sort events by start time for consistent processing
   const sortedEvents = workerEvents.sort((a, b) => {
-    const startA = atemporal(a.startTime)
-    const startB = atemporal(b.startTime)
+    const startA = atemporal(normalizeTimestamp(a.startTime))
+    const startB = atemporal(normalizeTimestamp(b.startTime))
     return startA.isBefore(startB) ? -1 : 1
   })
   
@@ -940,8 +967,8 @@ const formatEventTime = (event: CalendarEvent): string => {
     return 'All day'
   }
   
-  const startTime = atemporal(event.startTime)
-  const endTime = atemporal(event.endTime)
+  const startTime = atemporal(normalizeTimestamp(event.startTime))
+  const endTime = atemporal(normalizeTimestamp(event.endTime))
   
   const startFormatted = startTime.format('h:mma')
   const endFormatted = endTime.format('h:mma')
@@ -953,8 +980,8 @@ const formatEventTime = (event: CalendarEvent): string => {
  * Format multi-day event date range in DD/MM format
  */
 const formatMultiDayEvent = (event: CalendarEvent): string => {
-  const startDate = atemporal(event.startTime)
-  const endDate = atemporal(event.endTime)
+  const startDate = atemporal(normalizeTimestamp(event.startTime))
+  const endDate = atemporal(normalizeTimestamp(event.endTime))
   
   const startFormatted = startDate.format('DD/MM')
   const endFormatted = endDate.format('DD/MM')

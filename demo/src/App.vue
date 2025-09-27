@@ -545,7 +545,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import atemporal from 'atemporal'
 import AtempoCal from '../../src/AtempoCal.vue'
 import { useTheme } from '../../src/composables/useTheme'
-import type { CalendarEvent, CalendarResource, CalendarConfig, EventAction } from '../../src/types'
+import type { CalendarEvent, CalendarResource, CalendarConfig, EventAction, AtemporalInput } from '../../src/types'
 import { ChevronLeftIcon, ChevronRightIcon, CalendarDaysIcon } from '@heroicons/vue/24/outline'
 
 /**
@@ -1386,11 +1386,34 @@ const handleSlotClick = (slotInfo: any) => {
 }
 
 /**
+ * Normalize timestamp to ensure compatibility with atemporal library
+ */
+const normalizeTimestamp = (timestamp: AtemporalInput): AtemporalInput => {
+  if (typeof timestamp === 'object' && timestamp !== null) {
+    // Handle Firestore format with _seconds and _nanoseconds
+    if ('_seconds' in timestamp && '_nanoseconds' in timestamp) {
+      return {
+        seconds: timestamp._seconds,
+        nanoseconds: timestamp._nanoseconds
+      }
+    }
+    // Handle objects with seconds but missing nanoseconds
+    if ('seconds' in timestamp && !('nanoseconds' in timestamp)) {
+      return {
+        seconds: timestamp.seconds,
+        nanoseconds: 0
+      }
+    }
+  }
+  return timestamp
+}
+
+/**
  * Format event time for display
  */
 const formatEventTime = (event: CalendarEvent): string => {
-  const start = atemporal(event.startTime)
-  const end = atemporal(event.endTime)
+  const start = atemporal(normalizeTimestamp(event.startTime))
+  const end = atemporal(normalizeTimestamp(event.endTime))
   
   if (event.isAllDay) {
     return 'All Day'

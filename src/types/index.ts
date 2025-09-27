@@ -40,13 +40,11 @@ export interface SpecialEventColors {
 /**
  * Atemporal-compatible date/time input types
  * Supports strings, Date objects, Firestore timestamps, and other formats that atemporal can handle
+ * Updated to match atemporal library's DateInput type requirements exactly
  */
 export type AtemporalInput = string | Date | number | {
   seconds: number
-  nanoseconds?: number
-} | {
-  _seconds: number
-  _nanoseconds?: number
+  nanoseconds: number
 }
 
 /**

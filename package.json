@@ -1,6 +1,6 @@
 {
   "name": "atempo-cal",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "A Vue 3 weekly scheduling calendar component designed for workers scheduling management",
   "type": "module",
   "main": "./dist/atempo-cal.umd.js",
@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@heroicons/vue": "^2.2.0",
-    "atemporal": "0.1.9",
+    "atemporal": "0.2.0",
     "vue": "^3.5.22"
   },
   "devDependencies": {

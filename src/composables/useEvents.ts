@@ -1,7 +1,33 @@
 import { computed, ref, type Ref, type ComputedRef } from 'vue'
-import type { CalendarEvent, Atemporal } from '../types'
+import type { CalendarEvent, Atemporal, AtemporalInput } from '../types'
 import { validateEvent, generateEventId, filterEventsForDate, filterEventsForDateRange } from '../utils/eventHelpers'
 import atemporal from 'atemporal'
+
+/**
+ * Normalize timestamp input to atemporal-compatible format
+ * Handles Firestore timestamp format conversion
+ * @param input - The timestamp input
+ * @returns Normalized timestamp
+ */
+function normalizeTimestamp(input: AtemporalInput): AtemporalInput {
+  // Handle Firestore timestamp format with _seconds and _nanoseconds
+  if (input && typeof input === 'object' && '_seconds' in input && '_nanoseconds' in input) {
+    return {
+      seconds: (input as any)._seconds,
+      nanoseconds: (input as any)._nanoseconds || 0
+    }
+  }
+  
+  // Handle objects with seconds but missing nanoseconds
+  if (input && typeof input === 'object' && 'seconds' in input && !('nanoseconds' in input)) {
+    return {
+      seconds: (input as any).seconds,
+      nanoseconds: 0
+    }
+  }
+  
+  return input
+}
 
 /**
  * Return type for useEvents composable
@@ -124,7 +150,7 @@ export function useEvents(initialEvents: CalendarEvent[] = []): UseEventsReturn 
     // This is a simplified implementation
     // In a real scenario, you might want to filter by time range as well
     return events.value.filter(event => {
-      const eventDate = atemporal(event.startTime).format('YYYY-MM-DD')
+      const eventDate = atemporal(normalizeTimestamp(event.startTime)).format('YYYY-MM-DD')
       const targetDate = atemporal(date).format('YYYY-MM-DD')
       
       const matchesDate = eventDate === targetDate
