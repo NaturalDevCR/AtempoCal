@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.5](https://github.com/NaturalDevCR/AtempoCal/compare/v2.2.4...v2.2.5) (2025-01-27)
+
+
+### Bug Fixes
+
+* implement comprehensive defensive programming practices ([#defensive-programming](https://github.com/NaturalDevCR/AtempoCal/commit/defensive-programming)) - Added extensive null checks, try-catch blocks, and safe DOM property access throughout WeeklyView component to prevent 'Cannot read properties of null' errors in production environments, especially in frameworks like Quasar with complex component lifecycles
+* enhance DOM manipulation safety with robust error handling ([#dom-safety](https://github.com/NaturalDevCR/AtempoCal/commit/dom-safety)) - Improved scroll handlers, resize handlers, and lifecycle methods with comprehensive error boundaries and validation checks
+* strengthen querySelector and DOM element validation ([#dom-validation](https://github.com/NaturalDevCR/AtempoCal/commit/dom-validation)) - Added proper null checks for all DOM queries and element property access to ensure production stability
+
 ## [2.2.4](https://github.com/NaturalDevCR/AtempoCal/compare/v2.2.3...v2.2.4) (2025-01-27)
 
 

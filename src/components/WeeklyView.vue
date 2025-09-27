@@ -257,21 +257,32 @@ const displayWorkers = computed((): CalendarResource[] => {
  * Calculate total content height for proper scroll detection
  */
 const calculateContentHeight = (): number => {
-  if (!scrollContainer.value) return 0
-  
-  const resourceContainer = scrollContainer.value.querySelector('.resource-container')
-  if (!resourceContainer) return 0
-  
-  // Calculate total height of all worker rows
-  let totalHeight = 0
-  const workerRows = resourceContainer.querySelectorAll('.resource-row')
-  
-  workerRows.forEach(row => {
-    const rowElement = row as HTMLElement
-    totalHeight += rowElement.offsetHeight
-  })
-  
-  return totalHeight
+  try {
+    if (!scrollContainer.value) return 0
+    
+    const resourceContainer = scrollContainer.value.querySelector('.resource-container')
+    if (!resourceContainer) return 0
+    
+    // Calculate total height of all worker rows
+    let totalHeight = 0
+    const workerRows = resourceContainer.querySelectorAll('.resource-row')
+    
+    if (!workerRows || workerRows.length === 0) {
+      return 0
+    }
+    
+    workerRows.forEach(row => {
+      const rowElement = row as HTMLElement
+      if (rowElement && typeof rowElement.offsetHeight === 'number') {
+        totalHeight += rowElement.offsetHeight
+      }
+    })
+    
+    return totalHeight
+  } catch (error) {
+    console.warn('Error calculating content height:', error)
+    return 0 // Safe fallback
+  }
 }
 
 /**
@@ -317,19 +328,28 @@ const updateScrollMeasurements = (): void => {
   if (!container) return
   
   try {
-    scrollHeight.value = container.scrollHeight
-    clientHeight.value = container.clientHeight
+    // Safely access scroll properties with validation
+    if (typeof container.scrollHeight === 'number') {
+      scrollHeight.value = container.scrollHeight
+    }
+    
+    if (typeof container.clientHeight === 'number') {
+      clientHeight.value = container.clientHeight
+    }
     
     // Also calculate content height for debugging purposes
     const contentHeight = calculateContentHeight()
     
     // Ensure scroll detection works properly by forcing a layout recalculation
     if (contentHeight > clientHeight.value && shouldEnableScroll.value) {
-      container.style.overflowY = 'auto'
+      // Safely set overflow style
+      if (container.style) {
+        container.style.overflowY = 'auto'
+      }
     }
-  } catch {
-    // Handle case where container becomes null during execution
-    // Silently handle to prevent console warnings in production
+  } catch (error) {
+    // Handle case where container becomes null during execution or other DOM errors
+    console.warn('Error updating scroll measurements:', error)
   }
 }
 
@@ -389,57 +409,63 @@ const shouldEnableScroll = computed((): boolean => {
  * Measures all worker names, roles, and header text to determine optimal width
  */
 const dynamicWorkerColumnWidth = computed((): string => {
-  // Handle edge case: no workers
-  if (!displayWorkers.value.length) {
-    return '190px' // Default width when no workers
-  }
-  
-  // Create a temporary canvas element for text measurement
-  const canvas = document.createElement('canvas')
-  const context = canvas.getContext('2d')
-  if (!context) return '190px' // Fallback to current width
-  
-  let maxWidth = 0
-  
-  // Measure header text "COLABORADORES" with proper font metrics
-  context.font = '600 14px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-  const headerWidth = context.measureText('COLABORADORES').width
-  maxWidth = Math.max(maxWidth, headerWidth)
-  
-  // Measure all worker names and roles
-  displayWorkers.value.forEach(worker => {
-    // Skip empty or invalid worker names
-    if (!worker.name || typeof worker.name !== 'string') return
-    
-    // Measure worker name with proper font metrics
-    context.font = '500 14px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-    const nameWidth = context.measureText(worker.name.trim()).width
-    maxWidth = Math.max(maxWidth, nameWidth)
-    
-    // Measure worker role if it exists
-    if (worker.metadata?.role && typeof worker.metadata.role === 'string') {
-      context.font = '400 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-      const roleWidth = context.measureText(worker.metadata.role.trim()).width
-      maxWidth = Math.max(maxWidth, roleWidth)
+  try {
+    // Handle edge case: no workers
+    if (!displayWorkers.value.length) {
+      return '190px' // Default width when no workers
     }
-  })
-  
-  // Add comprehensive padding calculation:
-  // - Left padding: 0.75rem (12px)
-  // - Right padding: 0.75rem (12px) 
-  // - Indicator width: 0.75rem (12px)
-  // - Indicator margin: 0.5rem (8px)
-  // - Extra spacing for visual comfort: 1rem (16px)
-  const paddingInPixels = 12 + 12 + 12 + 8 + 16 // Total: 60px
-  const totalWidth = maxWidth + paddingInPixels
-  
-  // Ensure minimum width of 190px and maximum reasonable width of 320px
-  // Add responsive behavior for smaller screens
-  const minWidth = window.innerWidth < 768 ? 160 : 190
-  const maxWidthLimit = window.innerWidth < 768 ? 250 : 320
-  const finalWidth = Math.max(minWidth, Math.min(maxWidthLimit, totalWidth))
-  
-  return `${Math.ceil(finalWidth)}px`
+    
+    // Create a temporary canvas element for text measurement
+    const canvas = document.createElement('canvas')
+    const context = canvas.getContext('2d')
+    if (!context) return '190px' // Fallback to current width
+    
+    let maxWidth = 0
+    
+    // Measure header text "COLABORADORES" with proper font metrics
+    context.font = '600 14px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+    const headerWidth = context.measureText('COLABORADORES').width
+    maxWidth = Math.max(maxWidth, headerWidth)
+    
+    // Measure all worker names and roles
+    displayWorkers.value.forEach(worker => {
+      // Skip empty or invalid worker names
+      if (!worker || !worker.name || typeof worker.name !== 'string') return
+      
+      // Measure worker name with proper font metrics
+      context.font = '500 14px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+      const nameWidth = context.measureText(worker.name.trim()).width
+      maxWidth = Math.max(maxWidth, nameWidth)
+      
+      // Measure worker role if it exists
+      if (worker.metadata?.role && typeof worker.metadata.role === 'string') {
+        context.font = '400 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+        const roleWidth = context.measureText(worker.metadata.role.trim()).width
+        maxWidth = Math.max(maxWidth, roleWidth)
+      }
+    })
+    
+    // Add comprehensive padding calculation:
+    // - Left padding: 0.75rem (12px)
+    // - Right padding: 0.75rem (12px) 
+    // - Indicator width: 0.75rem (12px)
+    // - Indicator margin: 0.5rem (8px)
+    // - Extra spacing for visual comfort: 1rem (16px)
+    const paddingInPixels = 12 + 12 + 12 + 8 + 16 // Total: 60px
+    const totalWidth = maxWidth + paddingInPixels
+    
+    // Ensure minimum width of 190px and maximum reasonable width of 320px
+    // Add responsive behavior for smaller screens with safe window access
+    const windowWidth = (typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1024
+    const minWidth = windowWidth < 768 ? 160 : 190
+    const maxWidthLimit = windowWidth < 768 ? 250 : 320
+    const finalWidth = Math.max(minWidth, Math.min(maxWidthLimit, totalWidth))
+    
+    return `${Math.ceil(finalWidth)}px`
+  } catch (error) {
+    console.warn('Error calculating dynamic worker column width:', error)
+    return '190px' // Safe fallback
+  }
 })
 
 /**
@@ -850,41 +876,51 @@ const getWorkerMultiDayEventStyle = (event: CalendarEvent & { lane: number }, _w
  * Calculate dynamic width and height for event text content
  */
 const calculateEventDimensions = (event: CalendarEvent): { width: number; height: number } => {
-  // Create a temporary canvas element for text measurement
-  const canvas = document.createElement('canvas')
-  const context = canvas.getContext('2d')
-  if (!context) return { width: 0, height: EVENT_HEIGHT }
-  
-  // Set font to match event styling
-  const titleFont = '500 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-  const timeFont = '400 11px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-  
-  // Get event text content
-  const eventText = formatEventTime(event)
-  const titleText = event.title || ''
-  
-  // Measure title text
-  context.font = titleFont
-  const titleWidth = context.measureText(titleText).width
-  
-  // Measure time text
-  context.font = timeFont
-  const timeWidth = context.measureText(eventText).width
-  
-  // Calculate required width (max of title and time + padding)
-  const maxTextWidth = Math.max(titleWidth, timeWidth)
-  const requiredWidth = maxTextWidth + 24 // 16px padding + 8px spacing
-  
-  // Calculate required height based on content
-  // Base height for single line + additional height for time line
-  const baseHeight = 16 // Title line height
-  const timeHeight = 14 // Time line height
-  const padding = 8 // Top and bottom padding
-  const requiredHeight = baseHeight + timeHeight + padding
-  
-  return {
-    width: Math.max(115, requiredWidth), // Minimum 115px
-    height: Math.max(EVENT_HEIGHT, requiredHeight)
+  try {
+    // Validate event input
+    if (!event) {
+      return { width: 115, height: EVENT_HEIGHT }
+    }
+    
+    // Create a temporary canvas element for text measurement
+    const canvas = document.createElement('canvas')
+    const context = canvas.getContext('2d')
+    if (!context) return { width: 115, height: EVENT_HEIGHT }
+    
+    // Set font to match event styling
+    const titleFont = '500 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+    const timeFont = '400 11px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+    
+    // Get event text content with safe access
+    const eventText = formatEventTime(event)
+    const titleText = (event.title && typeof event.title === 'string') ? event.title : ''
+    
+    // Measure title text
+    context.font = titleFont
+    const titleWidth = titleText ? context.measureText(titleText).width : 0
+    
+    // Measure time text
+    context.font = timeFont
+    const timeWidth = eventText ? context.measureText(eventText).width : 0
+    
+    // Calculate required width (max of title and time + padding)
+    const maxTextWidth = Math.max(titleWidth, timeWidth)
+    const requiredWidth = maxTextWidth + 24 // 16px padding + 8px spacing
+    
+    // Calculate required height based on content
+    // Base height for single line + additional height for time line
+    const baseHeight = 16 // Title line height
+    const timeHeight = 14 // Time line height
+    const padding = 8 // Top and bottom padding
+    const requiredHeight = baseHeight + timeHeight + padding
+    
+    return {
+      width: Math.max(115, requiredWidth), // Minimum 115px
+      height: Math.max(EVENT_HEIGHT, requiredHeight)
+    }
+  } catch (error) {
+    console.warn('Error calculating event dimensions:', error)
+    return { width: 115, height: EVENT_HEIGHT } // Safe fallback
   }
 }
 
@@ -1018,45 +1054,65 @@ watch([() => props.fixedHeight, () => props.maxWorkersBeforeScroll, () => props.
  * Handle scroll events for proper scroll behavior
  */
 const handleScroll = (): void => {
-  updateScrollMeasurements()
+  try {
+    updateScrollMeasurements()
+  } catch (error) {
+    console.warn('Error handling scroll event:', error)
+  }
 }
 
 /**
  * Handle resize events to recalculate scroll measurements
  */
 const handleResize = (): void => {
-  if (scrollContainer.value && shouldEnableScroll.value) {
-    updateScrollMeasurements()
+  try {
+    if (scrollContainer.value && shouldEnableScroll.value) {
+      updateScrollMeasurements()
+    }
+  } catch (error) {
+    console.warn('Error handling resize event:', error)
   }
 }
 
 // Component lifecycle
 onMounted(async () => {
-  // Initialize version counters
-  eventsVersion.value = 1
-  resourcesVersion.value = 1
-  weekVersion.value = 1
-  
-  // Initialize scroll container after DOM is ready
-  await nextTick()
-  await initializeScrollContainer()
-  
-  // Add event listeners for scroll and resize
-  if (scrollContainer.value) {
-    scrollContainer.value.addEventListener('scroll', handleScroll, { passive: true })
+  try {
+    // Initialize version counters
+    eventsVersion.value = 1
+    resourcesVersion.value = 1
+    weekVersion.value = 1
+    
+    // Initialize scroll container after DOM is ready
+    await nextTick()
+    await initializeScrollContainer()
+    
+    // Add event listeners for scroll and resize
+    if (scrollContainer.value) {
+      scrollContainer.value.addEventListener('scroll', handleScroll, { passive: true })
+    }
+    if (window) {
+      window.addEventListener('resize', handleResize, { passive: true })
+    }
+  } catch (error) {
+    console.error('Error during component mounting:', error)
   }
-  window.addEventListener('resize', handleResize, { passive: true })
 })
 
 onUnmounted(() => {
-  // Clean up event listeners
-  if (scrollContainer.value) {
-    scrollContainer.value.removeEventListener('scroll', handleScroll)
+  try {
+    // Clean up event listeners
+    if (scrollContainer.value) {
+      scrollContainer.value.removeEventListener('scroll', handleScroll)
+    }
+    if (window) {
+      window.removeEventListener('resize', handleResize)
+    }
+    
+    // Clean up caches on unmount
+    clearAllCaches()
+  } catch (error) {
+    console.error('Error during component unmounting:', error)
   }
-  window.removeEventListener('resize', handleResize)
-  
-  // Clean up caches on unmount
-  clearAllCaches()
 })
 
 // Removed getResourceName function - no longer needed
