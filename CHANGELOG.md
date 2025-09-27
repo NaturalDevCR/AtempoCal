@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.3.2](https://github.com/NaturalDevCR/AtempoCal/compare/v2.3.1...v2.3.2) (2025-01-27)
+
+
+### Maintenance
+
+* version bump and deployment update ([#version-bump-2.3.2](https://github.com/NaturalDevCR/AtempoCal/commit/version-bump-2.3.2)) - Updated package version to 2.3.2 for maintenance release with improved stability and deployment processes
+
 ## [2.3.1](https://github.com/NaturalDevCR/AtempoCal/compare/v2.3.0...v2.3.1) (2025-01-27)
 
 
