@@ -164,6 +164,52 @@
         </div>
       </div>
 
+      <!-- Event Display Configuration Demo Controls -->
+      <div class="mb-8">
+        <div class="demo-card p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            🎨 Event Display Configuration
+          </h3>
+          <p class="text-gray-600 mb-4">
+            Configure how events are displayed in the calendar. Toggle event titles on/off for single-day events while multi-day events always show titles.
+          </p>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Show Event Titles Toggle -->
+            <div>
+              <label class="flex items-center space-x-3 cursor-pointer">
+                <input
+                  v-model="showEventTitles"
+                  type="checkbox"
+                  class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                />
+                <div>
+                  <span class="text-sm font-medium text-gray-700">Show Event Titles</span>
+                  <p class="text-xs text-gray-500">
+                    {{ showEventTitles ? 'Single-day events show both title and time' : 'Single-day events show only time' }}
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            <!-- Display Mode Info -->
+            <div class="bg-gray-50 rounded-lg p-4">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">Current Display Mode</h4>
+              <div class="space-y-1 text-xs text-gray-600">
+                <div class="flex items-center space-x-2">
+                  <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span>Single-day events: {{ showEventTitles ? 'Title + Time' : 'Time only' }}</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <span>Multi-day events: Always show title + dates</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Real-time Event Testing Controls -->
       <div class="mb-8">
         <div class="demo-card p-6">
@@ -533,6 +579,9 @@ const scrollMode = ref<'auto' | 'fixed' | 'workers' | 'disabled'>('auto')
 const fixedHeightValue = ref(400)
 const maxWorkersValue = ref(8)
 
+// Event display configuration for demo
+const showEventTitles = ref(true)
+
 // Calendar configuration
 const calendarConfig = ref<CalendarConfig>({
   timezone: 'America/Costa_Rica',
@@ -540,6 +589,8 @@ const calendarConfig = ref<CalendarConfig>({
   theme: 'auto',
   showWeekends: true,
   firstDayOfWeek: 1, // Monday
+  // Event display configuration
+  showEventTitles: showEventTitles.value,
   // Scroll configuration - dynamically updated based on demo controls
   maxWorkersBeforeScroll: scrollMode.value === 'workers' ? maxWorkersValue.value : undefined,
   fixedHeight: scrollMode.value === 'fixed' ? `${fixedHeightValue.value}px` : undefined,
@@ -1357,11 +1408,12 @@ const getResourceName = (resourceId: string): string => {
 }
 
 /**
- * Watch for scroll configuration changes and update calendar config
+ * Watch for configuration changes and update calendar config
  */
-watch([scrollMode, fixedHeightValue, maxWorkersValue], () => {
+watch([scrollMode, fixedHeightValue, maxWorkersValue, showEventTitles], () => {
   calendarConfig.value = {
     ...calendarConfig.value,
+    showEventTitles: showEventTitles.value,
     maxWorkersBeforeScroll: scrollMode.value === 'workers' ? maxWorkersValue.value : undefined,
     fixedHeight: scrollMode.value === 'fixed' ? `${fixedHeightValue.value}px` : undefined,
     enableAutoScroll: scrollMode.value !== 'disabled'

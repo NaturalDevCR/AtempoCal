@@ -53,6 +53,7 @@
         :on-date-select="(date) => navigateToDate(date)"
         :readonly="readonly"
         :special-event-colors="specialEventColors"
+        :show-event-titles="mergedConfig.showEventTitles"
         :max-workers-before-scroll="mergedConfig.maxWorkersBeforeScroll"
         :fixed-height="mergedConfig.fixedHeight"
         :enable-auto-scroll="mergedConfig.enableAutoScroll"

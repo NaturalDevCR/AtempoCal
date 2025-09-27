@@ -122,7 +122,8 @@ const config = ref<CalendarConfig>({
   timezone: 'America/New_York',
   locale: 'en-US',
   showWeekends: true,
-  firstDayOfWeek: 1 // Monday
+  firstDayOfWeek: 1, // Monday
+  showEventTitles: true // Show event titles for single-day events
 })
 
 // Theme configuration
@@ -137,6 +138,54 @@ const handleEventCreate = (eventData: Partial<CalendarEvent>) => {
 }
 </script>
 ```
+
+## 🎨 Event Display Configuration
+
+AtempoCal provides flexible event display options to customize how events appear in the calendar:
+
+### Show/Hide Event Titles
+
+Control whether single-day events display their titles or show only time information:
+
+```vue
+<template>
+  <div>
+    <!-- Toggle for event title display -->
+    <label>
+      <input v-model="showTitles" type="checkbox" />
+      Show Event Titles
+    </label>
+    
+    <!-- Calendar with configurable event display -->
+    <AtempoCal
+      :events="events"
+      :resources="resources"
+      :config="{
+        showEventTitles: showTitles
+      }"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+
+// Control event title display
+const showTitles = ref(true)
+</script>
+```
+
+**Display Modes:**
+
+- **`showEventTitles: true`** (default): Single-day events show both title and time
+- **`showEventTitles: false`**: Single-day events show only time information
+- **Multi-day events**: Always display title and date range regardless of this setting
+
+**Use Cases:**
+
+- **Time-only mode**: Perfect for dense schedules where you want to focus on time slots
+- **Full display mode**: Ideal when event details are important for quick identification
+- **Responsive design**: Switch modes based on screen size or user preference
 
 ## 📚 Documentation
 
@@ -195,6 +244,7 @@ interface CalendarConfig {
   theme?: 'light' | 'dark' | 'auto'
   showWeekends?: boolean
   firstDayOfWeek?: number // 0-6, 0 = Sunday
+  showEventTitles?: boolean // Show event titles for single-day events (default: true)
 }
 ```
 

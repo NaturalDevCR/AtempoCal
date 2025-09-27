@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.4](https://github.com/NaturalDevCR/AtempoCal/compare/v2.2.3...v2.2.4) (2025-01-27)
+
+
+### Bug Fixes
+
+* fix TypeError during week navigation in Quasar Framework applications ([#quasar-navigation-fix](https://github.com/NaturalDevCR/AtempoCal/commit/quasar-navigation-fix)) - Added null validations and try-catch blocks to prevent 'Cannot read properties of null (reading 'style')' error during component lifecycle transitions in Quasar applications
+* enhance framework compatibility with robust DOM element validation ([#dom-validation](https://github.com/NaturalDevCR/AtempoCal/commit/dom-validation)) - Improved initializeScrollContainer and updateScrollMeasurements functions with proper null checks for better compatibility with aggressive component lifecycle management
+
 ## [2.2.3](https://github.com/NaturalDevCR/AtempoCal/compare/v2.2.2...v2.2.3) (2025-01-27)
 
 

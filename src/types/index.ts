@@ -75,6 +75,9 @@ export interface CalendarConfig {
   firstDayOfWeek?: number // 0-6, 0 = Sunday
   specialEventColors?: Partial<SpecialEventColors> // Custom colors for special event types
   
+  // Event display configuration
+  showEventTitles?: boolean // Show event titles for single-day events (default: true)
+  
   // Scroll configuration options
   maxWorkersBeforeScroll?: number // Maximum number of workers before enabling scroll
   fixedHeight?: string | number // Fixed height for calendar content (e.g., '400px', 500)

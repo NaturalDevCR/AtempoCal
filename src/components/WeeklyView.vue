@@ -130,7 +130,7 @@
                     }"
                   >
                     <div class="event-content">
-                      <span class="event-title">{{ event.title }}</span>
+                      <span v-if="props.showEventTitles" class="event-title">{{ event.title }}</span>
                       <span class="event-time">{{ formatEventTime(event) }}</span>
                     </div>
                   </div>
@@ -193,6 +193,8 @@ interface Props {
   onDateSelect: (date: Atemporal) => void
   specialEventColors?: Record<string, string>
   readonly?: boolean
+  // Event display configuration
+  showEventTitles?: boolean
   // Scroll configuration options
   maxWorkersBeforeScroll?: number
   fixedHeight?: string | number
@@ -201,6 +203,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   readonly: false,
+  showEventTitles: true,
   enableAutoScroll: true
 })
 
@@ -281,10 +284,19 @@ const initializeScrollContainer = async (): Promise<void> => {
   
   const container = scrollContainer.value
   
-  // Force layout calculation
-  container.style.visibility = 'hidden'
-  container.offsetHeight // Trigger reflow
-  container.style.visibility = 'visible'
+  // Additional null check after nextTick to prevent race conditions
+  if (!container) return
+  
+  // Force layout calculation with proper null checks
+  try {
+    container.style.visibility = 'hidden'
+    container.offsetHeight // Trigger reflow
+    container.style.visibility = 'visible'
+  } catch {
+    // Handle case where container becomes null during execution
+    // Silently return to prevent console warnings in production
+    return
+  }
   
   // Update scroll measurements
   updateScrollMeasurements()
@@ -300,15 +312,24 @@ const updateScrollMeasurements = (): void => {
   if (!scrollContainer.value) return
   
   const container = scrollContainer.value
-  scrollHeight.value = container.scrollHeight
-  clientHeight.value = container.clientHeight
   
-  // Also calculate content height for debugging purposes
-  const contentHeight = calculateContentHeight()
+  // Additional null check to prevent race conditions
+  if (!container) return
   
-  // Ensure scroll detection works properly by forcing a layout recalculation
-  if (contentHeight > clientHeight.value && shouldEnableScroll.value) {
-    container.style.overflowY = 'auto'
+  try {
+    scrollHeight.value = container.scrollHeight
+    clientHeight.value = container.clientHeight
+    
+    // Also calculate content height for debugging purposes
+    const contentHeight = calculateContentHeight()
+    
+    // Ensure scroll detection works properly by forcing a layout recalculation
+    if (contentHeight > clientHeight.value && shouldEnableScroll.value) {
+      container.style.overflowY = 'auto'
+    }
+  } catch {
+    // Handle case where container becomes null during execution
+    // Silently handle to prevent console warnings in production
   }
 }
 
@@ -570,46 +591,7 @@ const getMultiDayEventsForWorker = (workerId: string): CalendarEvent[] => {
   return result
 }
 
-/**
- * Calculate the maximum number of total events (single-day + multi-day) that can appear on any single day for a worker
- */
-const getMaxEventsForWorker = (workerId: string): number => {
-  const firstWeekDate = weekDates.value[0]
-  if (!firstWeekDate) return 0
-  
-  const cacheKey = `maxevents-${workerId}-${firstWeekDate.format('YYYY-MM-DD')}-${eventsVersion.value}`
-  
-  // Check if we have a valid cached result
-  if (heightCache.value.has(cacheKey)) {
-    return heightCache.value.get(cacheKey)!
-  }
-  
-  let maxEvents = 0
-  
-  weekDates.value.forEach(date => {
-    // Count single-day events for this specific date
-    const singleDayEventsCount = getSingleDayEventsForWorkerAndDay(workerId, date).length
-    
-    // Count multi-day events that overlap with this specific date
-    const multiDayEvents = getMultiDayEventsForWorker(workerId)
-    const multiDayEventsCount = multiDayEvents.filter(event => {
-      const eventStart = atemporal(event.startTime).startOf('day')
-      const eventEnd = atemporal(event.endTime).startOf('day')
-      const targetDate = date.startOf('day')
-      
-      // Check if the multi-day event overlaps with this specific date
-      return eventStart.isSameOrBefore(targetDate) && eventEnd.isSameOrAfter(targetDate)
-    }).length
-    
-    // Total events that can appear on this day
-    const totalEventsForDay = singleDayEventsCount + multiDayEventsCount
-    maxEvents = Math.max(maxEvents, totalEventsForDay)
-  })
-  
-  // Cache the result
-  heightCache.value.set(cacheKey, maxEvents)
-  return maxEvents
-}
+
 
 /**
  * Check if two multi-day events overlap in their date ranges
@@ -702,7 +684,7 @@ const getMaxMultiDayEventsForWorker = (workerId: string): number => {
 }
 
 /**
- * Calculate worker row height based on maximum events that can appear on any single day
+ * Calculate worker row height based on actual event dimensions and maximum events per day
  */
 const getWorkerRowHeight = (workerId: string): number => {
   const firstWeekDate = weekDates.value[0]
@@ -715,13 +697,39 @@ const getWorkerRowHeight = (workerId: string): number => {
     return heightCache.value.get(cacheKey)!
   }
   
-  // Get the maximum number of events that can appear on any single day
-  const maxEventsPerDay = getMaxEventsForWorker(workerId)
+  // Calculate the maximum required height for any single day
+  let maxDayHeight = MIN_ROW_HEIGHT
   
-  // Calculate height with proper padding for stacked events
-  // Need top padding (8px) + bottom padding (40px) + extra space for proper visual separation
-  const result = maxEventsPerDay === 0 ? MIN_ROW_HEIGHT : 
-    Math.max(MIN_ROW_HEIGHT, maxEventsPerDay * (EVENT_HEIGHT + EVENT_GAP) + 48) // 48px total padding (8px top + 40px bottom)
+  // Check each day in the week
+  weekDates.value.forEach(date => {
+    // Get multi-day events height for this worker
+    const maxMultiDayLanes = getMaxMultiDayEventsForWorker(workerId)
+    const multiDayHeight = maxMultiDayLanes * (EVENT_HEIGHT + EVENT_GAP)
+    
+    // Get single-day events for this worker and day
+    const singleDayEvents = getSingleDayEventsForWorkerAndDay(workerId, date)
+    
+    // Calculate cumulative height of single-day events using actual dimensions
+    let singleDayEventsHeight = 0
+    singleDayEvents.forEach(event => {
+      const dimensions = calculateEventDimensions(event)
+      singleDayEventsHeight += dimensions.height + EVENT_GAP
+    })
+    
+    // Remove the last gap if there are events
+    if (singleDayEvents.length > 0) {
+      singleDayEventsHeight -= EVENT_GAP
+    }
+    
+    // Calculate total height for this day: padding + multi-day events + single-day events
+    const dayHeight = 8 + multiDayHeight + singleDayEventsHeight + 40 // 8px top + 40px bottom padding
+    
+    // Update maximum height if this day requires more space
+    maxDayHeight = Math.max(maxDayHeight, dayHeight)
+  })
+  
+  // Ensure minimum height
+  const result = Math.max(MIN_ROW_HEIGHT, maxDayHeight)
   
   // Cache the result
   heightCache.value.set(cacheKey, result)
@@ -1646,6 +1654,20 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
+}
+
+/* Time-only display mode optimizations */
+.event-content:has(.event-time:only-child) {
+  justify-content: center;
+  align-items: center;
+}
+
+.event-content:has(.event-time:only-child) .event-time {
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 1;
+  text-align: center;
+  line-height: 1.2;
 }
 
 .event-resource {
